@@ -625,14 +625,8 @@ class VomnibarUI {
     } else if (isPrimarySearchSuggestion(completion)) {
       query = UrlUtils.createSearchUrl(query, completion.searchUrl);
       this.hide(() => this.launchUrl(query, openInNewTab));
-    } else if (completion.defaultSearchQuery != null) {
-      this.hide(() =>
-        chrome.runtime.sendMessage({
-          handler: "launchSearchQuery",
-          query: completion.defaultSearchQuery,
-          openInNewTab,
-        })
-      );
+    } else if (completion.verbatimQuery != null) {
+      await this.launchVerbatimQuery(completion.verbatimQuery, openInNewTab);
     } else if (completion.command) {
       this.hide(async () => {
         await chrome.runtime.sendMessage({
@@ -643,6 +637,20 @@ class VomnibarUI {
       });
     } else {
       this.hide(() => this.openCompletion(completion, openInNewTab));
+    }
+  }
+
+  async launchVerbatimQuery(query, openInNewTab) {
+    if (await UrlUtils.isUrl(query)) {
+      this.hide(() => this.launchUrl(query, openInNewTab));
+    } else {
+      this.hide(() =>
+        chrome.runtime.sendMessage({
+          handler: "launchSearchQuery",
+          query,
+          openInNewTab,
+        })
+      );
     }
   }
 
@@ -725,30 +733,38 @@ class VomnibarUI {
     if (this.lastRequestId != requestId) return;
 
     this.completions = results;
-    const exactSearchQuery = this.input.value.trim();
-    if (this.mode === "" && exactSearchQuery.length > 0 && !this.isUserSearchEngineActive()) {
-      const searchCompletion = {
-        defaultSearchQuery: exactSearchQuery,
+    const verbatimQuery = this.input.value.trim();
+    const supportsVerbatimQuery = ["", "search", "url"].includes(this.mode);
+    if (
+      supportsVerbatimQuery && verbatimQuery.length > 0 && !this.isUserSearchEngineActive()
+    ) {
+      const isUrlMode = this.mode === "url";
+      const verbatimCompletion = {
+        verbatimQuery,
         html: `<div class="completion-row">
-          <span class="result-icon">${phosphorIcon("magnifying-glass")}</span>
+          <span class="result-icon">${phosphorIcon(
+          isUrlMode ? "pencil-simple" : "magnifying-glass",
+        )}</span>
           <span class="completion-copy">
             <span class="top-half">
-              <span class="source">search</span>
-              <span class="title">Search “${Utils.escapeHtml(exactSearchQuery)}”</span>
+              <span class="source">${isUrlMode ? "url" : "search"}</span>
+              <span class="title">${Utils.escapeHtml(verbatimQuery)}</span>
             </span>
           </span>
         </div>`,
       };
-      const modeSelectorMatches = modeSelector.name.includes(exactSearchQuery.toLowerCase());
+      const modeSelectorMatches = this.mode === "" &&
+        modeSelector.name.includes(verbatimQuery.toLowerCase());
       const modeSelectorCompletion = renderModeCompletion(
         modeSelector,
         this.getModeKeybindings(modeSelector),
       );
-      const leadingCompletions = exactSearchQuery.toLowerCase() === modeSelector.name
-        ? [modeSelectorCompletion, searchCompletion]
+      const leadingCompletions = verbatimQuery.toLowerCase() === modeSelector.name &&
+          this.mode === ""
+        ? [modeSelectorCompletion, verbatimCompletion]
         : modeSelectorMatches
-        ? [searchCompletion, modeSelectorCompletion]
-        : [searchCompletion];
+        ? [verbatimCompletion, modeSelectorCompletion]
+        : [verbatimCompletion];
       this.completions = [...leadingCompletions, ...this.completions].slice(0, 10);
     }
     this.selection = this.completions[0]?.autoSelect ? 0 : this.initialSelectionValue;

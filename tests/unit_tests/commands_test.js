@@ -251,7 +251,7 @@ context("Validate commands and options data structures", () => {
     assert.equal("Vomnibar.activateMarks", helixKeyMappings["<space>'"]);
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
     assert.equal("Vomnibar.activateAll", helixKeyMappings["<space>t"]);
-    assert.equal("createTab", helixKeyMappings["<c-w>n"]);
+    assert.equal("Vomnibar.activateInNewTab", helixKeyMappings["<c-w>n"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>h"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>?"));

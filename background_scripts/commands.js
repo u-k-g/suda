@@ -573,7 +573,7 @@ const helixKeyMappings = {
   "<c-w>l": "nextTab",
   "<c-w>q": "removeTab",
   "<c-w>o": "closeOtherTabs",
-  "<c-w>n": "createTab",
+  "<c-w>n": "Vomnibar.activateInNewTab",
   "<c-w>d": "duplicateTab",
   "<c-w>u": "restoreTab",
   "<c-w>H": "moveTabLeft",

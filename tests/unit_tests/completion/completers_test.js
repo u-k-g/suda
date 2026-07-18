@@ -398,6 +398,34 @@ context("multi completer", () => {
     );
   });
 
+  should("rank an open tab above a domain in modeless results", async () => {
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://test${path}`);
+    const fakeCompleter = {
+      filter: () => [
+        new Suggestion({
+          description: "domain",
+          url: "https://phosphoricons.com",
+          relevancy: 2,
+          html: "domain",
+        }),
+        new Suggestion({
+          description: "tab",
+          url: "https://phosphoricons.com/?q=tor",
+          title: "Phosphor Icons",
+          relevancy: 0.1,
+          deDuplicate: false,
+          html: "tab",
+        }),
+      ],
+    };
+
+    const results = await filterCompleter(new MultiCompleter([fakeCompleter]), ["phos"], {
+      commandBarMode: "",
+    });
+
+    assert.equal(["tab", "domain"], results.map((suggestion) => suggestion.description));
+  });
+
   should("deduplicate suggestions with the same URL", async () => {
     const make = (url, relevancy) => new Suggestion({ url, relevancy, html: url });
     const fakeCompleter = {

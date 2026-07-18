@@ -819,6 +819,13 @@ export class MultiCompleter {
   postProcessSuggestions(request, queryTerms, suggestions) {
     for (const s of suggestions) {
       s.computeRelevancy(queryTerms);
+      // Domain suggestions intentionally have a strong fixed score. In the modeless command bar,
+      // an already-open matching tab is more useful than navigating to that domain again, so give
+      // tabs enough additional weight to rank above domains. Standalone tab selection and all
+      // other completer modes retain their original ranking.
+      if (request.commandBarMode === "" && s.description === "tab") {
+        s.relevancy += 2;
+      }
     }
     suggestions.sort((a, b) => b.relevancy - a.relevancy);
 
