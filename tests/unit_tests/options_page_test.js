@@ -33,6 +33,31 @@ context("options page", () => {
     assert.isFalse(optionsPage.getOptionEl("showCommandBarModeDescriptions").checked);
   });
 
+  should("enable every command-bar mode and modeless source by default", () => {
+    assert.isTrue(
+      Array.from(document.querySelectorAll('[name="disabledCommandBarModes"]')).every(
+        (element) => element.checked,
+      ),
+    );
+    assert.isTrue(
+      Array.from(document.querySelectorAll('[name="disabledModelessCommandBarSources"]')).every(
+        (element) => element.checked,
+      ),
+    );
+  });
+
+  should("save unchecked command-bar modes and modeless sources as disabled", async () => {
+    document.querySelector('[name="disabledCommandBarModes"][value="marks"]').checked = false;
+    document.querySelector(
+      '[name="disabledModelessCommandBarSources"][value="history"]',
+    ).checked = false;
+
+    await optionsPage.saveOptions();
+
+    assert.equal(["marks"], Settings.get("disabledCommandBarModes"));
+    assert.equal(["history"], Settings.get("disabledModelessCommandBarSources"));
+  });
+
   should("show validation errors for invalid fields on save", async () => {
     const el = optionsPage.getOptionEl("keyMappings");
     assert.isFalse(el.classList.contains("validation-error"));

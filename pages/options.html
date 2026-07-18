@@ -113,6 +113,42 @@ b: http://b.com/?q=%s description
           not run there.
         </div>
 
+        <header>Command Bar</header>
+
+        <h2>Modes shown in the mode selector</h2>
+        <div class="option-checklist">
+          <label><input type="checkbox" name="disabledCommandBarModes" value="find">Find</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="search">Search</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="history">History</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="tabs">Tabs</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="bookmarks">Bookmarks</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="url">URL</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="commands">Commands</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="marks">Marks</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="link:current">Link: current</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="link:new">Link: new</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="link:multi">Link: multi</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="link:download">Link: download</label>
+          <label><input type="checkbox" name="disabledCommandBarModes" value="link:copy">Link: copy</label>
+        </div>
+        <div class="example">
+          Unchecked modes are hidden from the <tt>modes</tt> list. Their direct keyboard shortcuts
+          continue to work.
+        </div>
+
+        <h2>Default command-bar sources</h2>
+        <div class="option-checklist">
+          <label><input type="checkbox" name="disabledModelessCommandBarSources" value="search">Search and URLs</label>
+          <label><input type="checkbox" name="disabledModelessCommandBarSources" value="tabs">Open tabs</label>
+          <label><input type="checkbox" name="disabledModelessCommandBarSources" value="history">History</label>
+          <label><input type="checkbox" name="disabledModelessCommandBarSources" value="bookmarks">Bookmarks</label>
+          <label><input type="checkbox" name="disabledModelessCommandBarSources" value="commands">Commands</label>
+        </div>
+        <div class="example">
+          Choose which existing suggestion sources are combined when the command bar has no active
+          mode. Dedicated modes are unaffected.
+        </div>
+
         <header>Advanced Options</header>
 
         <h2>Scroll step size</h2>

@@ -41,6 +41,12 @@ context("vomnibar page", () => {
     ui = vomnibarPage.ui;
   });
 
+  teardown(() => {
+    if (!Settings.isLoaded()) return;
+    Settings._settings.disabledCommandBarModes = [];
+    Settings._settings.disabledModelessCommandBarSources = [];
+  });
+
   should("hide when escape is pressed", async () => {
     ui.setQuery("www.example.com");
     // Here we assert that the dialog has been reset when esc is pressed, which happens as part of
@@ -48,6 +54,12 @@ context("vomnibar page", () => {
     // jacking into the channels for this are not worthwhile for this test.
     await ui.onKeyEvent(newKeyEvent({ key: "Escape" }));
     assert.equal("", ui.input.value);
+  });
+
+  should("use the bold command-bar search icon", () => {
+    const searchIcon = document.querySelector(".command-bar-search-icon");
+    assert.equal("bold", searchIcon.dataset.phosphorWeight);
+    assert.isTrue(searchIcon.classList.contains("ph-icon-bold"));
   });
 
   should("open without an active mode as the combined command bar", async () => {
@@ -77,6 +89,15 @@ context("vomnibar page", () => {
     await ui.update();
 
     assert.equal([], ui.completions);
+  });
+
+  should("hide user-disabled modes from the mode selector", async () => {
+    Settings._settings.disabledCommandBarModes = ["tabs"];
+    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    ui.setQuery("tabs");
+    await ui.update();
+
+    assert.isFalse(ui.completions.some((completion) => completion.commandBarMode === "tabs"));
   });
 
   should("render mode shortcuts from the live key mappings", async () => {
@@ -140,7 +161,7 @@ context("vomnibar page", () => {
     assert.equal("modes", ui.completerName);
   });
 
-  should("put an exact default-search action first for nonempty modeless queries", async () => {
+  should("put the exact typed query first for nonempty modeless queries", async () => {
     let launchedSearch = null;
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler === "filterCompletions") return [];
@@ -150,14 +171,59 @@ context("vomnibar page", () => {
     ui.setQuery("what is");
     await ui.update();
 
-    assert.equal("what is", ui.completions[0].defaultSearchQuery);
+    assert.equal("what is", ui.completions[0].verbatimQuery);
     assert.equal(0, ui.selection);
-    assert.equal("Search “what is”", ui.completionList.querySelector(".title").textContent);
+    assert.equal("what is", ui.completionList.querySelector(".title").textContent);
 
     await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
     ui.onHidden();
     assert.equal("what is", launchedSearch.query);
     assert.isTrue(launchedSearch.openInNewTab);
+  });
+
+  should("put the exact typed query first in search and URL modes", async () => {
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") {
+        return [{ url: "https://suggestion.example", html: "suggestion" }];
+      }
+    });
+
+    for (const mode of ["search", "url"]) {
+      await vomnibarPage.activate({
+        mode,
+        completer: "omni",
+        currentUrl: "",
+        newTab: mode === "search",
+      });
+      ui.setQuery("exactly what I typed");
+      await ui.update();
+
+      assert.equal("exactly what I typed", ui.completions[0].verbatimQuery);
+      assert.equal("exactly what I typed", ui.completionList.querySelector(".title").textContent);
+      assert.equal(0, ui.selection);
+    }
+  });
+
+  should("omit disabled sources only from the modeless command bar", async () => {
+    let modelessRequest = null;
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") {
+        modelessRequest = message;
+        return [];
+      }
+    });
+    Settings._settings.disabledModelessCommandBarSources = ["search", "history"];
+    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    ui.setQuery("needle");
+    await ui.update();
+
+    assert.equal(["search", "history"], modelessRequest.disabledModelessCommandBarSources);
+    assert.equal([], ui.completions);
+
+    await vomnibarPage.activate({ mode: "search", completer: "omni", newTab: true });
+    ui.setQuery("needle");
+    await ui.update();
+    assert.equal("needle", ui.completions[0].verbatimQuery);
   });
 
   should("return from a mode to modeless search with backspace on an empty query", async () => {
@@ -203,9 +269,12 @@ context("vomnibar page", () => {
     let handler = null;
     let url = null;
     stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") return [];
       handler = message.handler;
       url = message.url;
     });
+    await ui.update();
+    assert.equal("www.example.com", ui.completions[0].verbatimQuery);
     await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
     ui.onHidden();
     assert.equal("openUrlInNewTab", handler);
@@ -225,8 +294,11 @@ context("vomnibar page", () => {
     ui.setQuery("www.example.com");
     let handler = null;
     stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") return [];
       handler = message.handler;
     });
+    await ui.update();
+    assert.equal("www.example.com", ui.completions[0].verbatimQuery);
     await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
     ui.onHidden();
 

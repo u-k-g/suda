@@ -5,6 +5,8 @@ import { Commands, KeyMappingsParser } from "../background_scripts/commands.js";
 import * as userSearchEngines from "../background_scripts/user_search_engines.js";
 
 const options = {
+  disabledCommandBarModes: "inverted-set",
+  disabledModelessCommandBarSources: "inverted-set",
   fastScrollStepSize: "number",
   filterLinkHints: "boolean",
   grabBackFocus: "boolean",
@@ -135,6 +137,11 @@ function setFormFromSettings(settings) {
         const optionEl = document.querySelector(`input[name="${optionName}"][value="${value}"]`);
         optionEl.checked = true;
         break;
+      case "inverted-set":
+        for (const optionEl of document.querySelectorAll(`input[name="${optionName}"]`)) {
+          optionEl.checked = !value.includes(optionEl.value);
+        }
+        break;
       default:
         throw new Error(`Unrecognized option type ${optionType}`);
     }
@@ -165,6 +172,11 @@ function getSettingsFromForm() {
       case "option":
         const optionEl = document.querySelector(`input[name="${optionName}"]:checked`);
         value = optionEl.value;
+        break;
+      case "inverted-set":
+        value = Array.from(document.querySelectorAll(`input[name="${optionName}"]`))
+          .filter((optionEl) => !optionEl.checked)
+          .map((optionEl) => optionEl.value);
         break;
       default:
         throw new Error(`Unrecognized option type ${optionType}`);

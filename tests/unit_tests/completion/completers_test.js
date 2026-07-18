@@ -398,6 +398,37 @@ context("multi completer", () => {
     );
   });
 
+  should("exclude disabled sources from modeless aggregation", async () => {
+    let historyWasCalled = false;
+    let tabsWereCalled = false;
+    const historyCompleter = {
+      commandBarSource: "history",
+      filter() {
+        historyWasCalled = true;
+        return [];
+      },
+    };
+    const tabsCompleter = {
+      commandBarSource: "tabs",
+      filter() {
+        tabsWereCalled = true;
+        return [];
+      },
+    };
+
+    await filterCompleter(
+      new MultiCompleter([historyCompleter, tabsCompleter]),
+      ["needle"],
+      {
+        commandBarMode: "",
+        disabledModelessCommandBarSources: ["history"],
+      },
+    );
+
+    assert.isFalse(historyWasCalled);
+    assert.isTrue(tabsWereCalled);
+  });
+
   should("rank an open tab above a domain in modeless results", async () => {
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://test${path}`);
     const fakeCompleter = {

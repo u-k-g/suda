@@ -267,6 +267,15 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
   });
 
+  should("open Ctrl-W n directly in search mode", () => {
+    let openOptions = null;
+    stub(Vomnibar, "open", (_sourceFrameId, options) => openOptions = options);
+
+    Vomnibar.activateInNewTab(0, { options: {} });
+
+    assert.equal({ completer: "omni", mode: "search", newTab: true }, openOptions);
+  });
+
   should("bind Helix J and K to configurable fast scrolling", () => {
     assert.equal("scrollFastDown", helixKeyMappings["J"]);
     assert.equal("scrollFastUp", helixKeyMappings["K"]);

@@ -343,6 +343,10 @@ class VomnibarUI {
   isUserSearchEngineActive() {
     return this.activeUserSearchEngine != null;
   }
+  isModelessSourceEnabled(source) {
+    return this.mode !== "" ||
+      !Settings.get("disabledModelessCommandBarSources").includes(source);
+  }
 
   // The sequence of events when the vomnibar is hidden:
   // 1. Post a "hide" message to the host page.
@@ -666,20 +670,23 @@ class VomnibarUI {
     if (this.completerName === "modes") {
       const query = this.input.value.trim().toLowerCase();
       const queryTerms = query.split(/\s+/).filter(Boolean);
-      this.completions = commandBarModes.map((mode, index) => {
-        const name = mode.name.toLowerCase();
-        const aliases = mode.aliases.toLowerCase();
-        const description = mode.description.toLowerCase();
-        const haystack = `${name} ${description} ${aliases}`;
-        if (!queryTerms.every((term) => haystack.includes(term))) return null;
+      const disabledModes = new Set(Settings.get("disabledCommandBarModes"));
+      this.completions = commandBarModes.filter((mode) => !disabledModes.has(mode.name)).map(
+        (mode, index) => {
+          const name = mode.name.toLowerCase();
+          const aliases = mode.aliases.toLowerCase();
+          const description = mode.description.toLowerCase();
+          const haystack = `${name} ${description} ${aliases}`;
+          if (!queryTerms.every((term) => haystack.includes(term))) return null;
 
-        let rank = 4;
-        if (query === name) rank = 0;
-        else if (name.startsWith(query)) rank = 1;
-        else if (queryTerms.every((term) => name.includes(term))) rank = 2;
-        else if (queryTerms.every((term) => aliases.includes(term))) rank = 3;
-        return { mode, index, rank };
-      }).filter(Boolean).sort((a, b) => a.rank - b.rank || a.index - b.index).map(({ mode }) =>
+          let rank = 4;
+          if (query === name) rank = 0;
+          else if (name.startsWith(query)) rank = 1;
+          else if (queryTerms.every((term) => name.includes(term))) rank = 2;
+          else if (queryTerms.every((term) => aliases.includes(term))) rank = 3;
+          return { mode, index, rank };
+        },
+      ).filter(Boolean).sort((a, b) => a.rank - b.rank || a.index - b.index).map(({ mode }) =>
         renderModeCompletion(mode, this.getModeKeybindings(mode))
       );
       this.selection = this.completions.length > 0 ? 0 : -1;
@@ -727,6 +734,9 @@ class VomnibarUI {
       seenTabToOpenCompletionList: this.seenTabToOpenCompletionList ||
         this.completerName === "history",
       showAllOnEmpty: this.mode === "" || ["bookmarks", "commands"].includes(this.mode),
+      disabledModelessCommandBarSources: this.mode === ""
+        ? Settings.get("disabledModelessCommandBarSources")
+        : [],
     });
 
     // Ensure that no new filter requests have gone out while waiting for this result.
@@ -734,7 +744,8 @@ class VomnibarUI {
 
     this.completions = results;
     const verbatimQuery = this.input.value.trim();
-    const supportsVerbatimQuery = ["", "search", "url"].includes(this.mode);
+    const supportsVerbatimQuery = ["search", "url"].includes(this.mode) ||
+      (this.mode === "" && this.isModelessSourceEnabled("search"));
     if (
       supportsVerbatimQuery && verbatimQuery.length > 0 && !this.isUserSearchEngineActive()
     ) {
@@ -742,9 +753,11 @@ class VomnibarUI {
       const verbatimCompletion = {
         verbatimQuery,
         html: `<div class="completion-row">
-          <span class="result-icon">${phosphorIcon(
-          isUrlMode ? "pencil-simple" : "magnifying-glass",
-        )}</span>
+          <span class="result-icon">${
+          phosphorIcon(
+            isUrlMode ? "pencil-simple" : "magnifying-glass",
+          )
+        }</span>
           <span class="completion-copy">
             <span class="top-half">
               <span class="source">${isUrlMode ? "url" : "search"}</span>
@@ -811,7 +824,10 @@ class VomnibarUI {
 
     // For custom search engines, we suppress the leading prefix (e.g. the "w" of "w query terms")
     // within the vomnibar input.
-    if (!this.isUserSearchEngineActive() && this.getUserSearchEngineForQuery() != null) {
+    if (
+      this.isModelessSourceEnabled("search") && !this.isUserSearchEngineActive() &&
+      this.getUserSearchEngineForQuery() != null
+    ) {
       this.activeUserSearchEngine = this.getUserSearchEngineForQuery();
       const queryTerms = this.input.value.trim().split(/\s+/);
       this.input.value = queryTerms.slice(1).join(" ");

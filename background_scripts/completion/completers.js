@@ -762,6 +762,18 @@ SearchEngineCompleter.debug = false;
 // returns the top 10. All queries from the vomnibar come through a multi completer.
 const maxResults = 10;
 
+function modelessSourceForCompleter(completer) {
+  if (completer.commandBarSource) return completer.commandBarSource;
+  if (completer instanceof BookmarkCompleter) return "bookmarks";
+  if (completer instanceof CommandCompleter) return "commands";
+  if (completer instanceof HistoryCompleter) return "history";
+  if (completer instanceof TabCompleter) return "tabs";
+  if (completer instanceof DomainCompleter || completer instanceof SearchEngineCompleter) {
+    return "search";
+  }
+  return null;
+}
+
 export class MultiCompleter {
   constructor(completers) {
     this.completers = completers;
@@ -780,7 +792,16 @@ export class MultiCompleter {
   }
 
   async filter(request) {
-    const searchEngineCompleter = this.completers.find((c) => c instanceof SearchEngineCompleter);
+    const disabledModelessSources = new Set(
+      request.commandBarMode === "" ? request.disabledModelessCommandBarSources ?? [] : [],
+    );
+    const availableCompleters = this.completers.filter((completer) => {
+      const source = modelessSourceForCompleter(completer);
+      return source == null || !disabledModelessSources.has(source);
+    });
+    const searchEngineCompleter = availableCompleters.find(
+      (c) => c instanceof SearchEngineCompleter,
+    );
     const query = request.query;
     const queryTerms = request.queryTerms;
 
@@ -804,8 +825,8 @@ export class MultiCompleter {
     const completers = queryMatchesUserSearchEngine
       ? [searchEngineCompleter]
       : showOnlyTabs
-      ? this.completers.filter((c) => c instanceof TabCompleter)
-      : this.completers.filter((c) => c != searchEngineCompleter);
+      ? availableCompleters.filter((c) => c instanceof TabCompleter)
+      : availableCompleters.filter((c) => c != searchEngineCompleter);
 
     RegexpCache.clear();
 
