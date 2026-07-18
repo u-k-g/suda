@@ -55,8 +55,19 @@ context("marks", () => {
     stub(globalThis.chrome.tabs, "get", (id) => id == 1 ? tab : null);
     const updatedTabs = [];
     stub(globalThis.chrome.tabs, "update", (id, properties) => updatedTabs[id] = properties);
+    let positionMessage;
+    stub(globalThis.chrome.tabs, "sendMessage", (_id, message) => positionMessage = message);
     await marks.goto({ markName: "A" });
     assert.isTrue(updatedTabs[1] && updatedTabs[1].active);
+    assert.equal(
+      {
+        handler: "setScrollPosition",
+        scrollX: 0,
+        scrollY: 0,
+        markName: "A",
+      },
+      positionMessage,
+    );
   });
 
   should("ignore a marked tab which closes immediately before activation", async () => {

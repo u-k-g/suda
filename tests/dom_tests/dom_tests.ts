@@ -31,6 +31,30 @@ const getHintMarkerEls = () => Array.from(document.querySelectorAll(".vimiumHint
 
 const stubSettings = (key, value) => stub(Settings._settings, key, value);
 
+context("mark jump highlight", () => {
+  should("highlight the content at the center of the marked viewport", () => {
+    const target = document.createElement("div");
+    target.getClientRects = () => [{
+      left: 100,
+      top: 120,
+      right: 260,
+      bottom: 180,
+      width: 160,
+      height: 60,
+    }];
+    document.body.appendChild(target);
+    stub(document, "elementsFromPoint", () => [target]);
+
+    const highlights = Marks.showJumpHighlight("a");
+
+    assert.equal(1, highlights.length);
+    assert.isTrue(highlights[0].classList.contains("vimium-mark-jump-flash"));
+    assert.equal("a", highlights[0].dataset.vimiumMark);
+    Marks.clearJumpHighlight();
+    target.remove();
+  });
+});
+
 HintCoordinator.sendMessage = (name, request) => {
   if (request == null) {
     request = {};

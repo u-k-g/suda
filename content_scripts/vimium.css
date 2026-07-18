@@ -251,6 +251,38 @@ div.vimium-flash {
   z-index: 2147483647;
 }
 
+div.vimium-mark-jump-flash {
+  animation: vimium-mark-jump-pulse 1050ms ease-out forwards;
+  background-color: rgb(250 189 47 / 12%);
+  border: 2px solid var(--gruvbox-yellow-bright);
+  box-shadow: none;
+  box-sizing: border-box;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+@keyframes vimium-mark-jump-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  72% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+}
+
 /* UIComponent CSS */
 iframe.vimium-ui-component-hidden {
   display: none;

@@ -86,12 +86,17 @@ export async function goto(req) {
 }
 
 // Focus an existing tab and scroll to the given position within it.
-async function gotoPositionInTab({ tabId, scrollX, scrollY }) {
+async function gotoPositionInTab({ tabId, scrollX, scrollY, markName }) {
   const tab = await bgUtils.runTabOperation(() => chrome.tabs.update(tabId, { active: true }));
   if (!tab) return false;
   await bgUtils.runTabOperation(() => chrome.windows.update(tab.windowId, { focused: true }));
   await bgUtils.runTabOperation(() =>
-    chrome.tabs.sendMessage(tabId, { handler: "setScrollPosition", scrollX, scrollY })
+    chrome.tabs.sendMessage(tabId, {
+      handler: "setScrollPosition",
+      scrollX,
+      scrollY,
+      markName,
+    })
   );
   return true;
 }

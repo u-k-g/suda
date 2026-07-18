@@ -4,6 +4,75 @@ const Marks = {
   localRegisters: {},
   currentRegistryEntry: null,
   mode: null,
+  jumpHighlightElements: [],
+  jumpHighlightGeneration: 0,
+
+  clearJumpHighlight() {
+    this.jumpHighlightGeneration += 1;
+    for (const element of this.jumpHighlightElements) element.remove();
+    this.jumpHighlightElements = [];
+  },
+
+  showJumpHighlight(keyChar) {
+    this.clearJumpHighlight();
+
+    const viewportX = Math.max(0, Math.floor(globalThis.innerWidth / 2));
+    const viewportY = Math.max(0, Math.floor(globalThis.innerHeight / 2));
+    const elementsAtPoint = document.elementsFromPoint?.(viewportX, viewportY) ??
+      [document.elementFromPoint?.(viewportX, viewportY)];
+    const target = elementsAtPoint.find((element) =>
+      element &&
+      element !== document.documentElement &&
+      element !== document.body &&
+      !element.closest?.(".vimium-reset, iframe.vomnibar-frame, iframe.vimium-hud-frame")
+    );
+
+    let rects = target == null
+      ? []
+      : Array.from(target.getClientRects()).filter((rect) =>
+        rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0 &&
+        rect.left < globalThis.innerWidth && rect.top < globalThis.innerHeight
+      );
+
+    // A page can return a full-viewport wrapper at the center point. A compact locator is more
+    // useful than outlining the entire screen in that case.
+    if (
+      rects.length === 0 ||
+      rects.every((rect) =>
+        rect.width >= globalThis.innerWidth * 0.9 &&
+        rect.height >= globalThis.innerHeight * 0.9
+      )
+    ) {
+      rects = [{
+        left: viewportX - 36,
+        top: viewportY - 24,
+        width: 72,
+        height: 48,
+      }];
+    }
+
+    const { top: viewportTop, left: viewportLeft } = DomUtils.getViewportTopLeft();
+    this.jumpHighlightElements = rects.map((rect) => {
+      const highlight = DomUtils.addFlashRect({
+        left: rect.left + viewportLeft,
+        top: rect.top + viewportTop,
+        width: rect.width,
+        height: rect.height,
+      });
+      highlight.classList.add("vimium-mark-jump-flash");
+      highlight.dataset.vimiumMark = keyChar;
+      return highlight;
+    });
+    const generation = this.jumpHighlightGeneration;
+    Utils.setTimeout(1100, () => {
+      if (this.jumpHighlightGeneration === generation) this.clearJumpHighlight();
+    });
+    return this.jumpHighlightElements;
+  },
+
+  scheduleJumpHighlight(keyChar) {
+    requestAnimationFrame(() => requestAnimationFrame(() => this.showJumpHighlight(keyChar)));
+  },
 
   exit(continuation = null) {
     if (this.mode != null) {
@@ -94,6 +163,7 @@ const Marks = {
         } else {
           globalThis.scrollTo(position.scrollX, position.scrollY);
         }
+        this.scheduleJumpHighlight(keyChar);
         this.showMessage("Jumped to local mark", keyChar);
       } else {
         this.showMessage("Local mark not set", keyChar);

@@ -297,7 +297,7 @@ function handleExtensionContextError(error) {
   }
 }
 
-function setScrollPosition({ scrollX, scrollY }) {
+function setScrollPosition({ scrollX, scrollY, markName }) {
   DomUtils.documentReady().then(() => {
     if (!DomUtils.isTopFrame()) return;
     Utils.nextTick(function () {
@@ -307,6 +307,7 @@ function setScrollPosition({ scrollX, scrollY }) {
         Marks.setPreviousPosition();
         globalThis.scrollTo(scrollX, scrollY);
       }
+      if (markName != null) Marks.scheduleJumpHighlight(markName);
     });
   });
 }
