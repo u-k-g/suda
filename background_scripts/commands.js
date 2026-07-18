@@ -554,6 +554,7 @@ const helixKeyMappings = {
   "<space>a": "LinkHints.activateModeWithQueue",
   "<space>d": "LinkHints.activateModeToDownloadLink",
   "<space>y": "LinkHints.activateModeToCopyLinkUrl",
+  "<space>t": "Vomnibar.activateAll",
   "<space>b": "Vomnibar.activateTabSelection",
   "<space>B": "Vomnibar.activateBookmarks",
   "<space>/": "Vomnibar.activateFind",

@@ -392,6 +392,7 @@ const NormalModeCommands = {
   "LinkHints.activateModeToCopyLinkUrl": LinkHints.activateModeToCopyLinkUrl.bind(LinkHints),
 
   "Vomnibar.activate": Vomnibar.activate.bind(Vomnibar),
+  "Vomnibar.activateAll": Vomnibar.activateAll.bind(Vomnibar),
   "Vomnibar.activateModeSelection": Vomnibar.activateModeSelection.bind(Vomnibar),
   "Vomnibar.activateFind": Vomnibar.activateFind.bind(Vomnibar),
   "Vomnibar.activateHistory": Vomnibar.activateHistory.bind(Vomnibar),

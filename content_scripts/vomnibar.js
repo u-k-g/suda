@@ -47,6 +47,14 @@ const Vomnibar = {
     });
   },
 
+  activateAll(sourceFrameId) {
+    this.open(sourceFrameId, {
+      completer: "omni",
+      mode: "all",
+      newTab: true,
+    });
+  },
+
   activateFind(sourceFrameId) {
     this.open(sourceFrameId, { completer: "local", mode: "find" });
   },

@@ -251,8 +251,18 @@ context("Validate commands and options data structures", () => {
     assert.equal("Vomnibar.activateMarks", helixKeyMappings["<space>'"]);
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
     assert.equal("Vomnibar.activateKeybindings", helixKeyMappings["<space>h"]);
+    assert.equal("Vomnibar.activateAll", helixKeyMappings["<space>t"]);
     assert.equal("Vomnibar.activate", helixKeyMappings["<c-w>n"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
+  });
+
+  should("open Space-t directly in all mode", () => {
+    let openOptions = null;
+    stub(Vomnibar, "open", (_sourceFrameId, options) => openOptions = options);
+
+    Vomnibar.activateAll(0);
+
+    assert.equal({ completer: "omni", mode: "all", newTab: true }, openOptions);
   });
 
   should("bind Helix J and K to configurable fast scrolling", () => {

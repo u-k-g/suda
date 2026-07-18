@@ -336,6 +336,14 @@ const allCommands = [
   },
 
   {
+    name: "Vomnibar.activateAll",
+    desc: "Search the web, open tabs, history, and bookmarks",
+    group: "vomnibar",
+    topFrame: true,
+    noRepeat: true,
+  },
+
+  {
     name: "Vomnibar.activateFind",
     desc: "Find text using the command bar",
     group: "vomnibar",
