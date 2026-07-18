@@ -122,6 +122,26 @@ context("vomnibar page", () => {
     assert.isTrue(ui.forceNewTab);
   });
 
+  should("put an exact default-search action first for nonempty all-mode queries", async () => {
+    let launchedSearch = null;
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") return [];
+      if (message.handler === "launchSearchQuery") launchedSearch = message;
+    });
+    await vomnibarPage.activate({ mode: "all", completer: "omni", newTab: true });
+    ui.setQuery("what is");
+    await ui.update();
+
+    assert.equal("what is", ui.completions[0].defaultSearchQuery);
+    assert.equal(0, ui.selection);
+    assert.equal("Search “what is”", ui.completionList.querySelector(".title").textContent);
+
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+    ui.onHidden();
+    assert.equal("what is", launchedSearch.query);
+    assert.isTrue(launchedSearch.openInNewTab);
+  });
+
   should("return from a mode to the mode selector with backspace on an empty query", async () => {
     await vomnibarPage.activate({ mode: "find", completer: "local" });
     await ui.onKeyEvent(newKeyEvent({ key: "Backspace" }));

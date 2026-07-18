@@ -703,8 +703,10 @@ const sendRequestHandlers = {
   },
 
   launchSearchQuery({ query, openInNewTab }) {
+    query = query?.trim();
+    if (!query) return;
     const disposition = openInNewTab ? "NEW_TAB" : "CURRENT_TAB";
-    chrome.search.query({ disposition, text: query });
+    return chrome.search.query({ disposition, text: query });
   },
 
   domReady(_, sender) {

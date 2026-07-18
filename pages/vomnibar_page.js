@@ -110,7 +110,7 @@ const commandBarModes = [
     aliases: "favorites",
     completer: "bookmarks",
     selectFirst: true,
-    icon: "bookmark-simple",
+    icon: "folder-simple-star",
     bindingCommands: ["Vomnibar.activateBookmarks"],
   },
   {
@@ -602,6 +602,14 @@ class VomnibarUI {
     } else if (isPrimarySearchSuggestion(completion)) {
       query = UrlUtils.createSearchUrl(query, completion.searchUrl);
       this.hide(() => this.launchUrl(query, openInNewTab));
+    } else if (completion.defaultSearchQuery != null) {
+      this.hide(() =>
+        chrome.runtime.sendMessage({
+          handler: "launchSearchQuery",
+          query: completion.defaultSearchQuery,
+          openInNewTab,
+        })
+      );
     } else if (completion.command) {
       this.hide(async () => {
         await chrome.runtime.sendMessage({
@@ -702,6 +710,21 @@ class VomnibarUI {
     if (this.lastRequestId != requestId) return;
 
     this.completions = results;
+    const exactSearchQuery = this.input.value.trim();
+    if (this.mode === "all" && exactSearchQuery.length > 0 && !this.isUserSearchEngineActive()) {
+      this.completions = [{
+        defaultSearchQuery: exactSearchQuery,
+        html: `<div class="completion-row">
+          <span class="result-icon">${phosphorIcon("magnifying-glass")}</span>
+          <span class="completion-copy">
+            <span class="top-half">
+              <span class="source">search</span>
+              <span class="title">Search “${Utils.escapeHtml(exactSearchQuery)}”</span>
+            </span>
+          </span>
+        </div>`,
+      }, ...this.completions].slice(0, 10);
+    }
     this.selection = this.completions[0]?.autoSelect ? 0 : this.initialSelectionValue;
     this.renderCompletions(this.completions);
     this.selection = Math.min(

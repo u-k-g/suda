@@ -343,7 +343,7 @@ context("domain completer (removing entries)", () => {
 });
 
 context("multi completer", () => {
-  const tabs = [{ url: "tab1.com", title: "tab1", id: 1 }];
+  const tabs = [{ url: "https://tab1.com", title: "tab1", id: 1 }];
   const tabCompleter = new TabCompleter();
   let multiCompleter;
 
@@ -360,9 +360,28 @@ context("multi completer", () => {
   });
 
   should("allow a combined completer to populate an explicitly enabled empty query", async () => {
-    tabs[0].url = "https://tab1.com";
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://test${path}`);
     const results = await filterCompleter(multiCompleter, [], { showAllOnEmpty: true });
+    assert.equal(["https://tab1.com"], results.map((suggestion) => suggestion.url));
+  });
+
+  should("show only open tabs for an empty all-mode query", async () => {
+    let competingCompleterWasCalled = false;
+    const competingCompleter = {
+      filter() {
+        competingCompleterWasCalled = true;
+        return [];
+      },
+    };
+    const allCompleter = new MultiCompleter([tabCompleter, competingCompleter]);
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://test${path}`);
+
+    const results = await filterCompleter(allCompleter, [], {
+      commandBarMode: "all",
+      showAllOnEmpty: true,
+    });
+
+    assert.isFalse(competingCompleterWasCalled);
     assert.equal(["https://tab1.com"], results.map((suggestion) => suggestion.url));
   });
 

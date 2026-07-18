@@ -11,7 +11,9 @@ export async function openUrlInCurrentTab(request) {
   const urlStr = await UrlUtils.convertToUrl(request.url);
   if (urlStr == null) {
     // The requested destination is not a URL, so treat it like a search query.
-    chrome.search.query({ text: request.url });
+    const query = request.url?.trim();
+    if (!query) return;
+    return chrome.search.query({ text: query });
   } else if (UrlUtils.hasJavascriptProtocol(urlStr)) {
     // Note that when injecting JavaScript, it's subject to the site's CSP. Sites with strict CSPs
     // (like github.com, developer.mozilla.org) will raise an error when we try to run this code.
@@ -86,10 +88,14 @@ export async function openUrlInNewTab(request) {
     // In Chrome, if we create a blank tab and call chrome.search.query, the omnibar is focused,
     // which we don't want. To work around that, first create an empty page. This is not needed in
     // Firefox. And in fact, firefox doesn't support a data:text URL to the chrome.tab.create API.
-    tabConfig.url = bgUtils.isFirefox() ? null : "data:text/html,<html></html>";
-    newTab = await chrome.tabs.create(tabConfig);
-    const query = request.url;
-    await chrome.search.query({ text: query, tabId: newTab.id });
+    const query = request.url?.trim();
+    if (!query) {
+      newTab = await chrome.tabs.create(tabConfig);
+    } else {
+      tabConfig.url = bgUtils.isFirefox() ? null : "data:text/html,<html></html>";
+      newTab = await chrome.tabs.create(tabConfig);
+      await chrome.search.query({ text: query, tabId: newTab.id });
+    }
   } else {
     // The requested destination is a regular URL.
     // Firefox does not support "about:newtab" in chrome.tabs.create, so omit it.

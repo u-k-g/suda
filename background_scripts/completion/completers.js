@@ -88,7 +88,7 @@ export class Suggestion {
     // The phosphor icon representing this suggestion's source, shown in the boxed icon well on the
     // left of the row, in the style of the Arc command bar.
     const sourceIcons = {
-      bookmark: "star",
+      bookmark: "folder-simple-star",
       history: "clock-counter-clockwise",
       domain: "globe",
     };
@@ -800,8 +800,11 @@ export class MultiCompleter {
 
     // If the user's query matches one of their custom search engines, then use only that engine to
     // provide completions for their query.
+    const showOnlyTabs = request.commandBarMode === "all" && queryTerms.length === 0;
     const completers = queryMatchesUserSearchEngine
       ? [searchEngineCompleter]
+      : showOnlyTabs
+      ? this.completers.filter((c) => c instanceof TabCompleter)
       : this.completers.filter((c) => c != searchEngineCompleter);
 
     RegexpCache.clear();

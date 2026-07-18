@@ -23,6 +23,15 @@ context("TabOperations openurlInCurrentTab", () => {
     assert.equal(expected, searchQuery);
   });
 
+  should("ignore an empty search query", async () => {
+    let searchWasCalled = false;
+    stub(chrome.search, "query", () => searchWasCalled = true);
+
+    await to.openUrlInCurrentTab({ url: "   " });
+
+    assert.isFalse(searchWasCalled);
+  });
+
   should("open a javascript URL", async () => {
     let details = null;
     // NOTE(philc): This is a shallow test.
@@ -72,5 +81,19 @@ context("TabOperations openUrlInNewTab", () => {
     assert.equal(2, createConfig.index);
     assert.equal("example query", queryInfo.text);
     assert.equal(2, queryInfo.tabId);
+  });
+
+  should("open a blank tab without invoking search for an empty query", async () => {
+    let createConfig, searchWasCalled = false;
+    stub(chrome.tabs, "create", (config) => {
+      createConfig = config;
+      return { id: 3 };
+    });
+    stub(chrome.search, "query", () => searchWasCalled = true);
+
+    await to.openUrlInNewTab({ tab: { index: 1 }, position: "after", url: "" });
+
+    assert.equal(undefined, createConfig.url);
+    assert.isFalse(searchWasCalled);
   });
 });
