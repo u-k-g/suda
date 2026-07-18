@@ -118,6 +118,21 @@ context("selectSpecificTab", () => {
   });
 });
 
+context("tab navigation", () => {
+  should("ignore a target tab which closes after the tab list is queried", async () => {
+    const tabs = [
+      { id: 1, index: 0, pinned: false },
+      { id: 2, index: 1, pinned: false },
+    ];
+    stub(chrome.tabs, "query", async () => tabs);
+    stub(chrome.tabs, "update", async () => {
+      throw new Error("No tab with id: 2.");
+    });
+
+    await BackgroundCommands.nextTab({ count: 1, tab: tabs[0] });
+  });
+});
+
 context("cycleRecentTabs command", () => {
   let now;
   let recencyOrder;

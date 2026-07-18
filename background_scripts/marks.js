@@ -1,13 +1,10 @@
 import * as TabOperations from "./tab_operations.js";
+import * as bgUtils from "./bg_utils.js";
 
 // This returns the key which is used for storing mark locations in chrome.storage.sync.
 // Exported for tests.
 export function getLocationKey(markName) {
   return `vimiumGlobalMark|${markName}`;
-}
-
-function tabNoLongerExists(error) {
-  return error?.message?.includes("No tab with id");
 }
 
 // Get the part of a URL we use for matching here (that is, everything up to the first anchor).
@@ -40,7 +37,7 @@ export async function create(req, sender) {
     } catch (error) {
       // The tab can be closed while this request is in flight. This is a normal race and there is
       // nowhere useful to save a mark for a tab which no longer exists.
-      if (tabNoLongerExists(error)) return;
+      if (bgUtils.tabNoLongerExists(error)) return;
       throw error;
     }
     if (response == null) return;
@@ -89,9 +86,13 @@ export async function goto(req) {
 
 // Focus an existing tab and scroll to the given position within it.
 async function gotoPositionInTab({ tabId, scrollX, scrollY }) {
-  const tab = await chrome.tabs.update(tabId, { active: true });
-  chrome.windows.update(tab.windowId, { focused: true });
-  chrome.tabs.sendMessage(tabId, { handler: "setScrollPosition", scrollX, scrollY });
+  const tab = await bgUtils.runTabOperation(() => chrome.tabs.update(tabId, { active: true }));
+  if (!tab) return false;
+  await bgUtils.runTabOperation(() => chrome.windows.update(tab.windowId, { focused: true }));
+  await bgUtils.runTabOperation(() =>
+    chrome.tabs.sendMessage(tabId, { handler: "setScrollPosition", scrollX, scrollY })
+  );
+  return true;
 }
 
 // The tab we're trying to find no longer exists. We either find another tab with a matching URL and
@@ -106,7 +107,7 @@ async function focusOrLaunch(markInfo, req) {
   if (tabs.length > 0) {
     // There is at least one matching tab. Pick one and go to it.
     const tab = await pickTab(tabs);
-    gotoPositionInTab(Object.assign(markInfo, { tabId: tab.id }));
+    await gotoPositionInTab(Object.assign(markInfo, { tabId: tab.id }));
   } else {
     // There is no existing matching tab. We'll have to create one.
     TabOperations.openUrlInNewTab(

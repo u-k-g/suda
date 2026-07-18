@@ -42,10 +42,10 @@ export async function openUrlInCurrentTab(request) {
       // As of Firefox 118, specifying "MAIN" as the world is not yet supported.
       scriptingArgs.world = "MAIN";
     }
-    chrome.scripting.executeScript(scriptingArgs);
+    await bgUtils.runTabOperation(() => chrome.scripting.executeScript(scriptingArgs));
   } else {
     // The requested destination is a regular URL.
-    chrome.tabs.update(request.tabId, { url: urlStr });
+    await bgUtils.runTabOperation(() => chrome.tabs.update(request.tabId, { url: urlStr }));
   }
 }
 
@@ -94,7 +94,7 @@ export async function openUrlInNewTab(request) {
     } else {
       tabConfig.url = bgUtils.isFirefox() ? null : "data:text/html,<html></html>";
       newTab = await chrome.tabs.create(tabConfig);
-      await chrome.search.query({ text: query, tabId: newTab.id });
+      await bgUtils.runTabOperation(() => chrome.search.query({ text: query, tabId: newTab.id }));
     }
   } else {
     // The requested destination is a regular URL.

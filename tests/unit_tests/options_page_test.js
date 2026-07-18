@@ -25,37 +25,52 @@ context("options page", () => {
     assert.isFalse(document.querySelector("#vimKeyBindings").checked);
   });
 
-  should("show the configurable fast-scroll default", () => {
-    assert.equal("100", optionsPage.getOptionEl("fastScrollStepSize").value);
+  should("show the configurable scroll defaults", () => {
+    assert.equal("120", optionsPage.getOptionEl("scrollStepSize").value);
+    assert.equal("800", optionsPage.getOptionEl("fastScrollStepSize").value);
+  });
+
+  should("use the Vimium blank page and open its command bar by default", () => {
+    assert.isTrue(document.querySelector("#vimiumNewTabPage").checked);
+    assert.isTrue(optionsPage.getOptionEl("openVomnibarOnNewTabPage").checked);
   });
 
   should("hide command-bar mode descriptions by default", () => {
     assert.isFalse(optionsPage.getOptionEl("showCommandBarModeDescriptions").checked);
   });
 
-  should("enable every command-bar mode and modeless source by default", () => {
-    assert.isTrue(
-      Array.from(document.querySelectorAll('[name="disabledCommandBarModes"]')).every(
-        (element) => element.checked,
-      ),
+  should("use the configured command-bar mode and source defaults", () => {
+    const uncheckedModeValues = Array.from(
+      document.querySelectorAll('[name="disabledCommandBarModes"]:not(:checked)'),
+    ).map((element) => element.value);
+    const uncheckedSourceValues = Array.from(
+      document.querySelectorAll('[name="disabledModelessCommandBarSources"]:not(:checked)'),
+    ).map((element) => element.value);
+
+    assert.equal(
+      ["url", "link:new", "link:download"],
+      uncheckedModeValues,
     );
-    assert.isTrue(
-      Array.from(document.querySelectorAll('[name="disabledModelessCommandBarSources"]')).every(
-        (element) => element.checked,
-      ),
-    );
+    assert.equal(["history"], uncheckedSourceValues);
   });
 
   should("save unchecked command-bar modes and modeless sources as disabled", async () => {
     document.querySelector('[name="disabledCommandBarModes"][value="marks"]').checked = false;
+    document.querySelector('[name="disabledCommandBarModes"][value="url"]').checked = true;
+    document.querySelector(
+      '[name="disabledModelessCommandBarSources"][value="bookmarks"]',
+    ).checked = false;
     document.querySelector(
       '[name="disabledModelessCommandBarSources"][value="history"]',
-    ).checked = false;
+    ).checked = true;
 
     await optionsPage.saveOptions();
 
-    assert.equal(["marks"], Settings.get("disabledCommandBarModes"));
-    assert.equal(["history"], Settings.get("disabledModelessCommandBarSources"));
+    assert.equal(
+      ["marks", "link:new", "link:download"],
+      Settings.get("disabledCommandBarModes"),
+    );
+    assert.equal(["bookmarks"], Settings.get("disabledModelessCommandBarSources"));
   });
 
   should("show validation errors for invalid fields on save", async () => {

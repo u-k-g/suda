@@ -13,6 +13,14 @@ context("TabOperations openurlInCurrentTab", () => {
     assert.equal(expected, url);
   });
 
+  should("ignore a current tab which closes before its URL is updated", async () => {
+    stub(chrome.tabs, "update", async () => {
+      throw new Error("No tab with id: 1648448729.");
+    });
+
+    await to.openUrlInCurrentTab({ tabId: 1648448729, url: "http://example.com" });
+  });
+
   should("open a non-URL in the default search engine", async () => {
     let searchQuery = null;
     stub(chrome.search, "query", (queryInfo) => {

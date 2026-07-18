@@ -43,8 +43,12 @@ context("vomnibar page", () => {
 
   teardown(() => {
     if (!Settings.isLoaded()) return;
-    Settings._settings.disabledCommandBarModes = [];
-    Settings._settings.disabledModelessCommandBarSources = [];
+    Settings._settings.disabledCommandBarModes = structuredClone(
+      Settings.defaultOptions.disabledCommandBarModes,
+    );
+    Settings._settings.disabledModelessCommandBarSources = structuredClone(
+      Settings.defaultOptions.disabledModelessCommandBarSources,
+    );
   });
 
   should("hide when escape is pressed", async () => {
@@ -350,6 +354,7 @@ context("vomnibar page", () => {
   });
 
   should("offer only one search mode and one URL-edit mode", async () => {
+    Settings._settings.disabledCommandBarModes = [];
     await vomnibarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("url");
     await ui.update();

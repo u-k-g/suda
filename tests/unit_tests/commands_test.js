@@ -279,7 +279,7 @@ context("Validate commands and options data structures", () => {
   should("bind Helix J and K to configurable fast scrolling", () => {
     assert.equal("scrollFastDown", helixKeyMappings["J"]);
     assert.equal("scrollFastUp", helixKeyMappings["K"]);
-    assert.equal(100, Settings.defaultOptions.fastScrollStepSize);
+    assert.equal(800, Settings.defaultOptions.fastScrollStepSize);
   });
 
   should("bind Helix r to recent-tab cycling while keeping reload under Space", () => {

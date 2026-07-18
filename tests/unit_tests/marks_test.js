@@ -58,6 +58,16 @@ context("marks", () => {
     assert.isTrue(updatedTabs[1] && updatedTabs[1].active);
   });
 
+  should("ignore a marked tab which closes immediately before activation", async () => {
+    await createMark({ markName: "A" }, { id: 1 });
+    stub(globalThis.chrome.tabs, "get", () => ({ id: 1, url: "http://example.com" }));
+    stub(globalThis.chrome.tabs, "update", async () => {
+      throw new Error("No tab with id: 1.");
+    });
+
+    await marks.goto({ markName: "A" });
+  });
+
   should("find a new tab if a mark's tab no longer exists", async () => {
     await createMark({ markName: "A" }, { id: 1 });
     const tab = { url: "http://example.com", id: 2 };

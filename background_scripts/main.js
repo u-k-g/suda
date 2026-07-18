@@ -79,10 +79,6 @@ if (bgUtils.isFirefox()) {
   visibleTabsQueryArgs.hidden = false;
 }
 
-function tabNoLongerExists(error) {
-  return error?.message?.includes("No tab with id");
-}
-
 function onURLChange(details) {
   // sendMessage will throw "Error: Could not establish connection. Receiving end does not exist."
   // if there is no Vimium content script loaded in the given tab. This can occur if the user
@@ -115,59 +111,59 @@ if (!globalThis.isUnitTests) {
 }
 
 function muteTab(tab) {
-  chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted });
+  return bgUtils.runTabOperation(() => chrome.tabs.update(tab.id, { muted: !tab.mutedInfo.muted }));
 }
 
-function toggleMuteTab(request, sender) {
+async function toggleMuteTab(request, sender) {
   const currentTab = request.tab;
   const tabId = request.tabId;
   const registryEntry = request.registryEntry;
 
   if ((registryEntry.options.all != null) || (registryEntry.options.other != null)) {
     // If there are any audible, unmuted tabs, then we mute them; otherwise we unmute any muted tabs.
-    chrome.tabs.query({ audible: true }, function (tabs) {
-      let tab;
-      if (registryEntry.options.other != null) {
-        tabs = tabs.filter((t) => t.id !== currentTab.id);
-      }
-      const audibleUnmutedTabs = tabs.filter((t) => t.audible && !t.mutedInfo.muted);
-      if (audibleUnmutedTabs.length >= 0) {
+    let tabs = await chrome.tabs.query({ audible: true });
+    if (registryEntry.options.other != null) {
+      tabs = tabs.filter((t) => t.id !== currentTab.id);
+    }
+    const audibleUnmutedTabs = tabs.filter((t) => t.audible && !t.mutedInfo.muted);
+    if (audibleUnmutedTabs.length >= 0) {
+      await bgUtils.runTabOperation(() =>
         chrome.tabs.sendMessage(tabId, {
           frameId: sender.frameId,
           handler: "showMessage",
           message: `Muting ${audibleUnmutedTabs.length} tab(s).`,
-        });
-        for (tab of audibleUnmutedTabs) {
-          muteTab(tab);
-        }
-      } else {
+        })
+      );
+      await Promise.all(audibleUnmutedTabs.map((tab) => muteTab(tab)));
+    } else {
+      await bgUtils.runTabOperation(() =>
         chrome.tabs.sendMessage(tabId, {
           frameId: sender.frameId,
           handler: "showMessage",
           message: "Unmuting all muted tabs.",
-        });
-        for (tab of tabs) {
-          if (tab.mutedInfo.muted) {
-            muteTab(tab);
-          }
-        }
-      }
-    });
+        })
+      );
+      await Promise.all(tabs.filter((tab) => tab.mutedInfo.muted).map((tab) => muteTab(tab)));
+    }
   } else {
     if (currentTab.mutedInfo.muted) {
-      chrome.tabs.sendMessage(tabId, {
-        frameId: sender.frameId,
-        handler: "showMessage",
-        message: "Unmuted tab.",
-      });
+      await bgUtils.runTabOperation(() =>
+        chrome.tabs.sendMessage(tabId, {
+          frameId: sender.frameId,
+          handler: "showMessage",
+          message: "Unmuted tab.",
+        })
+      );
     } else {
-      chrome.tabs.sendMessage(tabId, {
-        frameId: sender.frameId,
-        handler: "showMessage",
-        message: "Muted tab.",
-      });
+      await bgUtils.runTabOperation(() =>
+        chrome.tabs.sendMessage(tabId, {
+          frameId: sender.frameId,
+          handler: "showMessage",
+          message: "Muted tab.",
+        })
+      );
     }
-    muteTab(currentTab);
+    await muteTab(currentTab);
   }
 }
 
@@ -197,25 +193,26 @@ async function selectSpecificTab(request) {
   } catch (error) {
     // Command-bar tab suggestions are snapshots. The tab can close between rendering a suggestion
     // and selecting it; that expected race should not become an unchecked runtime.lastError.
-    if (tabNoLongerExists(error)) return false;
+    if (bgUtils.tabNoLongerExists(error)) return false;
     throw error;
   }
 }
 
-function moveTab({ count, tab, registryEntry }) {
+async function moveTab({ count, tab, registryEntry }) {
   if (registryEntry.command === "moveTabLeft") {
     count = -count;
   }
-  return chrome.tabs.query(visibleTabsQueryArgs, function (tabs) {
-    const pinnedCount = (tabs.filter((tab) => tab.pinned)).length;
-    const minIndex = tab.pinned ? 0 : pinnedCount;
-    const maxIndex = (tab.pinned ? pinnedCount : tabs.length) - 1;
-    // The tabs array index of the new position.
-    const moveIndex = Math.max(minIndex, Math.min(maxIndex, getTabIndex(tab, tabs) + count));
-    return chrome.tabs.move(tab.id, {
+  const tabs = await chrome.tabs.query(visibleTabsQueryArgs);
+  const pinnedCount = (tabs.filter((tab) => tab.pinned)).length;
+  const minIndex = tab.pinned ? 0 : pinnedCount;
+  const maxIndex = (tab.pinned ? pinnedCount : tabs.length) - 1;
+  // The tabs array index of the new position.
+  const moveIndex = Math.max(minIndex, Math.min(maxIndex, getTabIndex(tab, tabs) + count));
+  return bgUtils.runTabOperation(() =>
+    chrome.tabs.move(tab.id, {
       index: tabs[moveIndex].index,
-    });
-  });
+    })
+  );
 }
 
 function createRepeatCommand(command) {
@@ -370,16 +367,22 @@ const BackgroundCommands = {
     request.tabId = tab.id;
   }),
 
-  moveTabToNewWindow({ count, tab }) {
-    // TODO(philc): Switch to the promise API of chrome.tabs.query.
-    chrome.tabs.query(visibleTabsQueryArgs, function (tabs) {
-      const activeTabIndex = getTabIndex(tab, tabs);
-      const startTabIndex = Math.max(0, Math.min(activeTabIndex, tabs.length - count));
-      [tab, ...tabs] = tabs.slice(startTabIndex, startTabIndex + count);
-      chrome.windows.create({ tabId: tab.id, incognito: tab.incognito }, function (window) {
-        chrome.tabs.move(tabs.map((t) => t.id), { windowId: window.id, index: -1 });
-      });
-    });
+  async moveTabToNewWindow({ count, tab }) {
+    const queriedTabs = await chrome.tabs.query(visibleTabsQueryArgs);
+    const activeTabIndex = getTabIndex(tab, queriedTabs);
+    const startTabIndex = Math.max(0, Math.min(activeTabIndex, queriedTabs.length - count));
+    const [firstTab, ...tabsToMove] = queriedTabs.slice(
+      startTabIndex,
+      startTabIndex + count,
+    );
+    if (!firstTab) return;
+    const window = await bgUtils.runTabOperation(() =>
+      chrome.windows.create({ tabId: firstTab.id, incognito: firstTab.incognito })
+    );
+    if (!window || tabsToMove.length === 0) return;
+    await bgUtils.runTabOperation(() =>
+      chrome.tabs.move(tabsToMove.map((t) => t.id), { windowId: window.id, index: -1 })
+    );
   },
 
   nextTab(request) {
@@ -395,19 +398,19 @@ const BackgroundCommands = {
     return selectTab("last", request);
   },
   async removeTab({ count, tab }) {
-    await forCountTabs(count, tab, (tab) => {
+    await forCountTabs(count, tab, async (tab) => {
       // In Firefox, Ctrl-W will not close a pinned tab, but on Chrome, it will. We try to be
       // consistent with each browser's UX for pinned tabs.
       if (tab.pinned && bgUtils.isFirefox()) return;
-      chrome.tabs.remove(tab.id);
+      await bgUtils.runTabOperation(() => chrome.tabs.remove(tab.id));
     });
   },
   restoreTab: createRepeatCommand(async (request) => {
     await chrome.sessions.restore(null);
   }),
   async togglePinTab({ count, tab }) {
-    await forCountTabs(count, tab, (tab) => {
-      chrome.tabs.update(tab.id, { pinned: !tab.pinned });
+    await forCountTabs(count, tab, async (tab) => {
+      await bgUtils.runTabOperation(() => chrome.tabs.update(tab.id, { pinned: !tab.pinned }));
     });
   },
   toggleMuteTab,
@@ -418,21 +421,21 @@ const BackgroundCommands = {
     const level = registryEntry.options?.["level"] ?? "1";
     const newZoom = parseFloat(level);
     if (!isNaN(newZoom)) {
-      chrome.tabs.setZoom(tabId, newZoom);
+      await bgUtils.runTabOperation(() => chrome.tabs.setZoom(tabId, newZoom));
     }
   },
   async zoomIn({ count, tabId }) {
     const currentZoom = await chrome.tabs.getZoom(tabId);
     const newZoom = nextZoomLevel(currentZoom, count);
-    chrome.tabs.setZoom(tabId, newZoom);
+    await bgUtils.runTabOperation(() => chrome.tabs.setZoom(tabId, newZoom));
   },
   async zoomOut({ count, tabId }) {
     const currentZoom = await chrome.tabs.getZoom(tabId);
     const newZoom = nextZoomLevel(currentZoom, -count);
-    chrome.tabs.setZoom(tabId, newZoom);
+    await bgUtils.runTabOperation(() => chrome.tabs.setZoom(tabId, newZoom));
   },
   async zoomReset({ tabId }) {
-    chrome.tabs.setZoom(tabId, 0); // setZoom of 0 sets to the tab default.
+    await bgUtils.runTabOperation(() => chrome.tabs.setZoom(tabId, 0));
   },
 
   async nextFrame({ count, tabId }) {
@@ -465,9 +468,11 @@ const BackgroundCommands = {
     count = count ?? 1;
     const nextIndex = (index + count) % frameIds.length;
     if (index == nextIndex) return;
-    await chrome.tabs.sendMessage(tabId, { handler: "focusFrame", highlight: true }, {
-      frameId: frameIds[nextIndex],
-    });
+    await bgUtils.runTabOperation(() =>
+      chrome.tabs.sendMessage(tabId, { handler: "focusFrame", highlight: true }, {
+        frameId: frameIds[nextIndex],
+      })
+    );
   },
 
   async closeTabsOnLeft(request) {
@@ -486,7 +491,7 @@ const BackgroundCommands = {
     tabIds = tabIds.filter((tabId) => tabId !== tab.id);
     if (tabIds.length > 0) {
       const id = tabIds[(count - 1) % tabIds.length];
-      selectSpecificTab({ id });
+      await selectSpecificTab({ id });
     }
   },
 
@@ -496,8 +501,8 @@ const BackgroundCommands = {
 
   async reload({ count, tab, registryEntry }) {
     const bypassCache = registryEntry.options.hard != null ? registryEntry.options.hard : false;
-    await forCountTabs(count, tab, (tab) => {
-      chrome.tabs.reload(tab.id, { bypassCache });
+    await forCountTabs(count, tab, async (tab) => {
+      await bgUtils.runTabOperation(() => chrome.tabs.reload(tab.id, { bypassCache }));
     });
   },
 };
@@ -507,7 +512,7 @@ async function forCountTabs(count, currentTab, callback) {
   const activeTabIndex = getTabIndex(currentTab, tabs);
   const startTabIndex = Math.max(0, Math.min(activeTabIndex, tabs.length - count));
   for (const tab of tabs.slice(startTabIndex, startTabIndex + count)) {
-    callback(tab);
+    await callback(tab);
   }
 }
 
@@ -536,29 +541,27 @@ async function removeTabsRelative(direction, { count, tab }) {
     }
   });
 
-  await chrome.tabs.remove(toRemove.map((t) => t.id));
+  await bgUtils.runTabOperation(() => chrome.tabs.remove(toRemove.map((t) => t.id)));
 }
 
 // Selects a tab before or after the currently selected tab.
 // - direction: "next", "previous", "first" or "last".
-function selectTab(direction, { count, tab }) {
-  chrome.tabs.query(visibleTabsQueryArgs, function (tabs) {
-    if (tabs.length > 1) {
-      const toSelect = (() => {
-        switch (direction) {
-          case "next":
-            return (getTabIndex(tab, tabs) + count) % tabs.length;
-          case "previous":
-            return ((getTabIndex(tab, tabs) - count) + (count * tabs.length)) % tabs.length;
-          case "first":
-            return Math.min(tabs.length - 1, count - 1);
-          case "last":
-            return Math.max(0, tabs.length - count);
-        }
-      })();
-      chrome.tabs.update(tabs[toSelect].id, { active: true });
+async function selectTab(direction, { count, tab }) {
+  const tabs = await chrome.tabs.query(visibleTabsQueryArgs);
+  if (tabs.length <= 1) return;
+  const toSelect = (() => {
+    switch (direction) {
+      case "next":
+        return (getTabIndex(tab, tabs) + count) % tabs.length;
+      case "previous":
+        return ((getTabIndex(tab, tabs) - count) + (count * tabs.length)) % tabs.length;
+      case "first":
+        return Math.min(tabs.length - 1, count - 1);
+      case "last":
+        return Math.max(0, tabs.length - count);
     }
-  });
+  })();
+  await bgUtils.runTabOperation(() => chrome.tabs.update(tabs[toSelect].id, { active: true }));
 }
 
 chrome.webNavigation.onCommitted.addListener(async ({ tabId, frameId }) => {
@@ -588,9 +591,11 @@ async function getFrameIdsForTab(tabId) {
 const HintCoordinator = {
   // Forward the message in "request" to all frames the in sender's tab.
   broadcastLinkHintsMessage(request, sender) {
-    chrome.tabs.sendMessage(
-      sender.tab.id,
-      Object.assign(request, { handler: "linkHintsMessage" }),
+    return bgUtils.runTabOperation(() =>
+      chrome.tabs.sendMessage(
+        sender.tab.id,
+        Object.assign(request, { handler: "linkHintsMessage" }),
+      )
     );
   },
 
@@ -680,7 +685,7 @@ const sendRequestHandlers = {
   // Used by the Vomnibar's command completer, which can be used to execute any command in Vimium.
   // The "request" must contain a "count" and a valid "command: RegistryEntry" parameter.
   runNormalModeCommand(request, sender) {
-    chrome.tabs.sendMessage(sender.tab.id, request);
+    return bgUtils.runTabOperation(() => chrome.tabs.sendMessage(sender.tab.id, request));
   },
   // getCurrentTabUrl is used by the content scripts to get their full URL, because window.location
   // cannot help with Chrome-specific URLs like "view-source:http:..".
@@ -732,13 +737,17 @@ const sendRequestHandlers = {
   sendMessageToFrames(request, sender) {
     const newRequest = Object.assign({}, request.message);
     const options = request.frameId != null ? { frameId: request.frameId } : {};
-    chrome.tabs.sendMessage(sender.tab.id, newRequest, options);
+    return bgUtils.runTabOperation(() =>
+      chrome.tabs.sendMessage(sender.tab.id, newRequest, options)
+    );
   },
   broadcastLinkHintsMessage(request, sender) {
-    HintCoordinator.broadcastLinkHintsMessage(request, sender);
+    return HintCoordinator.broadcastLinkHintsMessage(request, sender);
   },
   prepareToActivateLinkHintsMode(request, sender) {
-    HintCoordinator.prepareToActivateLinkHintsMode(sender.tab.id, sender.frameId, request);
+    return bgUtils.runTabOperation(() =>
+      HintCoordinator.prepareToActivateLinkHintsMode(sender.tab.id, sender.frameId, request)
+    );
   },
 
   async initializeFrame(request, sender) {
@@ -787,7 +796,7 @@ const sendRequestHandlers = {
         // initializeFrame can finish after its tab has been closed. The icon no longer matters in
         // that case, and leaving the rejected API call unchecked creates a context-less extension
         // error in Chrome.
-        if (!tabNoLongerExists(error)) throw error;
+        if (!bgUtils.tabNoLongerExists(error)) throw error;
       }
     }
 
@@ -854,8 +863,14 @@ Utils.addChromeRuntimeOnMessageListener(
       tabId: sender.tab.id,
     });
     const handler = sendRequestHandlers[request.handler];
-    const result = handler ? await handler(request, sender) : null;
-    return result;
+    try {
+      return handler ? await handler(request, sender) : null;
+    } catch (error) {
+      // Every request begins with a snapshot of sender.tab. The user may close that tab while an
+      // asynchronous command is still running; consuming this expected race prevents Chrome from
+      // reporting it as an unchecked, context-less runtime.lastError.
+      if (!bgUtils.tabNoLongerExists(error)) throw error;
+    }
   },
 );
 
