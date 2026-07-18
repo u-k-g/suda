@@ -64,6 +64,32 @@ export function isEnabledForUrl(url) {
   };
 }
 
+// Match the same scope suggested by the action popup: the current site for ordinary web pages,
+// and the containing URL hierarchy for other schemes.
+export function generateDefaultPattern(url) {
+  if (/^https?:\/\/.+/.test(url)) {
+    const hostname = url.split("/", 3).slice(1).join("/").replace("[", "\\[").replace(
+      "]",
+      "\\]",
+    );
+    return "https?:/" + hostname + "/*";
+  } else if (/^[a-z]{3,}:\/\/.+/.test(url)) {
+    return url.split("/", 3).join("/") + "/*";
+  } else {
+    return url + "*";
+  }
+}
+
+export async function excludeAllKeysForUrl(url) {
+  await Settings.onLoaded();
+  const pattern = generateDefaultPattern(url);
+  const rules = Settings.get("exclusionRules")
+    .filter((rule) => rule.pattern != pattern);
+  rules.push({ pattern, passKeys: "" });
+  await Settings.set("exclusionRules", rules);
+  return pattern;
+}
+
 function setRules(rules) {
   // Callers map a rule to null to have it deleted, and rules without a pattern are useless.
   const newRules = rules.filter((rule) => rule?.pattern);

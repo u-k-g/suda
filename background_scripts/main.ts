@@ -317,6 +317,14 @@ async function selectNextRecentTab(currentTabId) {
 // These are commands which are bound to keystrokes which must be handled by the background page.
 // They are mapped in commands.js.
 const BackgroundCommands = {
+  async excludeAllVimiumKeys({ tab }) {
+    if (!tab?.url) return;
+    await exclusions.excludeAllKeysForUrl(tab.url);
+    await bgUtils.runTabOperation(() =>
+      chrome.tabs.sendMessage(tab.id, { handler: "refreshEnabledState" })
+    );
+  },
+
   // Create a new tab. Also, with:
   //     map X createTab http://www.bbc.com/news
   // create a new tab with the given URL.

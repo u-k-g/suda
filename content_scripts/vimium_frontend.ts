@@ -391,6 +391,7 @@ const messageHandlers = {
   },
   setScrollPosition,
   checkEnabledAfterURLChange,
+  refreshEnabledState: checkIfEnabledForUrl,
   runInTopFrame({ sourceFrameId, registryEntry }) {
     // TODO(philc): it seems to me that we should be able to get rid of this runInTopFrame
     // command, and instead use chrome.tabs.sendMessage with a frameId 0 from the background page.
@@ -424,7 +425,9 @@ async function handleMessage(request, sender) {
   // Some request are handled elsewhere in the code base; ignore them here.
   const shouldHandleMessage = request.handler !== "userIsInteractingWithThePage" &&
     (isEnabledForUrl ||
-      ["checkEnabledAfterURLChange", "runInTopFrame"].includes(request.handler));
+      ["checkEnabledAfterURLChange", "refreshEnabledState", "runInTopFrame"].includes(
+        request.handler,
+      ));
   if (shouldHandleMessage) {
     const result = await messageHandlers[request.handler](request, sender);
     return result;

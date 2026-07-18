@@ -703,6 +703,14 @@ const allCommands = [
   //
 
   {
+    name: "excludeAllVimiumKeys",
+    desc: "Exclude all Vimium keys on current page",
+    group: "misc",
+    background: true,
+    noRepeat: true,
+  },
+
+  {
     name: "toggleViewSource",
     desc: "View page source",
     group: "misc",

@@ -4,6 +4,7 @@ import "../lib/dom_utils.js";
 import "../lib/settings.js";
 
 import * as bgUtils from "../background_scripts/bg_utils.js";
+import { generateDefaultPattern } from "../background_scripts/exclusions.js";
 import { ExclusionRulesEditor } from "./exclusion_rules_editor.js";
 
 const ActionPage = {
@@ -145,21 +146,7 @@ const ActionPage = {
   // Returns an exclusion pattern which matches the domain of the given URL.
   // This is used as the default starter pattern when the "Add rule" button is clicked.
   generateDefaultPattern(url) {
-    if (/^https?:\/\/./.test(url)) {
-      // The common use case is to disable Vimium at the domain level.
-      // Generate "https?://www.example.com/*" from "http://www.example.com/path/to/page.html".
-      // Note: IPV6 host addresses will contain "[" and "]" (which must be escaped).
-      const hostname = url.split("/", 3).slice(1).join("/").replace("[", "\\[").replace(
-        "]",
-        "\\]",
-      );
-      return "https?:/" + hostname + "/*";
-    } else if (/^[a-z]{3,}:\/\/./.test(url)) {
-      // Anything else which seems to be a URL.
-      return url.split("/", 3).join("/") + "/*";
-    } else {
-      return url + "*";
-    }
+    return generateDefaultPattern(url);
   },
 };
 

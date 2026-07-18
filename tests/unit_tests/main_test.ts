@@ -95,6 +95,31 @@ context("createTab command", () => {
   });
 });
 
+context("excludeAllVimiumKeys command", () => {
+  should("save an all-keys site exclusion and refresh the current tab", async () => {
+    await Settings.onLoaded();
+    await Settings.set("exclusionRules", []);
+    let sentMessage;
+    stub(chrome.tabs, "sendMessage", async (tabId, message) => {
+      sentMessage = { tabId, message };
+    });
+
+    await BackgroundCommands.excludeAllVimiumKeys({
+      tab: { id: 42, url: "https://example.com/current/page" },
+    });
+
+    assert.equal(
+      [{ pattern: "https?://example.com/*", passKeys: "" }],
+      Settings.get("exclusionRules"),
+    );
+    assert.equal(
+      { tabId: 42, message: { handler: "refreshEnabledState" } },
+      sentMessage,
+    );
+    await Settings.clear();
+  });
+});
+
 context("selectSpecificTab", () => {
   should("ignore a tab which closed after its command-bar suggestion was rendered", async () => {
     stub(chrome.tabs, "get", async () => {

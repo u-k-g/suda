@@ -50,6 +50,19 @@ context("Excluded URLs and pass keys", () => {
     assert.isFalse(rule.passKeys);
   });
 
+  should("exclude all keys for the current site", async () => {
+    const url = "https://www.twitter.com/some/page?query=yes";
+    const pattern = await exclusions.excludeAllKeysForUrl(url);
+
+    assert.equal("https?://www.twitter.com/*", pattern);
+    assert.isFalse(
+      exclusions.isEnabledForUrl("http://www.twitter.com/another/page").isEnabledForUrl,
+    );
+    assert.isTrue(
+      Settings.get("exclusionRules").some((rule) => rule.pattern == pattern && rule.passKeys == ""),
+    );
+  });
+
   should("handle spaces and duplicates in passkeys", () => {
     const rule = isEnabledForUrl({ url: "http://www.example.com/pages" });
     assert.isTrue(rule.isEnabledForUrl);

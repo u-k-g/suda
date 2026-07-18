@@ -517,6 +517,19 @@ context("command completer", () => {
       suggestions.map((s) => s.title),
     );
   });
+
+  should("include the exclude-all-keys command", async () => {
+    stub(chrome.storage.session, "get", async () => ({ commandToOptionsToKeys: {} }));
+    stub(Commands, "keyToRegistryEntry", {});
+
+    const suggestions = await filterCompleter(multiCompleter, ["exclude", "vimium"]);
+    assert.isTrue(
+      suggestions.some((suggestion) =>
+        suggestion.command.registryEntry.command == "excludeAllVimiumKeys" &&
+        suggestion.title == "Exclude all Vimium keys on current page"
+      ),
+    );
+  });
 });
 
 context("tab completer", () => {
