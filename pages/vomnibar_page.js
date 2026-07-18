@@ -15,12 +15,46 @@ import { icon as phosphorIcon } from "../lib/phosphor_icons.js";
 import * as UIComponentMessenger from "./ui_component_messenger.js";
 import * as userSearchEngines from "../background_scripts/user_search_engines.js";
 
-function renderKeybinding(keybinding) {
-  if (!keybinding) return "";
-  const bindings = Array.isArray(keybinding) ? keybinding : [keybinding];
-  return bindings.map((binding) =>
+function formatKeyToken(token) {
+  if (!token.startsWith("<")) return token;
+  const parts = token.slice(1, -1).split("-");
+  const modifierNames = {
+    a: "Alt",
+    c: "Ctrl",
+    m: KeyboardUtils.platform == "Mac" ? "Cmd" : "Meta",
+    s: "Shift",
+  };
+  const modifiers = [];
+  while (modifierNames[parts[0]]) modifiers.push(modifierNames[parts.shift()]);
+  const keyName = parts.join("-");
+  const namedKeys = {
+    backspace: "Backspace",
+    delete: "Delete",
+    down: "Down",
+    end: "End",
+    enter: "Enter",
+    escape: "Escape",
+    home: "Home",
+    left: "Left",
+    pagedown: "PageDown",
+    pageup: "PageUp",
+    right: "Right",
+    space: "Space",
+    tab: "Tab",
+    up: "Up",
+  };
+  const displayKey = namedKeys[keyName] ??
+    (modifiers.length > 0 && /^[a-z]$/.test(keyName) ? keyName.toUpperCase() : keyName);
+  return [...modifiers, displayKey].join("-");
+}
+
+function renderKeybindings(keybindings) {
+  if (keybindings.length === 0) return "";
+  return keybindings.map((binding) =>
     `<span class="mode-keybinding">${
-      binding.split(" ").map((key) => `<kbd>${Utils.escapeHtml(key)}</kbd>`).join("")
+      (binding.match(/<[^>]+>|./g) ?? []).map((key) =>
+        `<kbd>${Utils.escapeHtml(formatKeyToken(key))}</kbd>`
+      ).join("")
     }</span>`
   ).join("");
 }
@@ -33,6 +67,7 @@ const commandBarModes = [
     completer: "omni",
     newTab: true,
     icon: "star",
+    bindingCommands: ["Vomnibar.activateAll"],
   },
   {
     name: "find",
@@ -40,7 +75,7 @@ const commandBarModes = [
     aliases: "page search",
     completer: "local",
     icon: "magnifying-glass",
-    keybinding: "Space /",
+    bindingCommands: ["Vomnibar.activateFind"],
   },
   {
     name: "search",
@@ -49,7 +84,7 @@ const commandBarModes = [
     completer: "omni",
     newTab: true,
     icon: "globe",
-    keybinding: ["Space S", "Ctrl-W n"],
+    bindingCommands: ["Vomnibar.activateInNewTab", "Vomnibar.activate"],
   },
   {
     name: "history",
@@ -58,6 +93,7 @@ const commandBarModes = [
     completer: "history",
     selectFirst: true,
     icon: "clock-counter-clockwise",
+    bindingCommands: ["Vomnibar.activateHistory"],
   },
   {
     name: "tabs",
@@ -66,7 +102,7 @@ const commandBarModes = [
     completer: "tabs",
     selectFirst: true,
     icon: "browsers",
-    keybinding: "Space b",
+    bindingCommands: ["Vomnibar.activateTabSelection"],
   },
   {
     name: "bookmarks",
@@ -75,7 +111,7 @@ const commandBarModes = [
     completer: "bookmarks",
     selectFirst: true,
     icon: "bookmark-simple",
-    keybinding: "Space B",
+    bindingCommands: ["Vomnibar.activateBookmarks"],
   },
   {
     name: "url",
@@ -84,7 +120,7 @@ const commandBarModes = [
     completer: "omni",
     useCurrentUrl: true,
     icon: "pencil-simple",
-    keybinding: "Space e",
+    bindingCommands: ["Vomnibar.activateEditUrl"],
   },
   {
     name: "commands",
@@ -93,6 +129,7 @@ const commandBarModes = [
     completer: "commands",
     selectFirst: true,
     icon: "command",
+    bindingCommands: ["Vomnibar.activateCommandSelection"],
   },
   {
     name: "keybindings",
@@ -101,7 +138,7 @@ const commandBarModes = [
     completer: "commands",
     selectFirst: true,
     icon: "keyboard",
-    keybinding: "Space h",
+    bindingCommands: ["Vomnibar.activateKeybindings"],
   },
   {
     name: "marks",
@@ -110,7 +147,7 @@ const commandBarModes = [
     completer: "local",
     selectFirst: true,
     icon: "map-pin",
-    keybinding: "Space '",
+    bindingCommands: ["Vomnibar.activateMarks"],
   },
   {
     name: "link:current",
@@ -118,7 +155,7 @@ const commandBarModes = [
     aliases: "hint click",
     action: true,
     icon: "link",
-    keybinding: "Space f",
+    bindingCommands: ["LinkHints.activateMode"],
   },
   {
     name: "link:new",
@@ -126,7 +163,7 @@ const commandBarModes = [
     aliases: "hint background",
     action: true,
     icon: "link",
-    keybinding: "Space F",
+    bindingCommands: ["LinkHints.activateModeToOpenInNewTab"],
   },
   {
     name: "link:multi",
@@ -134,7 +171,7 @@ const commandBarModes = [
     aliases: "hint queue many",
     action: true,
     icon: "link",
-    keybinding: "Space a",
+    bindingCommands: ["LinkHints.activateModeWithQueue"],
   },
   {
     name: "link:download",
@@ -142,7 +179,7 @@ const commandBarModes = [
     aliases: "hint save",
     action: true,
     icon: "link",
-    keybinding: "Space d",
+    bindingCommands: ["LinkHints.activateModeToDownloadLink"],
   },
   {
     name: "link:copy",
@@ -150,7 +187,7 @@ const commandBarModes = [
     aliases: "hint yank clipboard",
     action: true,
     icon: "link",
-    keybinding: "Space y",
+    bindingCommands: ["LinkHints.activateModeToCopyLinkUrl"],
   },
 ];
 
@@ -167,6 +204,8 @@ export function reset() {
 export async function activate(options) {
   Utils.assertType(VomnibarShowOptions, options || {});
   await Settings.onLoaded();
+  const commandToOptionsToKeys =
+    (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys ?? {};
   userSearchEngines.set(Settings.get("searchEngines"));
 
   const defaults = {
@@ -185,6 +224,7 @@ export async function activate(options) {
   if (ui == null) {
     ui = new VomnibarUI();
   }
+  ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
   ui.setPrefixCount(options.prefixCount);
@@ -228,6 +268,15 @@ class VomnibarUI {
   }
   setShowModeDescriptions(showDescriptions) {
     this.box.classList.toggle("show-mode-descriptions", showDescriptions);
+  }
+  setCommandToOptionsToKeys(commandToOptionsToKeys) {
+    this.commandToOptionsToKeys = commandToOptionsToKeys;
+  }
+  getModeKeybindings(mode) {
+    const keys = mode.bindingCommands.flatMap((command) =>
+      Object.values(this.commandToOptionsToKeys[command] ?? {}).flat()
+    );
+    return Array.from(new Set(keys));
   }
 
   setMode(name, options = {}) {
@@ -593,7 +642,7 @@ class VomnibarUI {
             <span class="mode-name">${Utils.escapeHtml(mode.name)}</span>
             <span class="mode-description">${Utils.escapeHtml(mode.description)}</span>
           </span>
-          <span class="completion-end">${renderKeybinding(mode.keybinding)}</span>
+          <span class="completion-end">${renderKeybindings(this.getModeKeybindings(mode))}</span>
         </div>`,
       }));
       this.selection = this.completions.length > 0 ? 0 : -1;

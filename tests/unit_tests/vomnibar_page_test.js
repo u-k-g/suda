@@ -61,6 +61,32 @@ context("vomnibar page", () => {
     assert.equal("link:copy", ui.completions[0].commandBarMode);
   });
 
+  should("render mode shortcuts from the live key mappings", async () => {
+    await chrome.storage.session.set({
+      commandToOptionsToKeys: {
+        "Vomnibar.activateAll": { "": ["<space>t"] },
+        "Vomnibar.activate": { "": ["<c-w>n"] },
+        "Vomnibar.activateInNewTab": { "": ["<space>S"] },
+      },
+    });
+    await vomnibarPage.activate({ mode: "", completer: "modes" });
+    ui.setQuery("all");
+    await ui.update();
+
+    assert.equal(
+      ["Space", "t"],
+      Array.from(ui.completionList.querySelectorAll("kbd")).map((element) => element.textContent),
+    );
+
+    ui.setQuery("navigate");
+    await ui.update();
+    assert.equal(
+      ["Space", "S", "Ctrl-W", "n"],
+      Array.from(ui.completionList.querySelectorAll("kbd")).map((element) => element.textContent),
+    );
+    await chrome.storage.session.remove("commandToOptionsToKeys");
+  });
+
   should("hide mode descriptions by default and allow enabling them", async () => {
     await vomnibarPage.activate({ mode: "", completer: "modes" });
     assert.isFalse(ui.box.classList.contains("show-mode-descriptions"));
