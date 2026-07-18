@@ -118,7 +118,9 @@ globalThis.chrome = {
   },
 
   tabs: {
+    create() {},
     get(_id) {},
+    remove() {},
     onCreated: {
       addListener() {
         return true;

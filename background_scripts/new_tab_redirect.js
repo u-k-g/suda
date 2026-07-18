@@ -45,7 +45,20 @@ export async function redirectBrowserNewTab(tab, url = tab.pendingUrl || tab.url
   const configuredUrl = getConfiguredNewTabUrl();
   if (configuredUrl == UrlUtils.chromeNewTabUrl) return false;
 
-  await chrome.tabs.update(tab.id, { url: configuredUrl });
+  // Updating Chrome's protected new-tab page races with Chrome's own navigation, which can replace
+  // our URL after chrome.tabs.update succeeds. Create the configured tab first and then remove the
+  // browser tab; Chrome cannot overwrite a navigation in a different tab.
+  const createProperties = {
+    active: tab.active ?? true,
+    url: configuredUrl,
+  };
+  for (const property of ["index", "openerTabId", "windowId"]) {
+    if (Number.isInteger(tab[property])) createProperties[property] = tab[property];
+  }
+  if (typeof tab.cookieStoreId == "string") createProperties.cookieStoreId = tab.cookieStoreId;
+
+  await chrome.tabs.create(createProperties);
+  await chrome.tabs.remove(tab.id);
   return true;
 }
 
