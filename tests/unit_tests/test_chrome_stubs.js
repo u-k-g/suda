@@ -1,5 +1,5 @@
 // This file contains stubs for a number of browser and chrome APIs which are missing in Deno.
-import JSON5 from "npm:json5";
+import JSON5 from "json5";
 
 // There are 3 chrome.storage.* objects with identical APIs.
 // - areaName: one of "local", "sync", "session".

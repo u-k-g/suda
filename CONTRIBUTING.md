@@ -94,7 +94,7 @@ Vimium is written in Javascript. To install Vimium from source:
 
 Firefox needs a modified version of the manifest.json that's used for Chrome. To generate this, run
 
-`./make.js write-firefox-manifest`
+`just write-firefox-manifest`
 
 After that:
 
@@ -109,13 +109,22 @@ After that:
 Our tests use [shoulda.js](https://github.com/philc/shoulda.js) and
 [Puppeteer](https://github.com/puppeteer/puppeteer). To run the tests:
 
-1. Install [Deno](https://deno.land/) if you don't have it already.
+1. Install [just](https://just.systems/) and [Deno](https://deno.land/) if you don't have them
+   already.
 2. `deno run -A npm:puppeteer browsers install chrome` to install puppeteer
-3. `./make.js test` to build the code and run the tests.
+3. `just test` to run the unit and browser-DOM tests.
+
+Run `just --list` to see the other development, packaging, and maintenance tasks.
+
+The formatting, linting, and checking recipes pass arguments through to Deno. For example,
+`just fmt --check content_scripts`, `just lint --fix pages`, and
+`just check content_scripts/vimium_frontend.js` all work. Use `just test unit` or `just test dom` to
+run one test suite. A suite can be followed by an optional test-name filter, such as
+`just test unit "Browser new-tab redirects"`.
 
 ### Coding Style
 
-- Run `deno fmt` at the root of the Vimium project to format your code.
+- Run `just fmt` at the root of the Vimium project to format your code.
 - We generally follow the recommendations from the
   [Airbnb Javascript style guide](https://github.com/airbnb/javascript).
 - We wrap lines at 100 characters.

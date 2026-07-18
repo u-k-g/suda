@@ -3,12 +3,28 @@
     "exclude": ["icons/*.svg"],
     "lineWidth": 100
   },
+  "lint": {
+    "exclude": ["tests/vendor/"],
+    "rules": {
+      "exclude": [
+        "no-case-declarations",
+        "no-cond-assign",
+        "no-unused-vars",
+        "no-window",
+        "no-window-prefix",
+        "prefer-const",
+        "require-await",
+        "valid-typeof"
+      ]
+    }
+  },
   "imports": {
     "@b-fuze/deno-dom": "jsr:@b-fuze/deno-dom@^0.1.49",
     "@std/fs": "jsr:@std/fs@^1.0.8",
     "@std/http": "jsr:@std/http@^1.0.12",
     "@std/path": "jsr:@std/path@^1.0.8",
     "jsdom": "npm:jsdom@^26.0.0",
-    "json5": "npm:json5@^2.2.3"
+    "json5": "npm:json5@^2.2.3",
+    "puppeteer": "npm:puppeteer@^23.11.1"
   }
 }

@@ -190,7 +190,7 @@ const checkEnabledAfterURLChange = forTrusted(function (_request) {
   // The URL changing feels like navigation to the user, so reset the scroller (see #3119).
   Scroller.reset();
   if (windowIsFocused()) {
-    checkIfEnabledForUrlSafely();
+    checkIfEnabledForUrl();
   }
 });
 
@@ -198,7 +198,13 @@ const checkEnabledAfterURLChange = forTrusted(function (_request) {
 // become orphaned: they remain running but cannot communicate with the background page or invoke
 // most extension APIs. There is no Chrome API to be notified of this event, so we test for it every
 // time a keystroke is pressed before we act on that keystroke. https://stackoverflow.com/a/64407849
-const extensionHasBeenUnloaded = () => chrome.runtime?.id == null;
+const extensionHasBeenUnloaded = () => {
+  try {
+    return chrome.runtime?.id == null;
+  } catch {
+    return true;
+  }
+};
 
 // Wrapper to install event listeners.  Syntactic sugar.
 function installListener(element, event, callback) {
@@ -241,7 +247,7 @@ const installListeners = Utils.makeIdempotent(function () {
 // Whenever we get the focus, check if we should be enabled.
 const onFocus = forTrusted(function (event) {
   if (event.target === window) {
-    checkIfEnabledForUrlSafely();
+    checkIfEnabledForUrl();
   }
 });
 
@@ -288,10 +294,6 @@ function handleExtensionContextError(error) {
   } else {
     throw error;
   }
-}
-
-function checkIfEnabledForUrlSafely() {
-  return checkIfEnabledForUrl().catch(handleExtensionContextError);
 }
 
 function setScrollPosition({ scrollX, scrollY }) {
@@ -446,27 +448,33 @@ async function initializePreDomReady() {
 
 // Check if Vimium should be enabled or not based on the top frame's URL.
 async function checkIfEnabledForUrl() {
-  const promises = [];
-  promises.push(chrome.runtime.sendMessage({ handler: "initializeFrame" }));
-  if (!Settings.isLoaded()) {
-    promises.push(Settings.onLoaded());
+  if (extensionHasBeenUnloaded()) {
+    onUnload();
+    return;
   }
-  const [response, ...unused] = await Promise.all(promises);
 
-  isEnabledForUrl = response.isEnabledForUrl;
+  try {
+    const promises = [chrome.runtime.sendMessage({ handler: "initializeFrame" })];
+    if (!Settings.isLoaded()) promises.push(Settings.onLoaded());
+    const [response] = await Promise.all(promises);
 
-  // This browser info is used by other content scripts, but can only be determinted by the
-  // background page.
-  Utils._isFirefox = response.isFirefox;
-  Utils._firefoxVersion = response.firefoxVersion;
-  Utils._browserInfoLoaded = true;
-  // This is the first time we learn what this frame's ID is.
-  globalThis.frameId = response.frameId;
+    isEnabledForUrl = response.isEnabledForUrl;
 
-  if (normalMode == null) installModes();
-  normalMode.setPassKeys(response.passKeys);
-  // Hide the HUD if we're not enabled.
-  if (!isEnabledForUrl) HUD.hide(true, false);
+    // This browser info is used by other content scripts, but can only be determinted by the
+    // background page.
+    Utils._isFirefox = response.isFirefox;
+    Utils._firefoxVersion = response.firefoxVersion;
+    Utils._browserInfoLoaded = true;
+    // This is the first time we learn what this frame's ID is.
+    globalThis.frameId = response.frameId;
+
+    if (normalMode == null) installModes();
+    normalMode.setPassKeys(response.passKeys);
+    // Hide the HUD if we're not enabled.
+    if (!isEnabledForUrl) HUD.hide(true, false);
+  } catch (error) {
+    handleExtensionContextError(error);
+  }
 }
 
 // If this content script is running in the help dialog's iframe, then use the HelpDialogPage's
