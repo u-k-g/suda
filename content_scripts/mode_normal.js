@@ -123,6 +123,12 @@ const NormalModeCommands = {
   scrollDown(count) {
     Scroller.scrollBy("y", Settings.get("scrollStepSize") * count);
   },
+  scrollFastUp(count) {
+    Scroller.scrollBy("y", -1 * Settings.get("fastScrollStepSize") * count);
+  },
+  scrollFastDown(count) {
+    Scroller.scrollBy("y", Settings.get("fastScrollStepSize") * count);
+  },
   scrollPageUp(count) {
     Scroller.scrollBy("y", "viewSize", (-1 / 2) * count);
   },

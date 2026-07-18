@@ -255,6 +255,12 @@ context("Validate commands and options data structures", () => {
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
   });
 
+  should("bind Helix J and K to configurable fast scrolling", () => {
+    assert.equal("scrollFastDown", helixKeyMappings["J"]);
+    assert.equal("scrollFastUp", helixKeyMappings["K"]);
+    assert.equal(100, Settings.defaultOptions.fastScrollStepSize);
+  });
+
   should("parse every default keybinding profile without validation errors", () => {
     for (const mappings of [vimKeyMappings, helixKeyMappings]) {
       const config = Object.entries(mappings).map(([key, command]) => `map ${key} ${command}`)

@@ -29,6 +29,18 @@ const allCommands = [
   },
 
   {
+    name: "scrollFastDown",
+    desc: "Scroll down by the fast scroll step",
+    group: "navigation",
+  },
+
+  {
+    name: "scrollFastUp",
+    desc: "Scroll up by the fast scroll step",
+    group: "navigation",
+  },
+
+  {
     name: "scrollToTop",
     desc: "Scroll to the top of the page",
     group: "navigation",

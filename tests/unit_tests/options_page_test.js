@@ -25,6 +25,10 @@ context("options page", () => {
     assert.isFalse(document.querySelector("#vimKeyBindings").checked);
   });
 
+  should("show the configurable fast-scroll default", () => {
+    assert.equal("100", optionsPage.getOptionEl("fastScrollStepSize").value);
+  });
+
   should("show validation errors for invalid fields on save", async () => {
     const el = optionsPage.getOptionEl("keyMappings");
     assert.isFalse(el.classList.contains("validation-error"));

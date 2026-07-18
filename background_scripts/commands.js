@@ -502,6 +502,8 @@ const helixKeyMappings = {
   "h": "scrollLeft",
   "j": "scrollDown",
   "k": "scrollUp",
+  "J": "scrollFastDown",
+  "K": "scrollFastUp",
   "l": "scrollRight",
   "<c-d>": "scrollPageDown",
   "<c-u>": "scrollPageUp",
