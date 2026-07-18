@@ -27,6 +27,14 @@ function renderKeybinding(keybinding) {
 
 const commandBarModes = [
   {
+    name: "all",
+    description: "Search the web, open tabs, history, and bookmarks",
+    aliases: "everything omni universal tabs history bookmarks search url",
+    completer: "omni",
+    newTab: true,
+    icon: "star",
+  },
+  {
     name: "find",
     description: "Find text on the current page",
     aliases: "page search",
@@ -177,6 +185,7 @@ export async function activate(options) {
   if (ui == null) {
     ui = new VomnibarUI();
   }
+  ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
   ui.setPrefixCount(options.prefixCount);
   ui.setMode(options.mode, {
@@ -216,6 +225,9 @@ class VomnibarUI {
   }
   setForceNewTab(forceNewTab) {
     this.forceNewTab = forceNewTab;
+  }
+  setShowModeDescriptions(showDescriptions) {
+    this.box.classList.toggle("show-mode-descriptions", showDescriptions);
   }
 
   setMode(name, options = {}) {

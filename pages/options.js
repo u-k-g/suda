@@ -24,6 +24,7 @@ const options = {
   scrollStepSize: "number",
   searchEngines: "string",
   settingsVersion: "string", // This is a hidden field.
+  showCommandBarModeDescriptions: "boolean",
   smoothScroll: "boolean",
   userDefinedLinkHintCss: "string",
   waitForEnterForFilteredHints: "boolean",

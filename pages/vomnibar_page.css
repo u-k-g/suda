@@ -28,7 +28,7 @@ body {
 ul {
   list-style: none;
   margin: 0;
-  padding: 8px 8px 12px;
+  padding: 10px 11px 12px;
 }
 
 #vomnibar {
@@ -50,14 +50,14 @@ ul {
 #vomnibar-search-area {
   background: var(--command-bar-input);
   border-bottom: 1px solid var(--command-bar-border-soft);
-  padding: 15px 17px;
+  padding: 13px 17px;
 }
 
 #command-bar-input-row {
   align-items: center;
   display: flex;
   gap: 10px;
-  min-height: 42px;
+  min-height: 40px;
 }
 
 .phosphor-icon,
@@ -112,9 +112,9 @@ ul {
   color: var(--command-bar-text);
   flex: 1;
   font-family: inherit;
-  font-size: 20px;
-  font-weight: 520;
-  height: 42px;
+  font-size: 19px;
+  font-weight: 500;
+  height: 40px;
   min-width: 0;
   outline: none;
   padding: 0;
@@ -134,8 +134,10 @@ ul {
 
 #vomnibar ul {
   background: var(--command-bar-panel);
-  max-height: calc(100vh - 102px);
+  max-height: min(344px, calc(100vh - 96px));
   overflow: hidden auto;
+  scrollbar-color: var(--command-bar-border) transparent;
+  scrollbar-width: thin;
 }
 
 #vomnibar li {
@@ -143,11 +145,11 @@ ul {
   border-radius: 12px;
   color: var(--command-bar-text);
   display: list-item;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.25;
-  margin: 3px 0;
-  min-height: 52px;
-  padding: 10px 12px;
+  margin: 2px 0;
+  min-height: 46px;
+  padding: 7px 11px;
   position: relative;
 }
 
@@ -168,7 +170,7 @@ ul {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -185,7 +187,7 @@ ul {
   color: var(--command-bar-muted);
   flex: none;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   margin-left: 12px;
 }
 
@@ -236,14 +238,27 @@ ul {
 #vomnibar li .mode-name,
 #vomnibar li .mark-key {
   color: var(--command-bar-text);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 650;
 }
 
 #vomnibar li .mode-description,
 #vomnibar li .mark-scope {
   color: var(--command-bar-muted);
   font-size: 12px;
+}
+
+#vomnibar li .mode-description {
+  display: none;
+}
+
+#vomnibar.show-mode-descriptions li {
+  min-height: 52px;
+  padding-block: 9px;
+}
+
+#vomnibar.show-mode-descriptions li .mode-description {
+  display: inline;
 }
 
 #vomnibar kbd,
@@ -256,10 +271,10 @@ ul {
   display: inline-block;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 11px;
-  line-height: 22px;
+  line-height: 20px;
   margin-left: 4px;
   min-width: 24px;
-  padding: 0 6px;
+  padding: 0 5px;
   text-align: center;
 }
 

@@ -61,6 +61,16 @@ context("vomnibar page", () => {
     assert.equal("link:copy", ui.completions[0].commandBarMode);
   });
 
+  should("hide mode descriptions by default and allow enabling them", async () => {
+    await vomnibarPage.activate({ mode: "", completer: "modes" });
+    assert.isFalse(ui.box.classList.contains("show-mode-descriptions"));
+
+    await Settings.set("showCommandBarModeDescriptions", true);
+    await vomnibarPage.activate({ mode: "", completer: "modes" });
+    assert.isTrue(ui.box.classList.contains("show-mode-descriptions"));
+    await Settings.set("showCommandBarModeDescriptions", false);
+  });
+
   should("enter a selected command-bar mode without closing the bar", async () => {
     await vomnibarPage.activate({ mode: "", completer: "modes" });
     ui.setQuery("find");
@@ -71,6 +81,20 @@ context("vomnibar page", () => {
     assert.equal("local", ui.completerName);
     assert.equal("find", ui.modeIndicator.textContent);
     assert.isFalse(ui.modeIndicator.hidden);
+  });
+
+  should("offer an all mode backed by the combined omni completer", async () => {
+    await vomnibarPage.activate({ mode: "", completer: "modes" });
+    ui.setQuery("all");
+    await ui.update();
+
+    assert.equal(1, ui.completions.length);
+    assert.equal("all", ui.completions[0].commandBarMode);
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+
+    assert.equal("all", ui.mode);
+    assert.equal("omni", ui.completerName);
+    assert.isTrue(ui.forceNewTab);
   });
 
   should("return from a mode to the mode selector with backspace on an empty query", async () => {

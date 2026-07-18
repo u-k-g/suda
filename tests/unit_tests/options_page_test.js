@@ -29,6 +29,10 @@ context("options page", () => {
     assert.equal("100", optionsPage.getOptionEl("fastScrollStepSize").value);
   });
 
+  should("hide command-bar mode descriptions by default", () => {
+    assert.isFalse(optionsPage.getOptionEl("showCommandBarModeDescriptions").checked);
+  });
+
   should("show validation errors for invalid fields on save", async () => {
     const el = optionsPage.getOptionEl("keyMappings");
     assert.isFalse(el.classList.contains("validation-error"));
