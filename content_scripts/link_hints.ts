@@ -195,7 +195,7 @@ const HintCoordinator = {
 
   prepareToActivateMode(mode, onExit) {
     // We need to communicate with the background page (and other frames) to initiate link-hints
-    // mode. To prevent other Vimium commands from being triggered before link-hints mode is
+    // mode. To prevent other Suda commands from being triggered before link-hints mode is
     // launched, we install a temporary mode to block (and cache) keyboard events.
     let cacheAllKeydownEvents;
     this.cacheAllKeydownEvents = cacheAllKeydownEvents = new CacheAllKeydownEvents({
@@ -205,7 +205,7 @@ const HintCoordinator = {
       exitOnEscape: true,
     });
     // FIXME(smblott) Global link hints is currently insufficiently reliable. If the mode above is
-    // left in place, then Vimium blocks. As a temporary measure, we install a timer to remove it.
+    // left in place, then Suda blocks. As a temporary measure, we install a timer to remove it.
     // TODO(philc): I believe link hints is sufficiently reliable after the manifest V3 port
     // that this safeguard can now be removed.
     Utils.setTimeout(1000, function () {
@@ -221,7 +221,7 @@ const HintCoordinator = {
       handler: "prepareToActivateLinkHintsMode",
       modeIndex: availableModes.indexOf(mode),
       isExtensionPage,
-      requestedByHelpDialog: globalThis.isVimiumHelpDialog,
+      requestedByHelpDialog: globalThis.isSudaHelpDialog,
     });
   },
 
@@ -235,7 +235,7 @@ const HintCoordinator = {
     // If link hints is launched within the help dialog, then we only offer hints from that frame.
     // This improves the usability of the help dialog on the options page (particularly for
     // selecting command names).
-    if (requestedByHelpDialog && !globalThis.isVimiumHelpDialog) {
+    if (requestedByHelpDialog && !globalThis.isSudaHelpDialog) {
       this.localHints = [];
     } else {
       this.localHints = LocalHints.getLocalHints(requireHref);
@@ -307,7 +307,7 @@ const HintCoordinator = {
     this.linkHintsMode = this.localHints = null;
     this.onExit = [];
     if (frameId === selection.originatingFrameId) {
-      Utils.nextTick(() => Vomnibar.activateLinkActions(frameId, selection.links.length));
+      Utils.nextTick(() => CommandBar.activateLinkActions(frameId, selection.links.length));
     }
   },
   activateSelectedLinks({ action }) {
@@ -467,8 +467,8 @@ class LinkHintsMode {
   renderHints() {
     if (this.containerEl == null) {
       const div = DomUtils.createElement("div");
-      div.id = "vimium-hint-marker-container";
-      div.className = "vimium-reset";
+      div.id = "suda-hint-marker-container";
+      div.className = "suda-reset";
       this.containerEl = div;
       document.documentElement.appendChild(div);
     }
@@ -481,7 +481,7 @@ class LinkHintsMode {
     }
 
     // TODO(philc): 2024-03-27 Remove this hasPopoverSupport check once Firefox has popover support.
-    // Also move this CSS into vimium.css.
+    // Also move this CSS into suda.css.
     const hasPopoverSupport = this.containerEl.showPopover != null;
     if (hasPopoverSupport) {
       this.containerEl.popover = "manual";
@@ -539,9 +539,9 @@ class LinkHintsMode {
       const el = DomUtils.createElement("div");
       el.style.left = localHint.rect.left + "px";
       el.style.top = localHint.rect.top + "px";
-      // Note that Vimium's CSS is user-customizable. We're adding the "vimiumHintMarker" class here
-      // for users to customize. See further comments about this in vimium.css.
-      el.className = "vimium-reset internal-vimium-hint-marker vimiumHintMarker";
+      // Note that Suda's CSS is user-customizable. We're adding the "sudaHintMarker" class here
+      // for users to customize. See further comments about this in suda.css.
+      el.className = "suda-reset internal-suda-hint-marker sudaHintMarker";
       Object.assign(marker, {
         element: el,
         localHint,
@@ -859,7 +859,7 @@ class LinkHintsMode {
     for (const marker of linksMatched) this.showMarker(marker, 0);
     for (const marker of this.hintMarkers) {
       marker.selected = this.selectedLinks.has(hintKey(marker.hintDescriptor));
-      marker.element?.classList.toggle("vimiumSelectedHintMarker", marker.selected);
+      marker.element?.classList.toggle("sudaSelectedHintMarker", marker.selected);
     }
     this.setIndicator();
   }
@@ -1046,13 +1046,13 @@ class FilterHints {
     tabCount = ((linksMatched.length * Math.abs(tabCount)) + tabCount) % linksMatched.length;
 
     if (this.activeHintMarker?.element) {
-      this.activeHintMarker.element.classList.remove("vimiumActiveHintMarker");
+      this.activeHintMarker.element.classList.remove("sudaActiveHintMarker");
     }
 
     this.activeHintMarker = linksMatched[tabCount];
 
     if (this.activeHintMarker?.element) {
-      this.activeHintMarker.element.classList.add("vimiumActiveHintMarker");
+      this.activeHintMarker.element.classList.add("sudaActiveHintMarker");
     }
 
     return {
@@ -1175,7 +1175,7 @@ class FilterHints {
 const spanWrap = (hintString) => {
   const innerHTML = [];
   for (const char of hintString) {
-    innerHTML.push("<span class='vimium-reset'>" + char + "</span>");
+    innerHTML.push("<span class='suda-reset'>" + char + "</span>");
   }
   return innerHTML.join("");
 };
@@ -1347,7 +1347,7 @@ const LocalHints = {
 
     // NOTE(smblott) Disabled pending resolution of #2997.
     // # Detect elements with "click" listeners installed with `addEventListener()`.
-    // isClickable ||= element.hasAttribute "_vimium-has-onclick-listener"
+    // isClickable ||= element.hasAttribute "_suda-has-onclick-listener"
 
     // An element with a class name containing the text "button" might be clickable. However, real
     // clickables are often wrapped in elements with such class names. So, when we find clickables

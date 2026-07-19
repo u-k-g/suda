@@ -5,7 +5,7 @@ Utils.monitorChromeSessionStorage("mapKeyRegistry", (value) => {
 });
 
 const KeyboardUtils = {
-  // This maps event.key key names to Vimium key names.
+  // This maps event.key key names to Suda key names.
   keyNames: {
     "ArrowLeft": "left",
     "ArrowUp": "up",
@@ -103,7 +103,7 @@ const KeyboardUtils = {
     return function (event) {
       // <c-[> is mapped to Escape in Vim by default.
       // Escape with a keyCode 229 means that this event comes from IME, and should not be treated
-      // as a direct/normal Escape event. IME will handle the event, not vimium.
+      // as a direct/normal Escape event. IME will handle the event, not suda.
       // See https://lists.w3.org/Archives/Public/www-dom/2010JulSep/att-0182/keyCode-spec.html
       return ((event.key === "Escape") && (event.keyCode !== 229)) ||
         (useVimLikeEscape && (this.getKeyCharString(event) === "<c-[>"));

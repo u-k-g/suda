@@ -165,9 +165,9 @@ h2 {
 }
 
 /* This longer selector is required to take precedence over our dark scheme textarea colors which
- * are defined in vimium.css. */
-body.vimium-body textarea.validation-error,
-body.vimium-body input.validation-error {
+ * are defined in suda.css. */
+body.suda-body textarea.validation-error,
+body.suda-body input.validation-error {
   border: 2px solid var(--validationErrorColor);
 }
 
@@ -188,7 +188,7 @@ input[name="newTabCustomUrl"] {
   grid-column-start: 2;
 }
 
-#openVomnibarContainer {
+#openCommandBarContainer {
   display: flex;
   align-items: center;
   grid-column-start: 2;
@@ -432,15 +432,15 @@ input#upload-backup {
 
   #exclusion-rules .remove {
     border: none;
-    color: var(--vimium-foreground-text-color);
+    color: var(--suda-foreground-text-color);
   }
 
   #exclusion-rules .remove:hover {
-    color: var(--vimium-link-color);
+    color: var(--suda-link-color);
   }
 
   footer {
-    background-color: var(--vimium-foreground-color);
+    background-color: var(--suda-foreground-color);
     border-color: var(--gruvbox-bg-2);
   }
 
@@ -452,7 +452,7 @@ input#upload-backup {
     background-color: var(--gruvbox-bg-1);
     border-color: var(--gruvbox-bg-2);
     border-width: 1px;
-    color: var(--vimium-foreground-text-color);
+    color: var(--suda-foreground-text-color);
     text-shadow: none;
   }
   button:hover {}

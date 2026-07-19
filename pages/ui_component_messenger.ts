@@ -8,12 +8,12 @@ let handleMessage = null;
 
 export async function registerPortWithOwnerPage(event) {
   if (event.source !== globalThis.parent) return;
-  // The Vimium content script that's running on the parent page has access to this vimiumSecret
+  // The Suda content script that's running on the parent page has access to this sudaSecret
   // fetched from session storage, so if it matches, then we know that event.ports came from the
-  // Vimium extension.
-  const secret = (await chrome.storage.session.get("vimiumSecret")).vimiumSecret;
+  // Suda extension.
+  const secret = (await chrome.storage.session.get("sudaSecret")).sudaSecret;
   if (event.data !== secret) {
-    Utils.debugLog("ui_component_messenger.js: vimiumSecret is incorrect.");
+    Utils.debugLog("ui_component_messenger.js: sudaSecret is incorrect.");
     return;
   }
   openPort(event.ports[0]);

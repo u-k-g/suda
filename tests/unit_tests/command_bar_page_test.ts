@@ -6,7 +6,7 @@ import {
   MultiCompleter,
   Suggestion,
 } from "../../background_scripts/completion/completers.js";
-import * as vomnibarPage from "../../pages/vomnibar_page.js";
+import * as commandBarPage from "../../pages/command_bar_page.js";
 import * as userSearchEngines from "../../background_scripts/user_search_engines.js";
 import { allCommands } from "../../background_scripts/all_commands.js";
 import { Commands, RegistryEntry } from "../../background_scripts/commands.js";
@@ -28,18 +28,18 @@ function newKeyEvent(properties) {
   );
 }
 
-context("vomnibar page", () => {
+context("commandBar page", () => {
   let ui;
   setup(async () => {
-    await testHelper.jsdomStub("pages/vomnibar_page.html");
+    await testHelper.jsdomStub("pages/command_bar_page.html");
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler == "filterCompletions") {
         return [];
       }
     });
-    vomnibarPage.reset();
-    await vomnibarPage.activate();
-    ui = vomnibarPage.ui;
+    commandBarPage.reset();
+    await commandBarPage.activate();
+    ui = commandBarPage.ui;
   });
 
   teardown(() => {
@@ -68,7 +68,7 @@ context("vomnibar page", () => {
   });
 
   should("open without an active mode as the combined command bar", async () => {
-    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
 
     assert.equal("", ui.mode);
     assert.isTrue(ui.modeIndicator.hidden);
@@ -78,7 +78,7 @@ context("vomnibar page", () => {
   });
 
   should("exclude legacy link-action modes from the mode selector", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("copy link");
     await ui.update();
 
@@ -88,7 +88,7 @@ context("vomnibar page", () => {
   });
 
   should("exclude the removed keybindings mode from the mode selector", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("keybindings");
     await ui.update();
 
@@ -96,7 +96,7 @@ context("vomnibar page", () => {
   });
 
   should("show link actions for one selected link", async () => {
-    await vomnibarPage.activate({
+    await commandBarPage.activate({
       mode: "link-actions",
       completer: "local",
       linkSelectionCount: 1,
@@ -111,7 +111,7 @@ context("vomnibar page", () => {
   });
 
   should("omit current-tab activation for multiple selected links", async () => {
-    await vomnibarPage.activate({
+    await commandBarPage.activate({
       mode: "link-actions",
       completer: "local",
       linkSelectionCount: 2,
@@ -127,7 +127,7 @@ context("vomnibar page", () => {
 
   should("hide user-disabled modes from the mode selector", async () => {
     Settings._settings.disabledCommandBarModes = ["tabs"];
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("tabs");
     await ui.update();
 
@@ -137,10 +137,10 @@ context("vomnibar page", () => {
   should("render mode shortcuts from the live key mappings", async () => {
     await chrome.storage.session.set({
       commandToOptionsToKeys: {
-        "Vomnibar.activateTabSelection": { "": ["<space>b"] },
+        "CommandBar.activateTabSelection": { "": ["<space>b"] },
       },
     });
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("tabs");
     await ui.update();
     assert.equal(
@@ -153,17 +153,17 @@ context("vomnibar page", () => {
   });
 
   should("hide mode descriptions by default and allow enabling them", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     assert.isFalse(ui.box.classList.contains("show-mode-descriptions"));
 
     await Settings.set("showCommandBarModeDescriptions", true);
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     assert.isTrue(ui.box.classList.contains("show-mode-descriptions"));
     await Settings.set("showCommandBarModeDescriptions", false);
   });
 
   should("launch find as an action instead of opening a second centered input", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("find");
     await ui.update();
     await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
@@ -173,7 +173,7 @@ context("vomnibar page", () => {
   });
 
   should("enter the mode selector by searching for modes while modeless", async () => {
-    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
     ui.setQuery("modes");
     await ui.update();
 
@@ -185,7 +185,7 @@ context("vomnibar page", () => {
   });
 
   should("enter the mode selector before modeless completions finish", async () => {
-    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
     ui.setQuery("modes");
     ui.completions = [];
 
@@ -201,7 +201,7 @@ context("vomnibar page", () => {
       if (message.handler === "filterCompletions") return [];
       if (message.handler === "launchSearchQuery") launchedSearch = message;
     });
-    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
     ui.setQuery("what is");
     await ui.update();
 
@@ -223,7 +223,7 @@ context("vomnibar page", () => {
     });
 
     for (const mode of ["search", "url"]) {
-      await vomnibarPage.activate({
+      await commandBarPage.activate({
         mode,
         completer: "omni",
         currentUrl: "",
@@ -247,21 +247,21 @@ context("vomnibar page", () => {
       }
     });
     Settings._settings.disabledModelessCommandBarSources = ["search", "history"];
-    await vomnibarPage.activate({ mode: "", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
     ui.setQuery("needle");
     await ui.update();
 
     assert.equal(["search", "history"], modelessRequest.disabledModelessCommandBarSources);
     assert.equal([], ui.completions);
 
-    await vomnibarPage.activate({ mode: "search", completer: "omni", newTab: true });
+    await commandBarPage.activate({ mode: "search", completer: "omni", newTab: true });
     ui.setQuery("needle");
     await ui.update();
     assert.equal("needle", ui.completions[0].verbatimQuery);
   });
 
   should("return from a mode to modeless search with backspace on an empty query", async () => {
-    await vomnibarPage.activate({ mode: "find", completer: "local" });
+    await commandBarPage.activate({ mode: "find", completer: "local" });
     await ui.onKeyEvent(newKeyEvent({ key: "Backspace" }));
 
     assert.equal("", ui.mode);
@@ -316,7 +316,7 @@ context("vomnibar page", () => {
   });
 
   should("open a URL from new-tab URL mode in the current tab", async () => {
-    await vomnibarPage.activate({
+    await commandBarPage.activate({
       mode: "url",
       completer: "omni",
       currentUrl: "",
@@ -385,7 +385,7 @@ context("vomnibar page", () => {
 
   should("offer only one search mode and one URL-edit mode", async () => {
     Settings._settings.disabledCommandBarModes = [];
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("url");
     await ui.update();
     const urlModes = ui.completions.map((completion) => completion.commandBarMode)
@@ -394,7 +394,7 @@ context("vomnibar page", () => {
   });
 
   should("rank an exact mode-name match above matches in another mode's aliases", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("tabs");
     await ui.update();
 
@@ -410,7 +410,7 @@ context("vomnibar page", () => {
   });
 
   should("keep direct mark creation out of the mode selector", async () => {
-    await vomnibarPage.activate({ mode: "modes", completer: "modes" });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("mark");
     await ui.update();
 

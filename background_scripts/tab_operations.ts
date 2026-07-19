@@ -18,7 +18,7 @@ export async function openUrlInCurrentTab(request) {
   } else if (UrlUtils.hasJavascriptProtocol(urlStr)) {
     // Note that when injecting JavaScript, it's subject to the site's CSP. Sites with strict CSPs
     // (like github.com, developer.mozilla.org) will raise an error when we try to run this code.
-    // See https://github.com/philc/vimium/issues/4331.
+    // See https://github.com/u-k-g/suda/issues/4331.
     const scriptingArgs = {
       target: { tabId: request.tabId },
       func: (text) => {

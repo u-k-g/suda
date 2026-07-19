@@ -37,16 +37,18 @@ export function createFirefoxManifest(manifest) {
     },
   };
 
-  // Firefox supports SVG extension icons directly.
   manifest.icons = {
-    "16": "icons/icon.svg",
-    "32": "icons/icon.svg",
-    "48": "icons/icon.svg",
-    "64": "icons/icon.svg",
-    "96": "icons/icon.svg",
-    "128": "icons/icon.svg",
+    "16": "icons/icon16.png",
+    "32": "icons/icon48.png",
+    "48": "icons/icon48.png",
+    "64": "icons/icon128.png",
+    "96": "icons/icon128.png",
+    "128": "icons/icon128.png",
   };
-  manifest.action.default_icon = "icons/action_disabled.svg";
+  manifest.action.default_icon = {
+    "16": "icons/action_disabled_16.png",
+    "32": "icons/action_disabled_32.png",
+  };
   return manifest;
 }
 

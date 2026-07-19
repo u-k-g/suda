@@ -522,11 +522,11 @@ context("command completer", () => {
     stub(chrome.storage.session, "get", async () => ({ commandToOptionsToKeys: {} }));
     stub(Commands, "keyToRegistryEntry", {});
 
-    const suggestions = await filterCompleter(multiCompleter, ["exclude", "vimium"]);
+    const suggestions = await filterCompleter(multiCompleter, ["exclude", "suda"]);
     assert.isTrue(
       suggestions.some((suggestion) =>
-        suggestion.command.registryEntry.command == "excludeAllVimiumKeys" &&
-        suggestion.title == "Exclude all Vimium keys on current page"
+        suggestion.command.registryEntry.command == "excludeAllSudaKeys" &&
+        suggestion.title == "Exclude all Suda keys on current page"
       ),
     );
   });

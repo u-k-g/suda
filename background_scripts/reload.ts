@@ -6,7 +6,7 @@ console.clear();
 await chrome.runtime.reload();
 
 // Chrome does not execute past this point. This is for Firefox-based browsers. Note that Chrome
-// will not reload every tab that Vimium was open in. That must be done outside of Vimium, e.g. via
+// will not reload every tab that Suda was open in. That must be done outside of Suda, e.g. via
 // an Applescript on Mac.
 
 // Firefox will reload every tab as a result of chrome.runtime.reload(). However, the console

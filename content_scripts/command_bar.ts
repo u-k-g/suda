@@ -1,9 +1,9 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 //
-// This wraps the vomnibar iframe, which we inject into the page to provide the vomnibar.
+// This wraps the commandBar iframe, which we inject into the page to provide the commandBar.
 //
-const Vomnibar = {
-  vomnibarUI: null,
+const CommandBar = {
+  commandBarUI: null,
   markRegistryEntry: null,
   linkSelectionActive: false,
 
@@ -136,11 +136,11 @@ const Vomnibar = {
   },
 
   init() {
-    if (!this.vomnibarUI) {
-      this.vomnibarUI = new UIComponent();
-      this.vomnibarUI.load(
-        "pages/vomnibar_page.html",
-        "vomnibar-frame",
+    if (!this.commandBarUI) {
+      this.commandBarUI = new UIComponent();
+      this.commandBarUI.load(
+        "pages/command_bar_page.html",
+        "commandBar-frame",
         this.handleMessage.bind(this),
       );
     }
@@ -154,14 +154,14 @@ const Vomnibar = {
         return this.finishMode(data.commit);
       case "commandBarMark":
         this.finishMode(false);
-        await this.vomnibarUI.hide();
+        await this.commandBarUI.hide();
         return Utils.nextTick(() => {
           Marks.currentRegistryEntry = this.markRegistryEntry || { options: {} };
           Marks.gotoMark(data.key, data.shiftKey);
         });
       case "commandBarAction":
         this.finishMode(data.action.startsWith("link-action:"));
-        await this.vomnibarUI.hide();
+        await this.commandBarUI.hide();
         return Utils.nextTick(() => this.runAction(data.action));
     }
   },
@@ -169,7 +169,7 @@ const Vomnibar = {
   async prepareMode(mode) {
     if (mode === "marks") {
       const marks = await Marks.getMarksForCurrentPage();
-      this.vomnibarUI.postMessage({ name: "commandBarMarks", marks });
+      this.commandBarUI.postMessage({ name: "commandBarMarks", marks });
     }
   },
 
@@ -193,28 +193,28 @@ const Vomnibar = {
     }
   },
 
-  // Opens the vomnibar.
-  // - vomnibarShowOptions:
+  // Opens the commandBar.
+  // - commandBarShowOptions:
   //     completer: The name of the completer to fetch results from.
-  //     query: Optional. Text to prefill the Vomnibar with.
+  //     query: Optional. Text to prefill the CommandBar with.
   //     selectFirst: Optional. Whether to select the first entry.
   //     newTab: Optional. Whether to open the result in a new tab.
   //     keyword: A keyword which will scope the search to a UserSearchEngine.
-  open(sourceFrameId, vomnibarShowOptions) {
+  open(sourceFrameId, commandBarShowOptions) {
     this.init();
-    // The Vomnibar cannot coexist with the help dialog (it causes focus issues).
+    // The CommandBar cannot coexist with the help dialog (it causes focus issues).
     HelpDialog.abort();
-    Utils.assertType(VomnibarShowOptions, vomnibarShowOptions);
+    Utils.assertType(CommandBarShowOptions, commandBarShowOptions);
     const options = Object.assign({
       completer: "omni",
       mode: "search",
       currentUrl: globalThis.location.href,
-    }, vomnibarShowOptions);
-    this.vomnibarUI.show(
+    }, commandBarShowOptions);
+    this.commandBarUI.show(
       Object.assign(options, { name: "activate" }),
       { sourceFrameId, focus: true },
     );
   },
 };
 
-globalThis.Vomnibar = Vomnibar;
+globalThis.CommandBar = CommandBar;

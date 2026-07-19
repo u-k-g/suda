@@ -21,7 +21,7 @@ context("options page", () => {
     assert.equal(settings.keyMappings, field.value);
   });
 
-  should("select Helix by default while retaining the Vimium classic option", () => {
+  should("select Helix by default while retaining the Suda classic option", () => {
     assert.isTrue(document.querySelector("#helixKeyBindings").checked);
     assert.isFalse(document.querySelector("#vimKeyBindings").checked);
   });
@@ -31,9 +31,9 @@ context("options page", () => {
     assert.equal("800", optionsPage.getOptionEl("fastScrollStepSize").value);
   });
 
-  should("use the Vimium blank page and open its command bar by default", () => {
-    assert.isTrue(document.querySelector("#vimiumNewTabPage").checked);
-    assert.isTrue(optionsPage.getOptionEl("openVomnibarOnNewTabPage").checked);
+  should("use the Suda blank page and open its command bar by default", () => {
+    assert.isTrue(document.querySelector("#sudaNewTabPage").checked);
+    assert.isTrue(optionsPage.getOptionEl("openCommandBarOnNewTabPage").checked);
   });
 
   should("hide command-bar mode descriptions by default", () => {

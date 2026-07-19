@@ -1,5 +1,5 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
-// A UIComponent is an iframe containing a Vimium extension page, like the Vomnibar. This class
+// A UIComponent is an iframe containing a Suda extension page, like the CommandBar. This class
 // provides methods that content scripts can use to interact with that page:
 // - show
 // - hide
@@ -8,7 +8,7 @@
 // When the iframe has not yet been loaded, all messages will be queued until it's done loading. The
 // page in the iframe uses the module ui_component_messenger.js to manage message passing back to
 // this class. Since the iframe's page can receive messages from untrusted javascript, secure
-// message passing is achieved using ports from MessageChannel() and a vimiumSecret handshake.
+// message passing is achieved using ports from MessageChannel() and a sudaSecret handshake.
 class UIComponent {
   iframeElement;
   iframePort;
@@ -33,7 +33,7 @@ class UIComponent {
     const isDomTests = iframeUrl.includes("?dom_tests=true");
     this.iframeElement = DomUtils.createElement("iframe");
 
-    // Allow Vimium's iframes to have clipboard access in Chrome. This is needed when triggering
+    // Allow Suda's iframes to have clipboard access in Chrome. This is needed when triggering
     // some commands, like link hints or copyCurrentUrl, from within the help dialog. Firefox does
     // not support clipboard-read and clipboard-write in the allow attribute. NOTE(philc): this
     // permission has to be set before we append the iframe to the DOM, or Chrome will log the
@@ -48,16 +48,16 @@ class UIComponent {
     // Default to everything hidden while the stylesheet loads.
     styleSheet.innerHTML = "iframe {display: none;}";
 
-    // Fetch "content_scripts/vimium.css" from chrome.storage.session; the background page caches
+    // Fetch "content_scripts/suda.css" from chrome.storage.session; the background page caches
     // it there.
-    chrome.storage.session.get("vimiumCSSInChromeStorage")
-      .then((items) => styleSheet.innerHTML = items.vimiumCSSInChromeStorage);
+    chrome.storage.session.get("sudaCSSInChromeStorage")
+      .then((items) => styleSheet.innerHTML = items.sudaCSSInChromeStorage);
 
     this.iframeElement.className = className;
 
     const shadowWrapper = DomUtils.createElement("div");
     // Prevent the page's CSS from interfering with this container div.
-    shadowWrapper.className = "vimium-reset";
+    shadowWrapper.className = "suda-reset";
     this.shadowDOM = shadowWrapper.attachShadow({ mode: "open" });
     this.shadowDOM.appendChild(styleSheet);
     // Allow a user's custom CSS to style iframe element inside this shadow DOM.
@@ -78,13 +78,13 @@ class UIComponent {
     this.handleDarkReaderFilter();
     document.documentElement.appendChild(shadowWrapper);
 
-    const secret = (await chrome.storage.session.get("vimiumSecret")).vimiumSecret;
+    const secret = (await chrome.storage.session.get("sudaSecret")).sudaSecret;
     const { port1, port2 } = new MessageChannel();
     this.messageChannelPorts = [port1, port2];
     this.iframeElement.addEventListener("load", () => {
-      // Get vimiumSecret so the iframe can determine that our message isn't the page
+      // Get sudaSecret so the iframe can determine that our message isn't the page
       // impersonating us.
-      // Outside of tests, target origin starts with chrome-extension://{vimium's-id}
+      // Outside of tests, target origin starts with chrome-extension://{suda's-id}
       const targetOrigin = isDomTests ? "*" : chrome.runtime.getURL("");
       this.iframeElement.contentWindow.postMessage(secret, targetOrigin, [port2]);
       port1.onmessage = (event) => {
@@ -123,11 +123,11 @@ class UIComponent {
     });
   }
 
-  // This ensures that Vimium's UI elements (HUD, Vomnibar) honor the browser's light/dark theme
+  // This ensures that Suda's UI elements (HUD, CommandBar) honor the browser's light/dark theme
   // preference, even when the user is also using the DarkReader extension. DarkReader is the most
   // popular dark mode Chrome extension in use as of 2020.
   handleDarkReaderFilter() {
-    const reverseFilterClass = "vimium-reverse-dark-reader-filter";
+    const reverseFilterClass = "suda-reverse-dark-reader-filter";
     const reverseFilterIfExists = () => {
       // The DarkReader extension creates this element if it's actively modifying the current page.
       const darkReaderElement = document.getElementById("dark-reader-style");
@@ -147,11 +147,11 @@ class UIComponent {
   setIframeVisible(visible) {
     const classes = this.iframeElement.classList;
     if (visible) {
-      classes.remove("vimium-ui-component-hidden");
-      classes.add("vimium-ui-component-visible");
+      classes.remove("suda-ui-component-hidden");
+      classes.add("suda-ui-component-visible");
     } else {
-      classes.add("vimium-ui-component-hidden");
-      classes.remove("vimium-ui-component-visible");
+      classes.add("suda-ui-component-hidden");
+      classes.remove("suda-ui-component-visible");
     }
   }
 

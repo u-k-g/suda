@@ -125,7 +125,7 @@ const HelpDialogPage = {
   },
 
   async show() {
-    document.getElementById("vimium-version").textContent = Utils.getCurrentVersion();
+    document.getElementById("suda-version").textContent = Utils.getCurrentVersion();
 
     const commandToOptionsToKeys =
       (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys;
@@ -204,7 +204,7 @@ function init() {
 }
 
 globalThis.HelpDialogPage = HelpDialogPage;
-globalThis.isVimiumHelpDialogPage = true;
+globalThis.isSudaHelpDialogPage = true;
 
 const testEnv = globalThis.window == null;
 if (!testEnv) {

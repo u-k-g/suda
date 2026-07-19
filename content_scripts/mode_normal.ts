@@ -25,7 +25,7 @@ class NormalMode extends KeyHandlerMode {
     });
 
     // Listen and handle "command" events coming from the background and originally sent from the
-    // Vomnibar page.
+    // CommandBar page.
     Utils.addChromeRuntimeOnMessageListener(["runNormalModeCommand"], (request, _sender) => {
       this.commandHandler(request);
     });
@@ -34,11 +34,11 @@ class NormalMode extends KeyHandlerMode {
   commandHandler({ command: registryEntry, count }) {
     if (
       [
-        "Vomnibar.activateCommandSelection",
-        "Vomnibar.activateModeSelection",
+        "CommandBar.activateCommandSelection",
+        "CommandBar.activateModeSelection",
       ].includes(registryEntry.command)
     ) {
-      // Store the raw count so the Vomnibar can propagate it to the selected command.
+      // Store the raw count so the CommandBar can propagate it to the selected command.
       registryEntry.options.prefixCount = count;
     }
 
@@ -59,7 +59,7 @@ class NormalMode extends KeyHandlerMode {
 
     if ((registryEntry.repeatLimit != null) && (registryEntry.repeatLimit < count)) {
       const result = confirm(
-        `You have asked Vimium to perform ${count} repetitions of the ` +
+        `You have asked Suda to perform ${count} repetitions of the ` +
           `command "${registryEntry.command}". Are you sure you want to continue?`,
       );
       if (!result) return;
@@ -68,7 +68,7 @@ class NormalMode extends KeyHandlerMode {
     if (registryEntry.topFrame) {
       // We never return to a UI-component frame (e.g. the help dialog), it might have lost the
       // focus.
-      const sourceFrameId = globalThis.isVimiumUIComponent ? 0 : frameId;
+      const sourceFrameId = globalThis.isSudaUIComponent ? 0 : frameId;
       chrome.runtime.sendMessage({
         handler: "sendMessageToFrames",
         message: { handler: "runInTopFrame", sourceFrameId, registryEntry },
@@ -365,7 +365,7 @@ const NormalModeCommands = {
       return;
     }
 
-    // This is a hack to improve usability on the Vimium options page. We prime the recently-focused
+    // This is a hack to improve usability on the Suda options page. We prime the recently-focused
     // input to be the key-mappings input. Arguably, this is the input that the user is most likely
     // to use.
     const recentlyFocusedElement = lastFocusedInput();
@@ -380,7 +380,7 @@ const NormalModeCommands = {
 
     const hints = visibleInputs.map((tuple) => {
       const hint = DomUtils.createElement("div");
-      hint.className = "vimium-reset internal-vimium-input-hint vimiumInputHint";
+      hint.className = "suda-reset internal-suda-input-hint sudaInputHint";
 
       // minus 1 for the border
       hint.style.left = (tuple.rect.left - 1) + globalThis.scrollX + "px";
@@ -396,19 +396,19 @@ const NormalModeCommands = {
 
   "LinkHints.activateMode": LinkHints.activateMode.bind(LinkHints),
 
-  "Vomnibar.activate": Vomnibar.activate.bind(Vomnibar),
-  "Vomnibar.activateAll": Vomnibar.activateAll.bind(Vomnibar),
-  "Vomnibar.activateModeSelection": Vomnibar.activateModeSelection.bind(Vomnibar),
-  "Vomnibar.activateFind": Vomnibar.activateFind.bind(Vomnibar),
-  "Vomnibar.activateHistory": Vomnibar.activateHistory.bind(Vomnibar),
-  "Vomnibar.activateMarks": Vomnibar.activateMarks.bind(Vomnibar),
-  "Vomnibar.activateInNewTab": Vomnibar.activateInNewTab.bind(Vomnibar),
-  "Vomnibar.activateTabSelection": Vomnibar.activateTabSelection.bind(Vomnibar),
-  "Vomnibar.activateBookmarks": Vomnibar.activateBookmarks.bind(Vomnibar),
-  "Vomnibar.activateBookmarksInNewTab": Vomnibar.activateBookmarksInNewTab.bind(Vomnibar),
-  "Vomnibar.activateCommandSelection": Vomnibar.activateCommandSelection.bind(Vomnibar),
-  "Vomnibar.activateEditUrl": Vomnibar.activateEditUrl.bind(Vomnibar),
-  "Vomnibar.activateEditUrlInNewTab": Vomnibar.activateEditUrlInNewTab.bind(Vomnibar),
+  "CommandBar.activate": CommandBar.activate.bind(CommandBar),
+  "CommandBar.activateAll": CommandBar.activateAll.bind(CommandBar),
+  "CommandBar.activateModeSelection": CommandBar.activateModeSelection.bind(CommandBar),
+  "CommandBar.activateFind": CommandBar.activateFind.bind(CommandBar),
+  "CommandBar.activateHistory": CommandBar.activateHistory.bind(CommandBar),
+  "CommandBar.activateMarks": CommandBar.activateMarks.bind(CommandBar),
+  "CommandBar.activateInNewTab": CommandBar.activateInNewTab.bind(CommandBar),
+  "CommandBar.activateTabSelection": CommandBar.activateTabSelection.bind(CommandBar),
+  "CommandBar.activateBookmarks": CommandBar.activateBookmarks.bind(CommandBar),
+  "CommandBar.activateBookmarksInNewTab": CommandBar.activateBookmarksInNewTab.bind(CommandBar),
+  "CommandBar.activateCommandSelection": CommandBar.activateCommandSelection.bind(CommandBar),
+  "CommandBar.activateEditUrl": CommandBar.activateEditUrl.bind(CommandBar),
+  "CommandBar.activateEditUrlInNewTab": CommandBar.activateEditUrlInNewTab.bind(CommandBar),
 
   "Marks.activateCreateMode": Marks.activateCreateMode.bind(Marks),
   "Marks.activateGotoMode": Marks.activateGotoMode.bind(Marks),
@@ -552,10 +552,10 @@ class FocusSelector extends Mode {
       exitOnClick: true,
       keydown: (event) => {
         if (event.key === "Tab") {
-          hints[selectedInputIndex].classList.remove("internal-vimium-selected-input-hint");
+          hints[selectedInputIndex].classList.remove("internal-suda-selected-input-hint");
           selectedInputIndex += hints.length + (event.shiftKey ? -1 : 1);
           selectedInputIndex %= hints.length;
-          hints[selectedInputIndex].classList.add("internal-vimium-selected-input-hint");
+          hints[selectedInputIndex].classList.add("internal-suda-selected-input-hint");
           DomUtils.simulateSelect(visibleInputs[selectedInputIndex].element);
           return this.suppressEvent;
         } else if (event.key !== "Shift") {
@@ -567,8 +567,8 @@ class FocusSelector extends Mode {
     });
 
     const div = DomUtils.createElement("div");
-    div.id = "vimiumInputMarkerContainer";
-    div.className = "vimium-reset";
+    div.id = "sudaInputMarkerContainer";
+    div.className = "suda-reset";
     for (const el of hints) {
       div.appendChild(el);
     }
@@ -580,7 +580,7 @@ class FocusSelector extends Mode {
       this.exit();
       return;
     } else {
-      hints[selectedInputIndex].classList.add("internal-vimium-selected-input-hint");
+      hints[selectedInputIndex].classList.add("internal-suda-selected-input-hint");
     }
   }
 

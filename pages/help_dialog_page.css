@@ -141,12 +141,12 @@ footer {
   }
 
   #dialog {
-    background-color: var(--vimium-background-color);
-    color: var(--vimium-background-text-color);
+    background-color: var(--suda-background-color);
+    color: var(--suda-background-text-color);
   }
 
   a {
-    color: var(--vimium-link-color);
+    color: var(--suda-link-color);
   }
 
   h1,
@@ -155,7 +155,7 @@ footer {
   }
 
   h1 .vim {
-    color: var(--vimium-link-color);
+    color: var(--suda-link-color);
   }
 
   div.divider {
@@ -163,7 +163,7 @@ footer {
   }
 
   .help-description {
-    /* Use a fainter color than --vimium-background-text-color, so the dialog text doesn't get
+    /* Use a fainter color than --suda-background-text-color, so the dialog text doesn't get
        overwhelming. */
     color: var(--gruvbox-fg-muted);
   }

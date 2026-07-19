@@ -16,12 +16,12 @@ import "../../content_scripts/mode.js";
 import "../../content_scripts/mode_key_handler.js";
 import "../../content_scripts/marks.js";
 import "../../content_scripts/link_hints.js";
-import "../../content_scripts/vomnibar.js";
+import "../../content_scripts/command_bar.js";
 // Include mode_normal to check that all commands have been implemented.
 import "../../content_scripts/mode_normal.js";
 import "../../content_scripts/link_hints.js";
 import "../../content_scripts/marks.js";
-import "../../content_scripts/vomnibar.js";
+import "../../content_scripts/command_bar.js";
 
 await Commands.init();
 
@@ -64,7 +64,7 @@ context("KeyMappingsParser", () => {
   });
 
   should("parse option values surrounded by quotes", () => {
-    const { keyToRegistryEntry } = KeyMappingsParser.parse('map v Vomnibar.activate query="a b"');
+    const { keyToRegistryEntry } = KeyMappingsParser.parse('map v CommandBar.activate query="a b"');
     const entry = keyToRegistryEntry["v"];
     assert.equal({ query: "a b" }, entry.options);
   });
@@ -239,7 +239,7 @@ context("Validate commands and options data structures", () => {
     }
   });
 
-  should("default to Helix while retaining the Vimium classic profile", () => {
+  should("default to Helix while retaining the Suda classic profile", () => {
     assert.equal("helix", Settings.defaultOptions.keyBindingMode);
     assert.equal(helixKeyMappings, getDefaultKeyMappings("helix"));
     assert.equal(vimKeyMappings, getDefaultKeyMappings("vim"));
@@ -247,12 +247,12 @@ context("Validate commands and options data structures", () => {
   });
 
   should("route Helix picker keys through the unified command bar", () => {
-    assert.equal("Vomnibar.activateModeSelection", helixKeyMappings[":"]);
-    assert.equal("Vomnibar.activateFind", helixKeyMappings["<space>/"]);
-    assert.equal("Vomnibar.activateMarks", helixKeyMappings["<space>'"]);
+    assert.equal("CommandBar.activateModeSelection", helixKeyMappings[":"]);
+    assert.equal("CommandBar.activateFind", helixKeyMappings["<space>/"]);
+    assert.equal("CommandBar.activateMarks", helixKeyMappings["<space>'"]);
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
-    assert.equal("Vomnibar.activateAll", helixKeyMappings["<space>t"]);
-    assert.equal("Vomnibar.activateInNewTab", helixKeyMappings["<c-w>n"]);
+    assert.equal("CommandBar.activateAll", helixKeyMappings["<space>t"]);
+    assert.equal("CommandBar.activateInNewTab", helixKeyMappings["<c-w>n"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>h"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>?"));
@@ -261,18 +261,18 @@ context("Validate commands and options data structures", () => {
 
   should("open Space-t directly without a selected mode", () => {
     let openOptions = null;
-    stub(Vomnibar, "open", (_sourceFrameId, options) => openOptions = options);
+    stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
-    Vomnibar.activateAll(0);
+    CommandBar.activateAll(0);
 
     assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
   });
 
   should("open Ctrl-W n directly in search mode", () => {
     let openOptions = null;
-    stub(Vomnibar, "open", (_sourceFrameId, options) => openOptions = options);
+    stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
-    Vomnibar.activateInNewTab(0, { options: {} });
+    CommandBar.activateInNewTab(0, { options: {} });
 
     assert.equal({ completer: "omni", mode: "search", newTab: true }, openOptions);
   });

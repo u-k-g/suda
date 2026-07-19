@@ -430,8 +430,8 @@ const DomUtils = {
 
   addFlashRect(rect) {
     const flashEl = this.createElement("div");
-    flashEl.classList.add("vimium-reset");
-    flashEl.classList.add("vimium-flash");
+    flashEl.classList.add("suda-reset");
+    flashEl.classList.add("suda-flash");
     flashEl.style.left = rect.left + "px";
     flashEl.style.top = rect.top + "px";
     flashEl.style.width = rect.width + "px";
@@ -558,7 +558,7 @@ const DomUtils = {
     return (globalThis.innerWidth < 3) || (globalThis.innerHeight < 3);
   },
 
-  // Inject the user's Vimium CSS styles onto the page. This is only necessary for our
+  // Inject the user's Suda CSS styles onto the page. This is only necessary for our
   // chrome-extension:// pages and frames.
   // - parent: The node to append the style tag to. Optional.
   injectUserCss(parent) {

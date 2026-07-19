@@ -1,13 +1,13 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
-// The possible destinations for browser-created tabs and Vimium's `createTab` command.
+// The possible destinations for browser-created tabs and Suda's `createTab` command.
 const newTabDestinations = {
   browserNewTabPage: "browserNewTabPage",
-  vimiumNewTabPage: "vimiumNewTabPage",
+  sudaNewTabPage: "sudaNewTabPage",
   customUrl: "customUrl",
 };
 
-const vimiumNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
-  "chrome-extension://vimium/pages/new_tab.html";
+const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
+  "chrome-extension://suda/pages/new_tab.html";
 
 const defaultOptions = {
   keyBindingMode: "helix",
@@ -24,25 +24,25 @@ const defaultOptions = {
   hideHud: false,
   hideUpdateNotifications: false,
   userDefinedLinkHintCss: `\
-div > .vimiumHintMarker {
+div > .sudaHintMarker {
 /* linkhint boxes */
 background: #d79921;
 border: 1px solid #fabd2f;
 }
 
-div > .vimiumHintMarker span {
+div > .sudaHintMarker span {
 /* linkhint text */
 color: #1d2021;
 font-weight: bold;
 font-size: 12px;
 }
 
-div > .vimiumHintMarker > .matchingCharacter {
+div > .sudaHintMarker > .matchingCharacter {
 }\
 `,
   // Default exclusion rules.
   exclusionRules: [
-    // Disable Vimium on Gmail.
+    // Disable Suda on Gmail.
     {
       passKeys: "",
       pattern: "https?://mail.google.com/*",
@@ -66,7 +66,7 @@ w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedi
 
 # More examples.
 #
-# (Vimium supports search completion Wikipedia, as
+# (Suda supports search completion Wikipedia, as
 # above, and for these.)
 #
 # g: https://www.google.com/search?q=%s Google
@@ -78,9 +78,9 @@ w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedi
 # az: https://www.amazon.com/s/?field-keywords=%s
 # qw: https://www.qwant.com/?q=%s Qwant\
 `,
-  newTabDestination: newTabDestinations.vimiumNewTabPage,
+  newTabDestination: newTabDestinations.sudaNewTabPage,
   newTabCustomUrl: "",
-  openVomnibarOnNewTabPage: true,
+  openCommandBarOnNewTabPage: true,
   grabBackFocus: false,
   regexFindMode: false,
   waitForEnterForFilteredHints: true,
@@ -89,7 +89,7 @@ w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedi
 };
 
 /*
- * This class fetches and exposes the view over Vimium's settings data, which is stored in
+ * This class fetches and exposes the view over Suda's settings data, which is stored in
  * chrome.storage. It merges the user's customizations into the default setting values.
  * It dispatches the "change" event when the settings have been changed.
  */
@@ -99,7 +99,7 @@ const Settings = {
 
   defaultOptions,
   newTabDestinations,
-  vimiumNewTabPageUrl,
+  sudaNewTabPageUrl,
 
   async onLoaded() {
     if (!this.isLoaded()) {
@@ -158,7 +158,7 @@ const Settings = {
   },
 
   migratePre2_0(settings) {
-    // Prior to Vimium version 2.0.0:
+    // Prior to Suda version 2.0.0:
     // - In chrome.storages.sync, the value of each setting was encoded as a JSON string using
     //   JSON.stringify. This was probably an artifact of originally using localStorage, but is no
     //   longer necessary now that chrome.storage exists and can store objects. Note that when
@@ -200,9 +200,9 @@ const Settings = {
       // or was explicitly set to the browser's default new tab URL.
       settings.newTabDestination = newTabDestinations.browserNewTabPage;
     } else if (settings.newTabUrl == "pages/blank.html") {
-      // This was meant to be used as a blank page, but we no longer include this page in Vimium.
-      // We use "vimium.github.io/new-tab/" instead.
-      settings.newTabDestination = newTabDestinations.vimiumNewTabPage;
+      // This was meant to be used as a blank page, but we no longer include this page in Suda.
+      // We use "u-k-g.github.io/suda/new-tab/" instead.
+      settings.newTabDestination = newTabDestinations.sudaNewTabPage;
     } else if (settings.newTabUrl) {
       // It's some other custom URL the user has set.
       settings.newTabDestination = newTabDestinations.customUrl;
@@ -214,9 +214,9 @@ const Settings = {
 
   migratePre2_4_1(settings) {
     // In migratePre2_4, there was a bug: pre-2.4 users who had never changed their newTabUrl (which
-    // defaulted to "about:newtab") were incorrectly given newTabDestination = "vimiumNewTabPage".
+    // defaulted to "about:newtab") were incorrectly given newTabDestination = "sudaNewTabPage".
     // Fix this by setting newTabDestination = "browserNewTabPage" for any 2.4.0 user who hasn't set
-    // their newTabDestination to something other than "vimiumNewTabPage" (the default value).
+    // their newTabDestination to something other than "sudaNewTabPage" (the default value).
     const version = settings["settingsVersion"];
     // Only run this for users that went through the buggy 2.4.0 migration (version >= "2.4" but <
     // "2.4.1"). Users upgrading directly from pre-2.4 are handled correctly by the (since
@@ -226,14 +226,14 @@ const Settings = {
       (Utils.compareVersions(version, "2.4.1") < 0);
     if (!shouldMigrate) return settings;
     const dest = settings.newTabDestination;
-    if (!dest || dest == newTabDestinations.vimiumNewTabPage) {
+    if (!dest || dest == newTabDestinations.sudaNewTabPage) {
       settings.newTabDestination = newTabDestinations.browserNewTabPage;
     }
     return settings;
   },
 
   // Returns a settings object and performs any migrations required if the settings object is from
-  // an older version of Vimium.
+  // an older version of Suda.
   migrateSettingsIfNecessary(settings) {
     settings = this.migratePre2_0(settings);
     settings = this.migratePre2_4(settings);

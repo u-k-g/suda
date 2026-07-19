@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Vimium Options</title>
+    <title>Suda Options</title>
     <meta charset="UTF-8">
     <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" type="text/css" href="options.css">
-    <link rel="stylesheet" type="text/css" href="../content_scripts/vimium.css" />
+    <link rel="stylesheet" type="text/css" href="../content_scripts/suda.css" />
     <script src="options.js" type="module"></script>
   </head>
 
-  <body class="vimium-body">
+  <body class="suda-body">
     <div id="wrapper">
-      <header>Vimium Options</header>
+      <header>Suda Options</header>
       <input type="hidden" name="settingsVersion" />
 
       <div id="settings-grid-container">
@@ -28,10 +28,10 @@
           <button id="exclusion-add-button">Add rule</button>
         </div>
         <div class="example">
-          Disable Vimium on URLs.<br>
+          Disable Suda on URLs.<br>
           "Patterns" are URL regular expressions. <code>*</code> will match zero or more characters.
           <br>
-          "Keys": Vimium will exclude these keys and pass them through to the page.
+          "Keys": Suda will exclude these keys and pass them through to the page.
         </div>
 
         <h2>Keybinding mode</h2>
@@ -46,7 +46,7 @@
           <label for="helixKeyBindings">Helix</label>
           <br>
           <input id="vimKeyBindings" type="radio" name="keyBindingMode" value="vim" />
-          <label for="vimKeyBindings">Vimium classic</label>
+          <label for="vimKeyBindings">Suda classic</label>
         </div>
         <div class="example">
           Helix mode uses <code>g</code> for goto commands, <code>Ctrl-w</code> for tabs,
@@ -73,7 +73,7 @@ unmapAll
         <h2>Custom search engines</h2>
         <textarea name="searchEngines" spellcheck="false"></textarea>
         <div class="example">
-          Add search-engine shortcuts to the Vomnibar. Format:<br>
+          Add search-engine shortcuts to the CommandBar. Format:<br>
           <pre>
 a: http://a.com/?q=%s
 b: http://b.com/?q=%s description
@@ -86,15 +86,16 @@ b: http://b.com/?q=%s description
         <h2>New tab URL</h2>
         <div id="new-tab-url-container">
           <input
-            id="vimiumNewTabPage"
+            id="sudaNewTabPage"
             type="radio"
             name="newTabDestination"
-            value="vimiumNewTabPage"
+            value="sudaNewTabPage"
           />
-          <label for="vimiumNewTabPage">Vimium blank new tab page</label>
-          <div id="openVomnibarContainer">
-            <input id="openVomnibarOnNewTabPage" type="checkbox" name="openVomnibarOnNewTabPage">
-            <label for="openVomnibarOnNewTabPage">Open the Vomnibar when the page loads</label>
+          <label for="sudaNewTabPage">Suda blank new tab page</label>
+          <div id="openCommandBarContainer">
+            <input id="openCommandBarOnNewTabPage" type="checkbox"
+              name="openCommandBarOnNewTabPage">
+            <label for="openCommandBarOnNewTabPage">Open the CommandBar when the page loads</label>
           </div>
           <input
             id="browserNewTabPage"
@@ -108,8 +109,8 @@ b: http://b.com/?q=%s description
           <input type="text" name="newTabCustomUrl" style="display: none" />
         </div>
         <div class="example">
-          The page to open for Chrome's Ctrl-T/Cmd-T shortcut, the new-tab button, and Vimium's
-          "create new tab" command. The browser's default page is protected, so Vimium commands do
+          The page to open for Chrome's Ctrl-T/Cmd-T shortcut, the new-tab button, and Suda's
+          "create new tab" command. The browser's default page is protected, so Suda commands do
           not run there.
         </div>
 
@@ -218,7 +219,7 @@ b: http://b.com/?q=%s description
           </label>
           <div class="example">
             You activate the link with <tt>Enter</tt>, <em>always</em>; so you never accidentally
-            type Vimium commands.
+            type Suda commands.
           </div>
         </div>
 
@@ -246,7 +247,7 @@ b: http://b.com/?q=%s description
           Hide update notifications
         </label>
         <div class="example">
-          When enabled, "Vimium has been updated" notifications will not be shown.
+          When enabled, "Suda has been updated" notifications will not be shown.
         </div>
 
         <h2></h2>
@@ -286,7 +287,7 @@ b: http://b.com/?q=%s description
           The "navigate to next page" command uses these patterns to find the link to follow.
         </div>
 
-        <h2>CSS for Vimium UI</h2>
+        <h2>CSS for Suda UI</h2>
         <div>
           <textarea
             name="userDefinedLinkHintCss"
@@ -297,17 +298,17 @@ b: http://b.com/?q=%s description
           <div class="example reset-link"><a href="#">Reset</a></div>
         </div>
         <div class="example">
-          These styles are applied to link hints, the Vomnibar, the help dialog, the exclusions
+          These styles are applied to link hints, the CommandBar, the help dialog, the exclusions
           pop-up and the HUD.<br>
           By default, this CSS is used to style the characters next to each link hint.<br>
           <br>
-          These styles are used in addition to and take precedence over Vimium's default styles.
+          These styles are used in addition to and take precedence over Suda's default styles.
         </div>
 
         <header>Backup and Restore</header>
 
         <h2>Backup</h2>
-        <a id="download-backup" download="vimium-options.json" href="#">Download backup</a>
+        <a id="download-backup" download="suda-options.json" href="#">Download backup</a>
         <div class="example">Download a backup of your settings.</div>
 
         <h2>Restore</h2>

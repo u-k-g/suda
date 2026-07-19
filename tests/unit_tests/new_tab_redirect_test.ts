@@ -27,16 +27,16 @@ context("Browser new-tab redirects", () => {
     assert.isFalse(isBrowserNewTabUrl("https://example.com/"));
   });
 
-  should("use the configured Vimium new-tab page", async () => {
-    await Settings.set("newTabDestination", Settings.newTabDestinations.vimiumNewTabPage);
-    assert.equal(Settings.vimiumNewTabPageUrl, getConfiguredNewTabUrl());
+  should("use the configured Suda new-tab page", async () => {
+    await Settings.set("newTabDestination", Settings.newTabDestinations.sudaNewTabPage);
+    assert.equal(Settings.sudaNewTabPageUrl, getConfiguredNewTabUrl());
 
     let created;
     let removed;
     stub(chrome.tabs, "create", (properties) => created = properties);
     stub(chrome.tabs, "remove", (tabId) => removed = tabId);
     assert.isTrue(await redirectBrowserNewTab({ id: 42, url: "chrome://newtab/" }));
-    assert.equal({ active: true, url: Settings.vimiumNewTabPageUrl }, created);
+    assert.equal({ active: true, url: Settings.sudaNewTabPageUrl }, created);
     assert.equal(42, removed);
   });
 
@@ -74,7 +74,7 @@ context("Browser new-tab redirects", () => {
   });
 
   should("leave ordinary newly created tabs untouched", async () => {
-    await Settings.set("newTabDestination", Settings.newTabDestinations.vimiumNewTabPage);
+    await Settings.set("newTabDestination", Settings.newTabDestinations.sudaNewTabPage);
 
     let wasCreated = false;
     stub(chrome.tabs, "create", () => wasCreated = true);
@@ -83,7 +83,7 @@ context("Browser new-tab redirects", () => {
   });
 
   should("redirect only after Chrome finishes its new-tab navigation", async () => {
-    await Settings.set("newTabDestination", Settings.newTabDestinations.vimiumNewTabPage);
+    await Settings.set("newTabDestination", Settings.newTabDestinations.sudaNewTabPage);
 
     let created;
     stub(chrome.tabs, "create", (properties) => created = properties);
@@ -107,7 +107,7 @@ context("Browser new-tab redirects", () => {
         { id: 42, url: "chrome://newtab/", status: "complete" },
       ),
     );
-    assert.equal({ active: true, url: Settings.vimiumNewTabPageUrl }, created);
+    assert.equal({ active: true, url: Settings.sudaNewTabPageUrl }, created);
   });
 
   should("redirect after Chrome reports a delayed new-tab URL", async () => {

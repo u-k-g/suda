@@ -1,5 +1,5 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
-globalThis.vimiumDomTestsAreRunning = true;
+globalThis.sudaDomTestsAreRunning = true;
 
 import * as shoulda from "../vendor/shoulda.js";
 

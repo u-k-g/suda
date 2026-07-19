@@ -205,7 +205,7 @@ const allCommands = [
     name: "passNextKey",
     desc: "Pass the next key to the page",
     options: {
-      normal: "Optional. Enter Vimium's normal mode, and ignore any defined pass keys.",
+      normal: "Optional. Enter Suda's normal mode, and ignore any defined pass keys.",
     },
     group: "navigation",
     advanced: true,
@@ -286,125 +286,125 @@ const allCommands = [
   },
 
   //
-  // Vomnibar
+  // CommandBar
   //
 
   {
-    name: "Vomnibar.activateModeSelection",
+    name: "CommandBar.activateModeSelection",
     desc: "Open the command-bar mode selector",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateAll",
+    name: "CommandBar.activateAll",
     desc: "Open the modeless command bar",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateFind",
+    name: "CommandBar.activateFind",
     desc: "Find text using the command bar",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateHistory",
+    name: "CommandBar.activateHistory",
     desc: "Search history using the command bar",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateMarks",
+    name: "CommandBar.activateMarks",
     desc: "Jump to a page mark using the command bar",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activate",
+    name: "CommandBar.activate",
     desc: "Open URL, bookmark or history entry",
     options: {
-      query: "The text to prefill the Vomnibar with.",
+      query: "The text to prefill the CommandBar with.",
       keyword: 'The keyword of a search engine defined in the "Custom search engines" ' +
-        "section of the Vimium Options page. The Vomnibar will be scoped to use that search engine.",
+        "section of the Suda Options page. The CommandBar will be scoped to use that search engine.",
     },
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateInNewTab",
+    name: "CommandBar.activateInNewTab",
     desc: "Open URL, bookmark or history entry in a new tab",
-    group: "vomnibar",
+    group: "commandBar",
     options: {
-      query: "The text to prefill the Vomnibar with.",
+      query: "The text to prefill the CommandBar with.",
       keyword: 'The keyword of a search engine defined in the "Custom search engines" ' +
-        "section of the Vimium Options page. The Vomnibar will be scoped to use that search engine.",
+        "section of the Suda Options page. The CommandBar will be scoped to use that search engine.",
     },
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateBookmarks",
+    name: "CommandBar.activateBookmarks",
     desc: "Open a bookmark",
-    group: "vomnibar",
+    group: "commandBar",
     options: {
-      query: "The text to prefill the Vomnibar with.",
+      query: "The text to prefill the CommandBar with.",
     },
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateBookmarksInNewTab",
+    name: "CommandBar.activateBookmarksInNewTab",
     desc: "Open a bookmark in a new tab",
-    group: "vomnibar",
+    group: "commandBar",
     options: {
-      query: "The text to prefill the Vomnibar with.",
+      query: "The text to prefill the CommandBar with.",
     },
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateCommandSelection",
-    desc: "Execute a Vimium command",
-    group: "vomnibar",
+    name: "CommandBar.activateCommandSelection",
+    desc: "Execute a Suda command",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateTabSelection",
+    name: "CommandBar.activateTabSelection",
     desc: "Search through your open tabs",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateEditUrl",
+    name: "CommandBar.activateEditUrl",
     desc: "Edit the current URL",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "Vomnibar.activateEditUrlInNewTab",
+    name: "CommandBar.activateEditUrlInNewTab",
     desc: "Edit the current URL and open in a new tab",
-    group: "vomnibar",
+    group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
@@ -665,8 +665,8 @@ const allCommands = [
   //
 
   {
-    name: "excludeAllVimiumKeys",
-    desc: "Exclude all Vimium keys on current page",
+    name: "excludeAllSudaKeys",
+    desc: "Exclude all Suda keys on current page",
     group: "misc",
     background: true,
     noRepeat: true,

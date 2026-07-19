@@ -1,15 +1,15 @@
 /*
- * Many CSS class names in this file use the verbose "vimium-" as the class name. This is so we
+ * Many CSS class names in this file use the verbose "suda-" as the class name. This is so we
  * don't use the same CSS class names that the page is using, so the page's CSS doesn't mess with
- * the style of our Vimium dialogs.
+ * the style of our Suda dialogs.
  *
- * We use the maximum z-index value for all Vimium elements to guarantee that they always appear on
+ * We use the maximum z-index value for all Suda elements to guarantee that they always appear on
  * top. Chrome supports z-index values up to 2,147,483,647 (= 2^31 - 1). We utilize the maximum
- * z-index value allowable to ensure Vimium elements have precedence over all other page elements.
+ * z-index value allowable to ensure Suda elements have precedence over all other page elements.
  */
 
 /*
- * This vimium-reset class can be added to any of our UI elements to give it a clean slate. This is
+ * This suda-reset class can be added to any of our UI elements to give it a clean slate. This is
  * useful in case the page has declared a broad rule like "a { padding: 50px; }" which will mess up
  * our UI. These declarations contain more specifiers than necessary to increase their specificity
  * (precedence).
@@ -34,26 +34,26 @@
   --gruvbox-aqua: #689d6a;
   --gruvbox-blue: #458588;
   --gruvbox-purple: #b16286;
-  --vimium-background-color: var(--gruvbox-bg-hard);
-  --vimium-background-text-color: var(--gruvbox-fg);
-  --vimium-foreground-color: var(--gruvbox-bg);
-  --vimium-foreground-text-color: var(--gruvbox-fg);
-  --vimium-link-color: var(--gruvbox-yellow);
-  --vimium-border-color: var(--gruvbox-bg-2);
-  --vimium-muted-color: var(--gruvbox-fg-muted);
-  --vimium-error-color: var(--gruvbox-red);
+  --suda-background-color: var(--gruvbox-bg-hard);
+  --suda-background-text-color: var(--gruvbox-fg);
+  --suda-foreground-color: var(--gruvbox-bg);
+  --suda-foreground-text-color: var(--gruvbox-fg);
+  --suda-link-color: var(--gruvbox-yellow);
+  --suda-border-color: var(--gruvbox-bg-2);
+  --suda-muted-color: var(--gruvbox-fg-muted);
+  --suda-error-color: var(--gruvbox-red);
 }
 
-.vimium-reset,
-div.vimium-reset,
-span.vimium-reset,
-table.vimium-reset,
-a.vimium-reset,
-a:visited.vimium-reset,
-a:link.vimium-reset,
-a:hover.vimium-reset,
-td.vimium-reset,
-tr.vimium-reset {
+.suda-reset,
+div.suda-reset,
+span.suda-reset,
+table.suda-reset,
+a.suda-reset,
+a:visited.suda-reset,
+a:link.suda-reset,
+a:hover.suda-reset,
+td.suda-reset,
+tr.suda-reset {
   background: none;
   border: none;
   bottom: auto;
@@ -92,12 +92,12 @@ tr.vimium-reset {
   z-index: 2147483647;
 }
 
-thead.vimium-reset,
-tbody.vimium-reset {
+thead.suda-reset,
+tbody.suda-reset {
   display: table-header-group;
 }
 
-tbody.vimium-reset {
+tbody.suda-reset {
   display: table-row-group;
 }
 
@@ -109,22 +109,22 @@ tbody.vimium-reset {
  * names here in link hints for backwards compatibility, because they're user-customizable via the
  * userDefinedLinkHintCss setting.
  *
- * Our default example value for userDefinedLinkHintCss refers to the "vimiumHintMarker" and
+ * Our default example value for userDefinedLinkHintCss refers to the "sudaHintMarker" and
  * "matchingCharacter" classes. We'll assume these are user-facing and should not be changed:
- *   - vimiumHintMarker
+ *   - sudaHintMarker
  *   - matchingCharacter
- *   - vimiumActiveHintMarker
+ *   - sudaActiveHintMarker
  *
- * Note that link hint elements have both internal-vimium-hint-marker and vimiumHintMarker classes.
+ * Note that link hint elements have both internal-suda-hint-marker and sudaHintMarker classes.
  * Presumably the "internal-" classes were meant to contain non-user-facing styles, and
- * vimiumHintMarker was meant to be an empty vessel for users to attach their own styles to.
+ * sudaHintMarker was meant to be an empty vessel for users to attach their own styles to.
  */
 
-div#vimium-hint-marker-container {
+div#suda-hint-marker-container {
   pointer-events: none;
 }
 
-div.internal-vimium-hint-marker {
+div.internal-suda-hint-marker {
   position: absolute;
   display: block;
   top: -1px;
@@ -140,7 +140,7 @@ div.internal-vimium-hint-marker {
   z-index: 2147483647;
 }
 
-div.internal-vimium-hint-marker span {
+div.internal-suda-hint-marker span {
   color: var(--gruvbox-bg-hard);
   font-family: Helvetica, Arial, sans-serif;
   font-weight: bold;
@@ -148,26 +148,26 @@ div.internal-vimium-hint-marker span {
   text-shadow: none;
 }
 
-div.internal-vimium-hint-marker > .matchingCharacter {
+div.internal-suda-hint-marker > .matchingCharacter {
   color: var(--gruvbox-fg);
 }
 
-div > .vimiumActiveHintMarker span {
+div > .sudaActiveHintMarker span {
   color: var(--gruvbox-bg-2) !important;
 }
 
-div.internal-vimium-hint-marker.vimiumSelectedHintMarker {
+div.internal-suda-hint-marker.sudaSelectedHintMarker {
   background: var(--gruvbox-green-bright);
   border-color: var(--gruvbox-fg);
 }
 
-div.internal-vimium-hint-marker.vimiumSelectedHintMarker span {
+div.internal-suda-hint-marker.sudaSelectedHintMarker span {
   color: var(--gruvbox-bg-hard) !important;
 }
 
 /* Input hints CSS */
 
-div.internal-vimium-input-hint {
+div.internal-suda-input-hint {
   position: absolute;
   display: block;
   background-color: rgb(215 153 33 / 28%);
@@ -175,16 +175,16 @@ div.internal-vimium-input-hint {
   pointer-events: none;
 }
 
-div.internal-vimium-selected-input-hint {
+div.internal-suda-selected-input-hint {
   background-color: rgb(204 36 29 / 28%);
   border: solid 1px var(--gruvbox-red) !important;
 }
 
-div.internal-vimium-selected-input-hint span {
+div.internal-suda-selected-input-hint span {
   color: var(--gruvbox-fg) !important;
 }
 
-div.vimium-highlighted-frame {
+div.suda-highlighted-frame {
   position: fixed;
   top: 0px;
   left: 0px;
@@ -197,7 +197,7 @@ div.vimium-highlighted-frame {
   pointer-events: none;
 }
 
-iframe.vimium-help-dialog-frame {
+iframe.suda-help-dialog-frame {
   background-color: rgb(29 32 33 / 72%);
   padding: 0px;
   top: 0px;
@@ -210,7 +210,7 @@ iframe.vimium-help-dialog-frame {
   z-index: 2147483647;
 }
 
-iframe.vimium-hud-frame {
+iframe.suda-hud-frame {
   background-color: transparent;
   padding: 0px;
   overflow: hidden;
@@ -228,12 +228,12 @@ iframe.vimium-hud-frame {
   opacity: 0;
 }
 
-body.vimium-find-mode ::selection {
+body.suda-find-mode ::selection {
   background: var(--gruvbox-orange);
   color: var(--gruvbox-fg);
 }
 
-iframe.vomnibar-frame {
+iframe.commandBar-frame {
   background-color: transparent;
   padding: 0px;
   overflow: hidden;
@@ -252,7 +252,7 @@ iframe.vomnibar-frame {
   z-index: 2147483647;
 }
 
-div.vimium-flash {
+div.suda-flash {
   box-shadow: 0px 0px 4px 2px var(--gruvbox-yellow);
   padding: 1px;
   background-color: transparent;
@@ -260,8 +260,8 @@ div.vimium-flash {
   z-index: 2147483647;
 }
 
-div.vimium-mark-jump-flash {
-  animation: vimium-mark-jump-pulse 1050ms ease-out forwards;
+div.suda-mark-jump-flash {
+  animation: suda-mark-jump-pulse 1050ms ease-out forwards;
   background-color: rgb(250 189 47 / 12%);
   border: 2px solid var(--gruvbox-yellow-bright);
   box-shadow: none;
@@ -270,7 +270,7 @@ div.vimium-mark-jump-flash {
   transform-origin: center;
 }
 
-@keyframes vimium-mark-jump-pulse {
+@keyframes suda-mark-jump-pulse {
   0% {
     opacity: 0;
     transform: scale(0.94);
@@ -293,56 +293,56 @@ div.vimium-mark-jump-flash {
 }
 
 /* UIComponent CSS */
-iframe.vimium-ui-component-hidden {
+iframe.suda-ui-component-hidden {
   display: none;
 }
 
-iframe.vimium-ui-component-visible {
+iframe.suda-ui-component-visible {
   display: block;
   color-scheme: dark;
 }
 
-iframe.vimium-non-clickable {
+iframe.suda-non-clickable {
   pointer-events: none;
 }
 
 @media all {
   :root {
-    --vimium-background-color: var(--gruvbox-bg-hard);
-    --vimium-background-text-color: var(--gruvbox-fg);
-    --vimium-foreground-color: var(--gruvbox-bg);
-    --vimium-foreground-text-color: var(--gruvbox-fg);
-    --vimium-link-color: var(--gruvbox-yellow);
+    --suda-background-color: var(--gruvbox-bg-hard);
+    --suda-background-text-color: var(--gruvbox-fg);
+    --suda-foreground-color: var(--gruvbox-bg);
+    --suda-foreground-text-color: var(--gruvbox-fg);
+    --suda-link-color: var(--gruvbox-yellow);
   }
 
   /* DarkReader is a popular dark mode browser extension. It can apply an invert filter to the whole
    * page to make the page dark, when used in Filter and Filter+ modes. We want to reverse/invert
-   * that filter again for Vimium's UI elements, because Vimium is already dark mode aware. */
-  iframe.vimium-reverse-dark-reader-filter {
+   * that filter again for Suda's UI elements, because Suda is already dark mode aware. */
+  iframe.suda-reverse-dark-reader-filter {
     -webkit-filter: invert(100%) hue-rotate(180deg) !important;
     filter: invert(100%) hue-rotate(180deg) !important;
   }
 
   /* Dark mode CSS for options page and exclusions */
 
-  body.vimium-body {
-    background-color: var(--vimium-background-color);
-    color: var(--vimium-background-text-color);
+  body.suda-body {
+    background-color: var(--suda-background-color);
+    color: var(--suda-background-text-color);
   }
 
-  body.vimium-body a,
-  body.vimium-body a:visited {
-    color: var(--vimium-link-color);
+  body.suda-body a,
+  body.suda-body a:visited {
+    color: var(--suda-link-color);
   }
 
-  body.vimium-body textarea,
-  body.vimium-body input {
-    background-color: var(--vimium-foreground-color);
-    border-color: var(--vimium-foreground-color);
-    color: var(--vimium-foreground-text-color);
+  body.suda-body textarea,
+  body.suda-body input {
+    background-color: var(--suda-foreground-color);
+    border-color: var(--suda-foreground-color);
+    color: var(--suda-foreground-text-color);
   }
 
-  body.vimium-body div.example {
+  body.suda-body div.example {
     color: var(--gruvbox-fg-muted);
   }
 }

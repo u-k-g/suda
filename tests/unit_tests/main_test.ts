@@ -62,10 +62,10 @@ context("createTab command", () => {
     assert.equal("https://example.com", tabCreated.url);
   });
 
-  should("open the vimium new tab page", async () => {
-    await Settings.set("newTabDestination", Settings.newTabDestinations.vimiumNewTabPage);
+  should("open the suda new tab page", async () => {
+    await Settings.set("newTabDestination", Settings.newTabDestinations.sudaNewTabPage);
     await BackgroundCommands.createTab(requestStub);
-    assert.equal(Settings.vimiumNewTabPageUrl, tabCreated.url);
+    assert.equal(Settings.sudaNewTabPageUrl, tabCreated.url);
   });
 
   should("open the browser's new tab page", async () => {
@@ -95,7 +95,7 @@ context("createTab command", () => {
   });
 });
 
-context("excludeAllVimiumKeys command", () => {
+context("excludeAllSudaKeys command", () => {
   should("save an all-keys site exclusion and refresh the current tab", async () => {
     await Settings.onLoaded();
     await Settings.set("exclusionRules", []);
@@ -104,7 +104,7 @@ context("excludeAllVimiumKeys command", () => {
       sentMessage = { tabId, message };
     });
 
-    await BackgroundCommands.excludeAllVimiumKeys({
+    await BackgroundCommands.excludeAllSudaKeys({
       tab: { id: 42, url: "https://example.com/current/page" },
     });
 

@@ -24,7 +24,7 @@ declare const FindMode: any;
 declare const Scroller: any;
 declare const Marks: any;
 declare const HUD: any;
-declare const Vomnibar: any;
+declare const CommandBar: any;
 declare const LinkHints: any;
 declare const HintCoordinator: any;
 declare const KeyboardEventRule: any;

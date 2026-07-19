@@ -43,7 +43,7 @@ context("hud page", () => {
       },
     };
     await UIComponentMessenger.registerPortWithOwnerPage({
-      data: (await chrome.storage.session.get("vimiumSecret")).vimiumSecret,
+      data: (await chrome.storage.session.get("sudaSecret")).sudaSecret,
       ports: [stubPort],
     });
     hudPage.handlers.showFindMode();
@@ -59,7 +59,7 @@ context("hud page", () => {
       },
     };
     await UIComponentMessenger.registerPortWithOwnerPage({
-      data: (await chrome.storage.session.get("vimiumSecret")).vimiumSecret,
+      data: (await chrome.storage.session.get("sudaSecret")).sudaSecret,
       ports: [stubPort],
     });
     hudPage.handlers.showFindMode();

@@ -19,10 +19,10 @@ Steps to reproduce the behavior:
 
 Include a screenshot if applicable.
 
-**Browser and Vimium version**
+**Browser and Suda version**
 
 If you're using Chrome, include the Chrome and OS version found at chrome://version. Also include
-the Vimium version found at chrome://extensions.
+the Suda version found at chrome://extensions.
 
 If you're using Firefox, report the Firefox and OS version found at about:support. Also include the
-Vimium version found at about:addons.
+Suda version found at about:addons.

@@ -1,7 +1,7 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 // TabRecency associates an integer with each tab id representing how recently it has been accessed.
 // The order of tabs as tracked by TabRecency is used to provide a recency-based ordering in the
-// tabs vomnibar.
+// tabs commandBar.
 //
 // The values are persisted to chrome.storage.session so that they're not lost when the extension's
 // background page is unloaded.

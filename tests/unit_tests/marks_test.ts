@@ -12,7 +12,7 @@ context("marks", () => {
 
   setup(() => {
     chrome.storage.session.clear();
-    chrome.storage.session.set({ vimiumSecret: "secret" });
+    chrome.storage.session.set({ sudaSecret: "secret" });
   });
 
   teardown(() => {
@@ -20,11 +20,11 @@ context("marks", () => {
     chrome.storage.local.clear();
   });
 
-  should("record the vimium secret in the mark's info", async () => {
+  should("record the suda secret in the mark's info", async () => {
     await createMark({ markName: "a" });
     const key = marks.getLocationKey("a");
     const savedMark = (await chrome.storage.local.get(key))[key];
-    assert.equal("secret", savedMark.vimiumSecret);
+    assert.equal("secret", savedMark.sudaSecret);
   });
 
   should("ignore a tab which closes while its scroll position is requested", async () => {

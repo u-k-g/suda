@@ -36,18 +36,18 @@ import * as TabOperations from "./tab_operations.js";
 
 initializeNewTabRedirect();
 
-// Allow Vimium's content scripts to access chrome.storage.session. Otherwise,
+// Allow Suda's content scripts to access chrome.storage.session. Otherwise,
 // chrome.storage.session will be null in content scripts.
 chrome.storage.session.setAccessLevel({ accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS" });
 
 // This is exported for use by "marks.js".
 globalThis.tabLoadedHandlers = {}; // tabId -> function()
 
-// A Vimium secret, available only within the current browser session. The secret is a generated
+// A Suda secret, available only within the current browser session. The secret is a generated
 // strong random string.
 const randomArray = globalThis.crypto.getRandomValues(new Uint8Array(32)); // 32-byte random token.
 const secretToken = randomArray.reduce((a, b) => a.toString(16) + b.toString(16));
-chrome.storage.session.set({ vimiumSecret: secretToken });
+chrome.storage.session.set({ sudaSecret: secretToken });
 
 const completionSources = {
   bookmarks: new BookmarkCompleter(),
@@ -82,8 +82,8 @@ if (bgUtils.isFirefox()) {
 
 function onURLChange(details) {
   // sendMessage will throw "Error: Could not establish connection. Receiving end does not exist."
-  // if there is no Vimium content script loaded in the given tab. This can occur if the user
-  // navigated to a page where Vimium doesn't have permissions, like chrome:// URLs. This error is
+  // if there is no Suda content script loaded in the given tab. This can occur if the user
+  // navigated to a page where Suda doesn't have permissions, like chrome:// URLs. This error is
   // noisy and mysterious (it usually doesn't have a valid line number), so we silence it.
   const message = {
     handler: "checkEnabledAfterURLChange",
@@ -93,19 +93,19 @@ function onURLChange(details) {
     .catch(() => {});
 }
 
-// Re-check whether Vimium is enabled for a frame when the URL changes without a reload.
+// Re-check whether Suda is enabled for a frame when the URL changes without a reload.
 // There's no reliable way to detect when the URL has changed in the content script, so we
 // have to use the webNavigation API in our background script.
 chrome.webNavigation.onHistoryStateUpdated.addListener(onURLChange); // history.pushState.
 chrome.webNavigation.onReferenceFragmentUpdated.addListener(onURLChange); // Hash changed.
 
 if (!globalThis.isUnitTests) {
-  // Cache "content_scripts/vimium.css" in chrome.storage.session for UI components.
+  // Cache "content_scripts/suda.css" in chrome.storage.session for UI components.
   (function () {
-    const url = chrome.runtime.getURL("content_scripts/vimium.css");
+    const url = chrome.runtime.getURL("content_scripts/suda.css");
     fetch(url).then(async (response) => {
       if (response.ok) {
-        chrome.storage.session.set({ vimiumCSSInChromeStorage: await response.text() });
+        chrome.storage.session.set({ sudaCSSInChromeStorage: await response.text() });
       }
     });
   })();
@@ -317,7 +317,7 @@ async function selectNextRecentTab(currentTabId) {
 // These are commands which are bound to keystrokes which must be handled by the background page.
 // They are mapped in commands.js.
 const BackgroundCommands = {
-  async excludeAllVimiumKeys({ tab }) {
+  async excludeAllSudaKeys({ tab }) {
     if (!tab?.url) return;
     await exclusions.excludeAllKeysForUrl(tab.url);
     await bgUtils.runTabOperation(() =>
@@ -574,7 +574,7 @@ async function selectTab(direction, { count, tab }) {
 }
 
 chrome.webNavigation.onCommitted.addListener(async ({ tabId, frameId }) => {
-  // Vimium can't run on all tabs (e.g. chrome:// URLs). insertCSS will throw an error on such tabs,
+  // Suda can't run on all tabs (e.g. chrome:// URLs). insertCSS will throw an error on such tabs,
   // which is expected, and noise. Swallow that error.
   const swallowError = () => {};
   await Settings.onLoaded();
@@ -588,7 +588,7 @@ chrome.webNavigation.onCommitted.addListener(async ({ tabId, frameId }) => {
 });
 
 // Returns all frame IDs for the given tab. Note that in Chrome, this will omit frame IDs for frames
-// or iFrames which contain chrome-extension:// URLs, even if those pages are listed in Vimium's
+// or iFrames which contain chrome-extension:// URLs, even if those pages are listed in Suda's
 // web_accessible_resources in manifest.json.
 async function getFrameIdsForTab(tabId) {
   // getAllFrames unfortunately excludes frames and iframes from chrome-extension:// URLs.
@@ -615,7 +615,7 @@ const HintCoordinator = {
     { modeIndex, requestedByHelpDialog, isExtensionPage },
   ) {
     const frameIds = await getFrameIdsForTab(tabId);
-    // If link hints was triggered on a Vimium extension page (like the vimium help dialog or
+    // If link hints was triggered on a Suda extension page (like the suda help dialog or
     // options page), we cannot directly retrieve the frameIds for those pages using the
     // getFrameIdsForTab. However, as a workaround, if those pages were the pages activating hints,
     // their frameId is equal to originatingFrameId.
@@ -691,7 +691,7 @@ const sendRequestHandlers = {
     return BackgroundCommands[request.registryEntry.command](request, sender);
   },
   // Executes a command as if it was run in normal mode by a content script.
-  // Used by the Vomnibar's command completer, which can be used to execute any command in Vimium.
+  // Used by the CommandBar's command completer, which can be used to execute any command in Suda.
   // The "request" must contain a "count" and a valid "command: RegistryEntry" parameter.
   runNormalModeCommand(request, sender) {
     return bgUtils.runTabOperation(() => chrome.tabs.sendMessage(sender.tab.id, request));
@@ -775,7 +775,7 @@ const sendRequestHandlers = {
         whichIcon = "enabled";
       }
 
-      let iconSet = {
+      const iconSet = {
         "enabled": {
           "16": "../icons/action_enabled_16.png",
           "32": "../icons/action_enabled_32.png",
@@ -789,15 +789,6 @@ const sendRequestHandlers = {
           "32": "../icons/action_disabled_32.png",
         },
       };
-
-      if (bgUtils.isFirefox()) {
-        // Only Firefox supports SVG icons.
-        iconSet = {
-          "enabled": "../icons/action_enabled.svg",
-          "partial": "../icons/action_partial.svg",
-          "disabled": "../icons/action_disabled.svg",
-        };
-      }
 
       try {
         await chrome.action.setIcon({ path: iconSet[whichIcon], tabId: sender.tab.id });
@@ -912,7 +903,7 @@ globalThis.runTests = () => open(chrome.runtime.getURL("tests/dom_tests/dom_test
 // Begin initialization.
 //
 
-// True if the major version of Vimium has changed.
+// True if the major version of Suda has changed.
 // - previousVersion: this will be null for new installs.
 function majorVersionHasIncreased(previousVersion) {
   const currentVersion = Utils.getCurrentVersion();
@@ -937,15 +928,15 @@ async function showUpgradeMessageIfNecessary(onInstalledDetails) {
   // NOTE(philc): These notifications use the system notification UI. So, if you don't have
   // notifications enabled from your browser (e.g. in Notification Settings in OSX), then
   // chrome.notification.create will succeed, but you won't see it.
-  const notificationId = "VimiumUpgradeNotification";
+  const notificationId = "SudaUpgradeNotification";
   await chrome.notifications.create(
     notificationId,
     {
       type: "basic",
       iconUrl: chrome.runtime.getURL("icons/icon128.png"),
-      title: "Vimium Upgrade",
+      title: "Suda Upgrade",
       message:
-        `Vimium has been upgraded to version ${currentVersion}. Click here for more information.`,
+        `Suda has been upgraded to version ${currentVersion}. Click here for more information.`,
       isClickable: true,
     },
   );
@@ -957,7 +948,7 @@ async function showUpgradeMessageIfNecessary(onInstalledDetails) {
       TabOperations.openUrlInNewTab({
         tab,
         tabId: tab.id,
-        url: "https://github.com/philc/vimium/blob/master/CHANGELOG.md",
+        url: "https://github.com/u-k-g/suda/blob/master/CHANGELOG.md",
       });
     });
   }
@@ -971,7 +962,7 @@ async function injectContentScriptsAndCSSIntoExistingTabs() {
 
   // The scripting.executeScript and scripting.insertCSS APIs can fail if we don't have permissions
   // to run scripts in a given tab. Examples are: chrome:// URLs, file:// pages (if the user hasn't
-  // granted Vimium access to file URLs), and probably incognito tabs (unconfirmed). Calling these
+  // granted Suda access to file URLs), and probably incognito tabs (unconfirmed). Calling these
   // APIs on such tabs results in an error getting logged on the background page. To avoid this
   // noise, we swallow the failures. We could instead try to determine if the tab is scriptable by
   // checking its URL scheme before calling these APIs, but that approach has some nuance to it.
@@ -1007,14 +998,14 @@ async function initializeExtension() {
   await Commands.init();
 }
 
-// The browser may have tabs already open. We inject the content scripts and Vimium's CSS
+// The browser may have tabs already open. We inject the content scripts and Suda's CSS
 // immediately so that the extension is running on the pages immediately after install, rather than
 // having to reload those pages.
 chrome.runtime.onInstalled.addListener(async (details) => {
   Utils.debugLog("chrome.runtime.onInstalled");
 
   // NOTE(philc): In my testing, when the onInstalled event occurs, the onStartup event does not
-  // also occur, so we need to initialize Vimium here.
+  // also occur, so we need to initialize Suda here.
   await initializeExtension();
 
   const shouldInjectContentScripts =

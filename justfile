@@ -10,7 +10,7 @@ default:
 fetch-tlds:
   ./build_scripts/fetch_tlds.ts
 
-# Compile TypeScript into a Chrome-loadable unpacked extension in dist/vimium/.
+# Compile TypeScript into a Chrome-loadable unpacked extension in dist/suda/.
 build:
   ./build_scripts/build.ts
 
@@ -53,6 +53,6 @@ package:
   ./build_scripts/write_command_listing_page.ts
   ./build_scripts/package.ts
 
-# Build dist/vimium with a Firefox-compatible development manifest.
+# Build dist/suda with a Firefox-compatible development manifest.
 write-firefox-manifest:
   ./build_scripts/write_firefox_manifest.ts

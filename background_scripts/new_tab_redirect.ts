@@ -2,7 +2,7 @@
 import "../lib/settings.js";
 import "../lib/url_utils.js";
 
-// Browser new-tab pages are privileged pages, so Vimium cannot run a content script on them.
+// Browser new-tab pages are privileged pages, so Suda cannot run a content script on them.
 // When the user has selected another new-tab destination, redirect newly created browser tabs to
 // that destination instead.
 const browserNewTabUrls = new Set([
@@ -31,8 +31,8 @@ export function isBrowserNewTabUrl(url) {
 export function getConfiguredNewTabUrl() {
   const destination = Settings.get("newTabDestination");
   const customUrl = Settings.get("newTabCustomUrl");
-  if (destination == Settings.newTabDestinations.vimiumNewTabPage) {
-    return Settings.vimiumNewTabPageUrl;
+  if (destination == Settings.newTabDestinations.sudaNewTabPage) {
+    return Settings.sudaNewTabPageUrl;
   } else if (destination == Settings.newTabDestinations.customUrl && customUrl.length > 0) {
     return customUrl;
   }

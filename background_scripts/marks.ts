@@ -5,7 +5,7 @@ import * as bgUtils from "./bg_utils.js";
 // This returns the key which is used for storing mark locations in chrome.storage.sync.
 // Exported for tests.
 export function getLocationKey(markName) {
-  return `vimiumGlobalMark|${markName}`;
+  return `sudaGlobalMark|${markName}`;
 }
 
 // Get the part of a URL we use for matching here (that is, everything up to the first anchor).
@@ -13,13 +13,13 @@ function getBaseUrl(url) {
   return url.split("#")[0];
 }
 
-// Create a global mark. We record vimiumSecret with the mark so that we can tell later, when the
-// mark is used, whether this is the original Vimium session or a subsequent session. This affects
+// Create a global mark. We record sudaSecret with the mark so that we can tell later, when the
+// mark is used, whether this is the original Suda session or a subsequent session. This affects
 // whether or not tabId can be considered valid.
 export async function create(req, sender) {
-  const items = await chrome.storage.session.get("vimiumSecret");
+  const items = await chrome.storage.session.get("sudaSecret");
   const markInfo = {
-    vimiumSecret: items.vimiumSecret,
+    sudaSecret: items.sudaSecret,
     markName: req.markName,
     url: getBaseUrl(sender.tab.url),
     tabId: sender.tab.id,
@@ -57,13 +57,13 @@ function saveMark(markInfo) {
 // we create a new one. Whichever of those we do, we then set the scroll position to the original
 // scroll position.
 export async function goto(req) {
-  const vimiumSecret = (await chrome.storage.session.get("vimiumSecret"))["vimiumSecret"];
+  const sudaSecret = (await chrome.storage.session.get("sudaSecret"))["sudaSecret"];
   const key = getLocationKey(req.markName);
   const items = await chrome.storage.local.get(key);
   const markInfo = items[key];
-  if (markInfo.vimiumSecret !== vimiumSecret) {
-    // This is a different Vimium instantiation, so markInfo.tabId is definitely out of date.
-    Utils.debugLog("marks: vimiumSecret is incorrect.");
+  if (markInfo.sudaSecret !== sudaSecret) {
+    // This is a different Suda instantiation, so markInfo.tabId is definitely out of date.
+    Utils.debugLog("marks: sudaSecret is incorrect.");
     await focusOrLaunch(markInfo, req);
   } else {
     // Check whether markInfo.tabId still exists. According to
@@ -132,7 +132,7 @@ async function focusOrLaunch(markInfo, req) {
 // shorter (matching) URLs.
 async function pickTab(tabs) {
   // NOTE(philc): We assume getCurrent() can return null, but I didn't confirm this. Also, it should
-  // be impossible for the user to invoke Vimium-related keys if all windows are closed.
+  // be impossible for the user to invoke Suda-related keys if all windows are closed.
   const window = await chrome.windows.getCurrent();
   const windowId = window?.id;
   // Prefer tabs in the current window, if there are any.

@@ -83,7 +83,7 @@ async function checkForCommonBuildIssues(manifest: ExtensionManifest) {
 const chromeManifest = await parseManifestFile() as ExtensionManifest;
 await checkForCommonBuildIssues(chromeManifest);
 
-const distDirectory = fromProjectRoot("dist", "vimium");
+const distDirectory = fromProjectRoot("dist", "suda");
 await buildExtension();
 for (const directory of ["chrome-canary", "chrome-store", "firefox"]) {
   await Deno.mkdir(fromProjectRoot("dist", directory), { recursive: true });
@@ -104,28 +104,28 @@ await writeDistManifest(firefoxManifest);
 await checkFilesFromManifestArePresent(firefoxManifest, distDirectory);
 await runCommand(
   "zip",
-  ["-r", "--filesync", `../firefox/vimium-firefox-${version}.zip`, ".", "-x", "icons/*.png"],
+  ["-r", "--filesync", `../firefox/suda-firefox-${version}.zip`, ".", "-x", "icons/*.png"],
   { cwd: distDirectory },
 );
 
 await writeDistManifest(chromeManifest);
 await runCommand(
   "zip",
-  ["-r", "--filesync", `../chrome-store/vimium-chrome-store-${version}.zip`, "."],
+  ["-r", "--filesync", `../chrome-store/suda-chrome-store-${version}.zip`, "."],
   { cwd: distDirectory },
 );
 
 const canaryManifest = {
   ...chromeManifest,
-  name: "Vimium Canary",
-  description: "This is the development branch of Vimium (it is beta software).",
+  name: "Suda Canary",
+  description: "This is the development branch of Suda (it is beta software).",
 };
 await writeDistManifest(canaryManifest);
 await runCommand(
   "zip",
-  ["-r", "--filesync", `../chrome-canary/vimium-canary-${version}.zip`, "."],
+  ["-r", "--filesync", `../chrome-canary/suda-canary-${version}.zip`, "."],
   { cwd: distDirectory },
 );
 
-// Leave dist/vimium ready to load as the normal Chrome extension after packaging.
+// Leave dist/suda ready to load as the normal Chrome extension after packaging.
 await writeDistManifest(chromeManifest);

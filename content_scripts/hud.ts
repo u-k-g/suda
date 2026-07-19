@@ -1,6 +1,6 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 //
-// A heads-up-display (HUD) for showing Vimium page operations.
+// A heads-up-display (HUD) for showing Suda page operations.
 // Note: you cannot interact with the HUD until document.body is available.
 //
 const HUD = {
@@ -42,35 +42,35 @@ const HUD = {
       focusable = true;
     }
     if (this.hudUI == null) {
-      const queryString = globalThis.vimiumDomTestsAreRunning ? "?dom_tests=true" : "";
+      const queryString = globalThis.sudaDomTestsAreRunning ? "?dom_tests=true" : "";
       this.hudUI = new UIComponent();
       this.hudUI.load(
         `pages/hud_page.html${queryString}`,
-        "vimium-hud-frame",
+        "suda-hud-frame",
         this.handleUIComponentMessage.bind(this),
       );
     }
     // this[data.name]? data
     if (this.tween == null) {
       this.tween = new Tween(
-        "iframe.vimium-hud-frame.vimium-ui-component-visible",
+        "iframe.suda-hud-frame.suda-ui-component-visible",
         this.hudUI.shadowDOM,
       );
     }
     const classList = this.hudUI.iframeElement.classList;
     if (focusable) {
-      classList.remove("vimium-non-clickable");
-      classList.add("vimium-clickable");
+      classList.remove("suda-non-clickable");
+      classList.add("suda-clickable");
       // Note(gdh1995): Chrome 74 only acknowledges text selection when a frame has been visible.
       // See more in #3277.
       // Note(mrmr1993): Show the HUD frame, so Firefox will actually perform the paste.
       this.hudUI.setIframeVisible(true);
       // Force the re-computation of styles, so Chrome sends a visibility change message to the
-      // child frame. See https://github.com/philc/vimium/pull/3277#issuecomment-487363284
+      // child frame. See https://github.com/u-k-g/suda/pull/3277#issuecomment-487363284
       getComputedStyle(this.hudUI.iframeElement).display;
     } else {
-      classList.remove("vimium-non-clickable");
-      classList.add("vimium-clickable");
+      classList.remove("suda-non-clickable");
+      classList.add("suda-clickable");
     }
   },
 

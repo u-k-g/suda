@@ -19,7 +19,7 @@ const ActionPage = {
       document.querySelector("footer").style.display = "none";
     };
 
-    // In Firefox, prompt the user if they haven't enabled the "all hosts" permission. Vimium needs
+    // In Firefox, prompt the user if they haven't enabled the "all hosts" permission. Suda needs
     // this permission to work correctly, and as of 2023-11-06, Firefox does not grant this
     // permission without user consent, and doesn't make it clear that the user needs to do
     // anything. See #4348 for discussion, and https://stackoverflow.com/q/76083327 for
@@ -41,7 +41,7 @@ const ActionPage = {
       }
     }
 
-    if (!await this.isVimiumInstalledInTab(activeTab.id)) {
+    if (!await this.isSudaInstalledInTab(activeTab.id)) {
       hideUI();
       document.querySelector("#not-enabled-error").style.display = "block";
       return;
@@ -84,11 +84,11 @@ const ActionPage = {
     if (rules.length > 0) this.showExclusionRulesEditor();
   },
 
-  async isVimiumInstalledInTab(tabId) {
+  async isSudaInstalledInTab(tabId) {
     try {
       // There is no handler in our content script for this message, but that's OK. We just want to
       // see if sending any message triggers an error.
-      await chrome.tabs.sendMessage(tabId, { handler: "isVimiumInstalledInTab" });
+      await chrome.tabs.sendMessage(tabId, { handler: "isSudaInstalledInTab" });
       return true;
     } catch {
       // If there's no content script running in the activeTab, we'll get a connection error.

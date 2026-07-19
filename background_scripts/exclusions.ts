@@ -12,7 +12,7 @@ const ExclusionRegexpCache = {
       return this.cache[pattern];
     } else {
       let result;
-      // We use try/catch to ensure that a broken regexp doesn't wholly cripple Vimium.
+      // We use try/catch to ensure that a broken regexp doesn't wholly cripple Suda.
       try {
         result = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
       } catch {

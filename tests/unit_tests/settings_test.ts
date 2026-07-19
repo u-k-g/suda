@@ -4,7 +4,7 @@ import "../../lib/settings.js";
 context("settings", () => {
   context("v2.0 migration", () => {
     setup(async () => {
-      // Prior to Vimium 2.0.0, the settings values were encoded as JSON strings.
+      // Prior to Suda 2.0.0, the settings values were encoded as JSON strings.
       await chrome.storage.sync.set({ scrollStepSize: JSON.stringify(123) });
     });
 
@@ -57,7 +57,7 @@ context("settings", () => {
       await chrome.storage.sync.set({ newTabUrl: "pages/blank.html" });
       await Settings.load();
       const settings = Settings.getSettings();
-      assert.equal(Settings.newTabDestinations.vimiumNewTabPage, settings.newTabDestination);
+      assert.equal(Settings.newTabDestinations.sudaNewTabPage, settings.newTabDestination);
     });
 
     should("Handle https://example.com new tab URL", async () => {

@@ -272,7 +272,7 @@ const Utils = {
   // - listenerFn: this can be async, and can return a value to the message sender.
   // - requestsHandled: a list of strings indicating which request types this listener will handle.
   //   The request type is indicated by request.handler. This is required because, while most
-  //   message types are handled by just one listener (in vimium_frontend.js, or
+  //   message types are handled by just one listener (in suda_frontend.js, or
   //   background_scripts/main.js), when the current page is a background page (like the Options
   //   page, or the Help dialog), then both listeners will receive all message types, and so each
   //   message handler must be able to distinguish which message types to respond to.

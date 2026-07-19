@@ -67,7 +67,7 @@ class GrabBackFocus extends Mode {
     });
 
     // True after we've grabbed back focus to the page and logged it via console.log , so web devs
-    // using Vimium don't get confused.
+    // using Suda don't get confused.
     this.logged = false;
 
     this.push({
@@ -114,8 +114,8 @@ class GrabBackFocus extends Mode {
 
     if (!this.logged && (element !== document.body)) {
       this.logged = true;
-      if (!globalThis.vimiumDomTestsAreRunning) {
-        console.log("An auto-focusing action on this page was blocked by Vimium.");
+      if (!globalThis.sudaDomTestsAreRunning) {
+        console.log("An auto-focusing action on this page was blocked by Suda.");
       }
     }
     element.blur();
@@ -213,7 +213,7 @@ function installListener(element, event, callback) {
     event,
     forTrusted(function () {
       if (extensionHasBeenUnloaded()) {
-        console.log("Vimium extension has been unloaded. Unloading content script.");
+        console.log("Suda extension has been unloaded. Unloading content script.");
         onUnload();
         return;
       }
@@ -229,7 +229,7 @@ function installListener(element, event, callback) {
 
 // Installing or uninstalling listeners is error prone. Instead we elect to check isEnabledForUrl
 // each time so we know whether the listener should run or not.
-// Note: We install the listeners even if Vimium is disabled. See comment in commit
+// Note: We install the listeners even if Suda is disabled. See comment in commit
 // 6446cf04c7b44c3d419dc450a73b60bcaf5cdf02.
 const installListeners = Utils.makeIdempotent(function () {
   // Key event handlers fire on window before they do on document. Prefer window for key events so
@@ -253,7 +253,7 @@ const onFocus = forTrusted(function (event) {
 });
 
 // We install these listeners directly (that is, we don't use installListener) because we still need
-// to receive events when Vimium is not enabled.
+// to receive events when Suda is not enabled.
 globalThis.addEventListener("focus", onFocus, true);
 globalThis.addEventListener("hashchange", checkEnabledAfterURLChange, true);
 
@@ -261,15 +261,15 @@ async function initializeOnDomReady() {
   // Tell the background page we're in the domReady state.
   await chrome.runtime.sendMessage({ handler: "domReady" });
 
-  const isVimiumNewTabPage = document.location.href == Settings.vimiumNewTabPageUrl;
-  if (!isVimiumNewTabPage) return;
+  const isSudaNewTabPage = document.location.href == Settings.sudaNewTabPageUrl;
+  if (!isSudaNewTabPage) return;
 
-  // Show the Vomnibar.
+  // Show the CommandBar.
   await Settings.onLoaded();
-  if (Settings.get("openVomnibarOnNewTabPage")) {
+  if (Settings.get("openCommandBarOnNewTabPage")) {
     await Utils.populateBrowserInfo();
     DomUtils.injectUserCss();
-    Vomnibar.activateNewTab(0);
+    CommandBar.activateNewTab(0);
   }
 }
 
@@ -323,12 +323,12 @@ const flashFrame = (() => {
 
       // Inject stylesheet.
       const styleEl = DomUtils.createElement("style");
-      const vimiumCssUrl = chrome.runtime.getURL("content_scripts/vimium.css");
-      styleEl.textContent = `@import url("${vimiumCssUrl}");`;
+      const sudaCssUrl = chrome.runtime.getURL("content_scripts/suda.css");
+      styleEl.textContent = `@import url("${sudaCssUrl}");`;
       shadowDOM.appendChild(styleEl);
 
       const frameEl = DomUtils.createElement("div");
-      frameEl.className = "vimium-reset vimium-highlighted-frame";
+      frameEl.className = "suda-reset suda-highlighted-frame";
       shadowDOM.appendChild(frameEl);
     }
 
@@ -441,7 +441,7 @@ async function handleMessage(request, sender) {
 async function initializePreDomReady() {
   // Run this as early as possible, so the page can't register any event handlers before us.
   installListeners();
-  // NOTE(philc): I'm blocking further Vimium initialization on this, for simplicity. If necessary
+  // NOTE(philc): I'm blocking further Suda initialization on this, for simplicity. If necessary
   // we could allow other tasks to run concurrently.
   await checkIfEnabledForUrl();
 
@@ -451,7 +451,7 @@ async function initializePreDomReady() {
   );
 }
 
-// Check if Vimium should be enabled or not based on the top frame's URL.
+// Check if Suda should be enabled or not based on the top frame's URL.
 async function checkIfEnabledForUrl() {
   if (extensionHasBeenUnloaded()) {
     onUnload();
@@ -488,12 +488,12 @@ const HelpDialog = {
   helpUI: null,
 
   isShowing() {
-    if (globalThis.isVimiumHelpDialogPage) return true;
+    if (globalThis.isSudaHelpDialogPage) return true;
     return this.helpUI && this.helpUI.showing;
   },
 
   abort() {
-    if (globalThis.isVimiumHelpDialogPage) throw new Error("This should be impossible.");
+    if (globalThis.isSudaHelpDialogPage) throw new Error("This should be impossible.");
     if (this.isShowing()) {
       return this.helpUI.hide(false);
     }
@@ -502,12 +502,12 @@ const HelpDialog = {
   async toggle(request) {
     // If we're in the help dialog page already and the user has typed a key to show the help
     // dialog, then we should hide it.
-    if (globalThis.isVimiumHelpDialogPage) return HelpDialogPage.hide();
+    if (globalThis.isSudaHelpDialogPage) return HelpDialogPage.hide();
 
     if (this.helpUI == null) {
       await DomUtils.documentComplete();
       this.helpUI = new UIComponent();
-      this.helpUI.load("pages/help_dialog_page.html", "vimium-help-dialog-frame");
+      this.helpUI.load("pages/help_dialog_page.html", "suda-help-dialog-frame");
     }
     if (this.isShowing()) {
       this.helpUI.hide();

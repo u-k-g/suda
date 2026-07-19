@@ -1,13 +1,13 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
-// This file contains the definition of the completers used for the Vomnibar's suggestion UI. A
-// completer will take a query (whatever the user typed into the Vomnibar) and return a list of
+// This file contains the definition of the completers used for the CommandBar's suggestion UI. A
+// completer will take a query (whatever the user typed into the CommandBar) and return a list of
 // Suggestions, e.g. bookmarks, domains, URLs from history.
 //
-// The Vomnibar frontend script makes a "filterCompleter" request to the background page, which in
+// The CommandBar frontend script makes a "filterCompleter" request to the background page, which in
 // turn calls filter() on each these completers.
 //
 // A completer is a class which has three functions:
-//  - filter(query): "query" will be whatever the user typed into the Vomnibar.
+//  - filter(query): "query" will be whatever the user typed into the CommandBar.
 //  - refresh(): (optional) refreshes the completer's data source (e.g. refetches the list of
 //    bookmarks).
 //  - cancel(): (optional) cancels any pending, cancelable action.
@@ -36,13 +36,13 @@ export class Suggestion {
   relevancy;
   relevancyFunction;
   relevancyData;
-  // When true, then this suggestion is automatically pre-selected in the vomnibar. This only affects
-  // the suggestion in slot 0 in the vomnibar.
+  // When true, then this suggestion is automatically pre-selected in the commandBar. This only affects
+  // the suggestion in slot 0 in the commandBar.
   autoSelect = false;
   // When true, we highlight matched terms in the title and URL. Otherwise we don't.
   highlightTerms = true;
 
-  // The text to insert into the vomnibar input when this suggestion is selected.
+  // The text to insert into the commandBar input when this suggestion is selected.
   insertText;
   // This controls whether this suggestion is a candidate for deduplication after simplifying
   // its URL.
@@ -57,7 +57,7 @@ export class Suggestion {
   // Whether this is meant to be the first suggestion from the user's custom search engine which
   // represents their query as typed, verbatim.
   isPrimarySuggestion = false;
-  // The generated HTML string for showing this suggestion in the Vomnibar.
+  // The generated HTML string for showing this suggestion in the CommandBar.
   html;
   searchUrl;
 
@@ -289,7 +289,7 @@ export class Suggestion {
 //     matching the filter.
 //
 // Note. This includes site-specific patterns for very-popular sites with URLs which don't work well
-// in the vomnibar.
+// in the commandBar.
 //
 Suggestion.stripPatterns = [
   // Google search specific replacements; this replaces query parameters which are known to not be
@@ -448,7 +448,7 @@ export class CommandCompleter {
       const isDefaultBound = Object.keys(variations).some((option) => option.length === 0);
 
       // If the default action is not bound, add the entry explicitly to the suggestions.
-      // This makes unbound commands accessible from the Vomnibar.
+      // This makes unbound commands accessible from the CommandBar.
       if (!isDefaultBound) {
         suggestions.push(
           new Suggestion({
@@ -488,7 +488,7 @@ export class CommandCompleter {
 
 export class HistoryCompleter {
   // - seenTabToOpenCompletionList: true if the user has typed only <Tab>, and nothing else.
-  //   We interpret this to mean that they want to see all of their history in the Vomnibar, sorted
+  //   We interpret this to mean that they want to see all of their history in the CommandBar, sorted
   //   by recency.
   async filter({ queryTerms, seenTabToOpenCompletionList }) {
     await HistoryCache.onLoaded();
@@ -760,7 +760,7 @@ export class SearchEngineCompleter {
 SearchEngineCompleter.debug = false;
 
 // A completer which calls filter() on many completers, aggregates the results, ranks them, and
-// returns the top 10. All queries from the vomnibar come through a multi completer.
+// returns the top 10. All queries from the commandBar come through a multi completer.
 const maxResults = 10;
 
 function modelessSourceForCompleter(completer) {
@@ -928,7 +928,7 @@ export const HistoryCache = {
   },
 
   // When a page we've seen before has been visited again, be sure to replace our History item so it
-  // has the correct "lastVisitTime". That's crucial for ranking Vomnibar suggestions.
+  // has the correct "lastVisitTime". That's crucial for ranking CommandBar suggestions.
   onVisited(newPage) {
     // On Firefox, some history entries do not have titles.
     if (newPage.title == null) newPage.title = "";
@@ -941,7 +941,7 @@ export const HistoryCache = {
     }
   },
 
-  // When a page is removed from the chrome history, remove it from the vimium history too.
+  // When a page is removed from the chrome history, remove it from the suda history too.
   onVisitRemoved(toRemove) {
     if (toRemove.allHistory) {
       this.history = [];

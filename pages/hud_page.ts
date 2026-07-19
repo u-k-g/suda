@@ -10,8 +10,8 @@ import * as UIComponentMessenger from "./ui_component_messenger.js";
 let findMode = null;
 
 // Chrome creates a unique port for each MessageChannel, so there's a race condition between
-// JavaScript messages of Vimium and browser messages during style recomputation. This duration was
-// determined empirically. See https://github.com/philc/vimium/pull/3277#discussion_r283080348
+// JavaScript messages of Suda and browser messages during style recomputation. This duration was
+// determined empirically. See https://github.com/u-k-g/suda/pull/3277#discussion_r283080348
 const TIME_TO_WAIT_FOR_IPC_MESSAGES = 17;
 
 // Set the input element's text, and move the cursor to the end.
@@ -93,8 +93,8 @@ export const handlers = {
   show(data) {
     const el = document.querySelector("#hud");
     el.textContent = data.text;
-    el.classList.add("vimium-ui-component-visible");
-    el.classList.remove("vimium-ui-component-hidden");
+    el.classList.add("suda-ui-component-visible");
+    el.classList.remove("suda-ui-component-hidden");
     el.classList.remove("hud-find");
   },
 
@@ -103,8 +103,8 @@ export const handlers = {
     // We get a flicker when the HUD later becomes visible again (with new text) unless we reset its
     // contents here.
     el.textContent = "";
-    el.classList.add("vimium-ui-component-hidden");
-    el.classList.remove("vimium-ui-component-visible");
+    el.classList.add("suda-ui-component-hidden");
+    el.classList.remove("suda-ui-component-visible");
   },
 
   showFindMode() {

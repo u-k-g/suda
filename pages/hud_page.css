@@ -4,8 +4,8 @@
   width: 100%;
   bottom: 0;
   left: 0;
-  background-color: var(--vimium-foreground-color);
-  color: var(--vimium-foreground-text-color);
+  background-color: var(--suda-foreground-color);
+  color: var(--suda-foreground-text-color);
   text-align: left;
   border-radius: 0;
   box-shadow: none;
@@ -17,7 +17,7 @@
 #search-area {
   display: block;
   padding: 0;
-  color: var(--vimium-foreground-text-color);
+  color: var(--suda-foreground-text-color);
   border-radius: 4px 4px 0 0;
 }
 

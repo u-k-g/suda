@@ -6,7 +6,7 @@ let activatedElement = null;
 
 // Previously, the main scrolling element was document.body. If the "experimental web platform
 // features" flag is enabled, then we need to use document.scrollingElement instead. There's an
-// explanation in #2168: https://github.com/philc/vimium/pull/2168#issuecomment-236488091
+// explanation in #2168: https://github.com/u-k-g/suda/pull/2168#issuecomment-236488091
 
 const getScrollingElement = () =>
   getSpecialScrollingElement() || document.scrollingElement || document.body;

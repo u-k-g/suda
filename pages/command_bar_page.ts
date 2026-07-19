@@ -1,8 +1,8 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 //
-// This controls the contents of the Vomnibar iframe. We use an iframe to avoid changing the
-// selection on the page (useful for bookmarklets), ensure that the Vomnibar style is unaffected by
-// the page, and simplify key handling in vimium_frontend.js
+// This controls the contents of the CommandBar iframe. We use an iframe to avoid changing the
+// selection on the page (useful for bookmarklets), ensure that the CommandBar style is unaffected by
+// the page, and simplify key handling in suda_frontend.js
 //
 
 import "../lib/types.js";
@@ -93,7 +93,7 @@ const modeSelector = {
   description: "Choose a command-bar mode",
   aliases: "mode selector scopes",
   icon: "tornado",
-  bindingCommands: ["Vomnibar.activateModeSelection"],
+  bindingCommands: ["CommandBar.activateModeSelection"],
 };
 
 const commandBarModes = [
@@ -103,7 +103,7 @@ const commandBarModes = [
     aliases: "page search",
     action: true,
     icon: "magnifying-glass",
-    bindingCommands: ["Vomnibar.activateFind"],
+    bindingCommands: ["CommandBar.activateFind"],
   },
   {
     name: "search",
@@ -112,7 +112,7 @@ const commandBarModes = [
     completer: "omni",
     newTab: true,
     icon: "globe",
-    bindingCommands: ["Vomnibar.activateInNewTab", "Vomnibar.activate"],
+    bindingCommands: ["CommandBar.activateInNewTab", "CommandBar.activate"],
   },
   {
     name: "history",
@@ -121,7 +121,7 @@ const commandBarModes = [
     completer: "history",
     selectFirst: true,
     icon: "clock-counter-clockwise",
-    bindingCommands: ["Vomnibar.activateHistory"],
+    bindingCommands: ["CommandBar.activateHistory"],
   },
   {
     name: "tabs",
@@ -130,7 +130,7 @@ const commandBarModes = [
     completer: "tabs",
     selectFirst: true,
     icon: "tabs",
-    bindingCommands: ["Vomnibar.activateTabSelection"],
+    bindingCommands: ["CommandBar.activateTabSelection"],
   },
   {
     name: "bookmarks",
@@ -139,7 +139,7 @@ const commandBarModes = [
     completer: "bookmarks",
     selectFirst: true,
     icon: "folder-open",
-    bindingCommands: ["Vomnibar.activateBookmarks"],
+    bindingCommands: ["CommandBar.activateBookmarks"],
   },
   {
     name: "url",
@@ -148,7 +148,7 @@ const commandBarModes = [
     completer: "omni",
     useCurrentUrl: true,
     icon: "pencil-simple",
-    bindingCommands: ["Vomnibar.activateEditUrl"],
+    bindingCommands: ["CommandBar.activateEditUrl"],
   },
   {
     name: "commands",
@@ -157,7 +157,7 @@ const commandBarModes = [
     completer: "commands",
     selectFirst: true,
     icon: "command",
-    bindingCommands: ["Vomnibar.activateCommandSelection"],
+    bindingCommands: ["CommandBar.activateCommandSelection"],
   },
   {
     name: "marks",
@@ -166,7 +166,7 @@ const commandBarModes = [
     completer: "local",
     selectFirst: true,
     icon: "map-pin",
-    bindingCommands: ["Vomnibar.activateMarks"],
+    bindingCommands: ["CommandBar.activateMarks"],
   },
 ];
 
@@ -206,7 +206,7 @@ const commandBarModesByName = Object.fromEntries(
   [...commandBarModes, linkActionMode].map((mode) => [mode.name, mode]),
 );
 
-// An instance of VomnibarUI. Exported for use by tests.
+// An instance of CommandBarUI. Exported for use by tests.
 export let ui;
 
 // Used for tests.
@@ -215,7 +215,7 @@ export function reset() {
 }
 
 export async function activate(options) {
-  Utils.assertType(VomnibarShowOptions, options || {});
+  Utils.assertType(CommandBarShowOptions, options || {});
   await Settings.onLoaded();
   const commandToOptionsToKeys =
     (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys ?? {};
@@ -236,7 +236,7 @@ export async function activate(options) {
   options = Object.assign(defaults, options);
 
   if (ui == null) {
-    ui = new VomnibarUI();
+    ui = new CommandBarUI();
   }
   ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
@@ -250,12 +250,12 @@ export async function activate(options) {
     selectFirst: options.selectFirst,
   });
   ui.setActiveUserSearchEngine(userSearchEngines.keywordToEngine[options.keyword]);
-  // Use await here for vomnibar_test.js, so that this page doesn't get unloaded while a test is
+  // Use await here for commandBar_test.js, so that this page doesn't get unloaded while a test is
   // running.
   await ui.update();
 }
 
-class VomnibarUI {
+class CommandBarUI {
   constructor() {
     this.onKeyEvent = this.onKeyEvent.bind(this);
     this.onInput = this.onInput.bind(this);
@@ -361,20 +361,20 @@ class VomnibarUI {
       !Settings.get("disabledModelessCommandBarSources").includes(source);
   }
 
-  // The sequence of events when the vomnibar is hidden:
+  // The sequence of events when the commandBar is hidden:
   // 1. Post a "hide" message to the host page.
-  // 2. The host page hides the vomnibar.
+  // 2. The host page hides the commandBar.
   // 3. When that page receives the focus, it posts back a "hidden" message.
   // 4. Only once the "hidden" message is received here is onHiddenCallback called.
   //
-  // This ensures that the vomnibar is actually hidden before any new tab is created, and avoids
+  // This ensures that the commandBar is actually hidden before any new tab is created, and avoids
   // flicker after opening a link in a new tab then returning to the original tab. See #1485.
   hide(onHiddenCallback = null) {
     this.onHiddenCallback = onHiddenCallback;
     this.input.blur();
     this.reset();
     // Wait until this iframe's DOM has been rendered before hiding the iframe. This is to prevent
-    // Chrome caching the previous visual state of the vomnibar iframe. See #4708.
+    // Chrome caching the previous visual state of the commandBar iframe. See #4708.
     setTimeout(() => {
       UIComponentMessenger.postMessage({ name: "hide" });
     }, 0);
@@ -512,7 +512,7 @@ class VomnibarUI {
     } else if (action === "enter") {
       await this.handleEnterKey(event);
     } else if (action === "ctrl-enter") {
-      // Populate the vomnibar with the current selection's URL.
+      // Populate the commandBar with the current selection's URL.
       if (
         !this.isUserSearchEngineActive() && this.completerName != "commands" &&
         (this.selection >= 0)
@@ -560,7 +560,7 @@ class VomnibarUI {
     let query = this.input.value.trim();
 
     // Note that it's possible that this.completions is empty. This can happen in practice if the
-    // user hits enter quickly after loading the vomnibar, before the filterCompletions request to
+    // user hits enter quickly after loading the commandBar, before the filterCompletions request to
     // the background page finishes.
     const waitingOnCompletions = this.completions.length == 0;
     const completion = this.completions[this.selection];
@@ -601,7 +601,7 @@ class VomnibarUI {
 
     // If the user types something and hits enter without selecting a completion from the list,
     // then:
-    //   - If they've activated a custom search engine in the Vomnibar, launch that search using the
+    //   - If they've activated a custom search engine in the CommandBar, launch that search using the
     //     typed-in query.
     //   - Otherwise, open the query as a URL or create a default search as appropriate.
     //
@@ -854,7 +854,7 @@ class VomnibarUI {
     }
 
     // For custom search engines, we suppress the leading prefix (e.g. the "w" of "w query terms")
-    // within the vomnibar input.
+    // within the commandBar input.
     if (
       this.isModelessSourceEnabled("search") && !this.isUserSearchEngineActive() &&
       this.getUserSearchEngineForQuery() != null
@@ -913,7 +913,7 @@ class VomnibarUI {
   }
 
   initDom() {
-    this.box = document.getElementById("vomnibar");
+    this.box = document.getElementById("commandBar");
 
     this.input = this.box.querySelector("input");
     this.modeIndicator = document.getElementById("command-bar-mode");
@@ -925,12 +925,12 @@ class VomnibarUI {
     this.completionList.style.display = "none";
 
     window.addEventListener("focus", () => this.input.focus());
-    // A click in the vomnibar itself refocuses the input.
+    // A click in the commandBar itself refocuses the input.
     this.box.addEventListener("click", (event) => {
       this.input.focus();
       return event.stopImmediatePropagation();
     });
-    // A click anywhere else hides the vomnibar.
+    // A click anywhere else hides the commandBar.
     document.addEventListener("click", () => {
       UIComponentMessenger.postMessage({ name: "commandBarFinishMode", commit: false });
       this.hide();

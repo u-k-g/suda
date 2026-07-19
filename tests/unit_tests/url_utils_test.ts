@@ -65,8 +65,8 @@ context("convertToUrl", async () => {
 context("createSearchUrl", () => {
   should("replace %S without encoding", () => {
     assert.equal(
-      "https://www.github.com/philc/vimium/pulls",
-      UrlUtils.createSearchUrl("vimium/pulls", "https://www.github.com/philc/%S"),
+      "https://github.com/u-k-g/suda/pulls",
+      UrlUtils.createSearchUrl("suda/pulls", "https://github.com/u-k-g/%S"),
     );
   });
 });

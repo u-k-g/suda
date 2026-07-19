@@ -7,6 +7,6 @@ import { createFirefoxManifest, fromProjectRoot, parseManifestFile } from "./bui
 const manifest = createFirefoxManifest(await parseManifestFile());
 await buildExtension();
 await Deno.writeTextFile(
-  path.join(fromProjectRoot("dist", "vimium"), "manifest.json"),
+  path.join(fromProjectRoot("dist", "suda"), "manifest.json"),
   JSON.stringify(manifest, null, 2),
 );

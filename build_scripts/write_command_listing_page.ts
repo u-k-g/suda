@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable-sloppy-imports --allow-read --allow-write --allow-env
-// Write a static version of the command_listing.html page to dist, to be hosted on vimium.github.io
+// Write a static version of the command_listing.html page to dist, to be hosted on u-k-g.github.io/suda
 // as an online reference.
 
 import * as testHelper from "../tests/unit_tests/test_helper.js";
@@ -51,7 +51,7 @@ document.querySelector("html").classList.add("hosted-version");
 // Use the website's favicon.
 const favicon = document.createElement("link");
 favicon.setAttribute("rel", "shortcut icon");
-favicon.href = "../vimium_logo.svg";
+favicon.href = "../suda_logo.svg";
 document.head.appendChild(favicon);
 
 // The doctype tag is not included in outerHTML; add it back in.

@@ -23,7 +23,7 @@ async function compileDirectory(sourceDirectory: string, outputDirectory: string
 }
 
 export async function buildExtension() {
-  const outputDirectory = fromProjectRoot("dist", "vimium");
+  const outputDirectory = fromProjectRoot("dist", "suda");
   await fs.emptyDir(outputDirectory);
 
   const excludes = [

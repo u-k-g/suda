@@ -3,7 +3,7 @@ let commandCount = null;
 let commandName = null;
 
 // Some tests have side effects on the handler stack and the active mode, so these are reset on
-// setup. Also, some tests affect the focus (e.g. Vomnibar tests), so we make sure the window has
+// setup. Also, some tests affect the focus (e.g. CommandBar tests), so we make sure the window has
 // the focus.
 const initializeModeState = () => {
   globalThis.focus();
@@ -27,7 +27,7 @@ const initializeModeState = () => {
 //
 // Retrieve the hint markers as an array object.
 //
-const getHintMarkerEls = () => Array.from(document.querySelectorAll(".vimiumHintMarker"));
+const getHintMarkerEls = () => Array.from(document.querySelectorAll(".sudaHintMarker"));
 
 const stubSettings = (key, value) => stub(Settings._settings, key, value);
 
@@ -48,8 +48,8 @@ context("mark jump highlight", () => {
     const highlights = Marks.showJumpHighlight("a");
 
     assert.equal(1, highlights.length);
-    assert.isTrue(highlights[0].classList.contains("vimium-mark-jump-flash"));
-    assert.equal("a", highlights[0].dataset.vimiumMark);
+    assert.isTrue(highlights[0].classList.contains("suda-mark-jump-flash"));
+    assert.equal("a", highlights[0].dataset.sudaMark);
     Marks.clearJumpHighlight();
     target.remove();
   });
@@ -103,7 +103,7 @@ context("Selection-first link hints", () => {
 
   should("toggle links without activating them and open actions with semicolon", () => {
     let actionCount = null;
-    stub(Vomnibar, "activateLinkActions", (_frameId, count) => actionCount = count);
+    stub(CommandBar, "activateLinkActions", (_frameId, count) => actionCount = count);
     stub(Utils, "nextTick", (callback) => callback());
 
     HintCoordinator.getHintDescriptors({ modeIndex: LinkHints.selectionModeIndex }, {});
@@ -120,8 +120,8 @@ context("Selection-first link hints", () => {
     mode.activateLink(markers[1]);
 
     assert.equal(2, mode.selectedLinks.size);
-    assert.isTrue(markers[0].element.classList.contains("vimiumSelectedHintMarker"));
-    assert.isTrue(markers[1].element.classList.contains("vimiumSelectedHintMarker"));
+    assert.isTrue(markers[0].element.classList.contains("sudaSelectedHintMarker"));
+    assert.isTrue(markers[1].element.classList.contains("sudaSelectedHintMarker"));
 
     mode.onKeyDownInMode({ key: ";", repeat: false });
 
@@ -136,7 +136,7 @@ context("Selection-first link hints", () => {
 // link hinting modes.
 //
 const createGeneralHintTests = (isFilteredMode) => {
-  globalThis.vimiumOnClickAttributeName = "does-not-matter";
+  globalThis.sudaOnClickAttributeName = "does-not-matter";
 
   context("Link hints", () => {
     setup(() => {

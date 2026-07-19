@@ -42,7 +42,7 @@
 
 @media all {
   .key {
-    /* We're using a color that pops more than --vimium-foreground-color because the squares
+    /* We're using a color that pops more than --suda-foreground-color because the squares
        representing keys are small and hard to read otherwise. */
     background-color: var(--gruvbox-bg-1);
     border: solid 1px var(--gruvbox-bg-hard);

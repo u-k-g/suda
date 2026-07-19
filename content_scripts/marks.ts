@@ -24,7 +24,7 @@ const Marks = {
       element &&
       element !== document.documentElement &&
       element !== document.body &&
-      !element.closest?.(".vimium-reset, iframe.vomnibar-frame, iframe.vimium-hud-frame")
+      !element.closest?.(".suda-reset, iframe.commandBar-frame, iframe.suda-hud-frame")
     );
 
     let rects = target == null
@@ -59,8 +59,8 @@ const Marks = {
         width: rect.width,
         height: rect.height,
       });
-      highlight.classList.add("vimium-mark-jump-flash");
-      highlight.dataset.vimiumMark = keyChar;
+      highlight.classList.add("suda-mark-jump-flash");
+      highlight.dataset.sudaMark = keyChar;
       return highlight;
     });
     const generation = this.jumpHighlightGeneration;
@@ -86,7 +86,7 @@ const Marks = {
 
   // This returns the key which is used for storing mark locations in localStorage.
   getLocationKey(keyChar) {
-    return `vimiumMark|${globalThis.location.href.split("#")[0]}|${keyChar}`;
+    return `sudaMark|${globalThis.location.href.split("#")[0]}|${keyChar}`;
   },
 
   getMarkString() {
@@ -145,7 +145,7 @@ const Marks = {
 
   gotoMark(keyChar, shiftKey = false) {
     if (this.isGlobalMark({ shiftKey }, keyChar)) {
-      const key = `vimiumGlobalMark|${keyChar}`;
+      const key = `sudaGlobalMark|${keyChar}`;
       chrome.storage.local.get(key, function (items) {
         if (key in items) {
           chrome.runtime.sendMessage({ handler: "gotoMark", markName: keyChar });
@@ -176,7 +176,7 @@ const Marks = {
 
   async getMarksForCurrentPage() {
     const baseUrl = globalThis.location.href.split("#")[0];
-    const localPrefix = `vimiumMark|${baseUrl}|`;
+    const localPrefix = `sudaMark|${baseUrl}|`;
     const marks = [];
 
     for (let index = 0; index < localStorage.length; index++) {
@@ -193,8 +193,8 @@ const Marks = {
 
     const storedMarks = await chrome.storage.local.get(null);
     for (const [storageKey, mark] of Object.entries(storedMarks)) {
-      if (storageKey.startsWith("vimiumGlobalMark|") && mark?.url === baseUrl) {
-        marks.push({ key: storageKey.slice("vimiumGlobalMark|".length), scope: "global" });
+      if (storageKey.startsWith("sudaGlobalMark|") && mark?.url === baseUrl) {
+        marks.push({ key: storageKey.slice("sudaGlobalMark|".length), scope: "global" });
       }
     }
 

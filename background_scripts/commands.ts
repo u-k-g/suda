@@ -326,7 +326,7 @@ const Commands = {
     // to the front end so they can be detected during insert mode. We exclude single-key mappings
     // for this command (i.e. printable keys) because we're considering that a configuration error:
     // when users press printable keys in insert mode, they expect that character to be input, not
-    // to be droppped into a special Vimium mode.
+    // to be droppped into a special Suda mode.
     const passNextKeys = Object.entries(this.keyToRegistryEntry)
       .filter(([key, v]) => v.command == "passNextKey" && key.length > 1)
       .map(([key, v]) => key);
@@ -448,15 +448,15 @@ const vimKeyMappings = {
   "*": "findSelected",
   "#": "findSelectedBackwards",
 
-  // Vomnibar
-  "o": "Vomnibar.activate",
-  "O": "Vomnibar.activateInNewTab",
-  "T": "Vomnibar.activateTabSelection",
-  "b": "Vomnibar.activateBookmarks",
-  "B": "Vomnibar.activateBookmarksInNewTab",
-  ":": "Vomnibar.activateCommandSelection",
-  "ge": "Vomnibar.activateEditUrl",
-  "gE": "Vomnibar.activateEditUrlInNewTab",
+  // CommandBar
+  "o": "CommandBar.activate",
+  "O": "CommandBar.activateInNewTab",
+  "T": "CommandBar.activateTabSelection",
+  "b": "CommandBar.activateBookmarks",
+  "B": "CommandBar.activateBookmarksInNewTab",
+  ":": "CommandBar.activateCommandSelection",
+  "ge": "CommandBar.activateEditUrl",
+  "gE": "CommandBar.activateEditUrlInNewTab",
 
   // Navigating history
   "H": "goBack",
@@ -551,25 +551,25 @@ const helixKeyMappings = {
 
   // Space mode: browser pickers and actions.
   "<space>f": "LinkHints.activateMode",
-  "<space>t": "Vomnibar.activateAll",
-  "<space>b": "Vomnibar.activateTabSelection",
-  "<space>B": "Vomnibar.activateBookmarks",
-  "<space>/": "Vomnibar.activateFind",
-  "<space>e": "Vomnibar.activateEditUrl",
-  "<space>E": "Vomnibar.activateEditUrlInNewTab",
+  "<space>t": "CommandBar.activateAll",
+  "<space>b": "CommandBar.activateTabSelection",
+  "<space>B": "CommandBar.activateBookmarks",
+  "<space>/": "CommandBar.activateFind",
+  "<space>e": "CommandBar.activateEditUrl",
+  "<space>E": "CommandBar.activateEditUrlInNewTab",
   "<space>m": "Marks.activateCreateMode",
-  "<space>'": "Vomnibar.activateMarks",
+  "<space>'": "CommandBar.activateMarks",
   "<space>r": "reload",
   "<space>R": "reload hard",
   "<space>v": "toggleViewSource",
-  ":": "Vomnibar.activateModeSelection",
+  ":": "CommandBar.activateModeSelection",
 
   // Window mode: tabs are the browser equivalent of editor windows.
   "<c-w>w": "nextTab",
   "<c-w>h": "previousTab",
   "<c-w>l": "nextTab",
   "<c-w>q": "removeTab",
-  "<c-w>n": "Vomnibar.activateInNewTab",
+  "<c-w>n": "CommandBar.activateInNewTab",
   "<c-w>d": "duplicateTab",
   "<c-w>u": "restoreTab",
   "<c-w>H": "moveTabLeft",
@@ -583,7 +583,7 @@ function getDefaultKeyMappings(mode) {
   return mode === "helix" ? helixKeyMappings : vimKeyMappings;
 }
 
-// Keep the historical export for integrations which import Vimium's default mapping directly.
+// Keep the historical export for integrations which import Suda's default mapping directly.
 const defaultKeyMappings = vimKeyMappings;
 
 export {

@@ -21,7 +21,7 @@ const options = {
   newTabCustomUrl: "string",
   newTabDestination: "option",
   nextPatterns: "string",
-  openVomnibarOnNewTabPage: "boolean",
+  openCommandBarOnNewTabPage: "boolean",
   previousPatterns: "string",
   regexFindMode: "boolean",
   scrollStepSize: "number",
@@ -302,8 +302,8 @@ function showElement(el, visible) {
 function maintainNewTabUrlView() {
   const destination = document.querySelector("[name=newTabDestination]:checked").value;
   showElement(
-    document.querySelector("#openVomnibarContainer"),
-    destination == Settings.newTabDestinations.vimiumNewTabPage,
+    document.querySelector("#openCommandBarContainer"),
+    destination == Settings.newTabDestinations.sudaNewTabPage,
   );
   showElement(
     document.querySelector("[name=newTabCustomUrl]"),
@@ -362,7 +362,7 @@ function onUploadBackupClicked() {
         backup = JSON.parse(reader.result);
       } catch (error) {
         console.log("parsing error:", error);
-        alert("Failed to parse Vimium backup: " + error);
+        alert("Failed to parse Suda backup: " + error);
         return;
       }
 

@@ -58,7 +58,7 @@ const createStorageAPI = (areaName) => {
 };
 
 globalThis.chrome = {
-  areRunningVimiumTests: true,
+  areRunningSudaTests: true,
 
   _manifest: null,
 
