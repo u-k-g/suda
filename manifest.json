@@ -51,6 +51,8 @@
         "lib/dom_utils.js",
         "lib/rect.js",
         "lib/handler_stack.js",
+        "lib/theme_catalog.js",
+        "lib/themes.js",
         "lib/settings.js",
         "lib/find_mode_history.js",
         "content_scripts/mode.js",

@@ -10,6 +10,7 @@ const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
   "chrome-extension://suda/pages/new_tab.html";
 
 const defaultOptions = {
+  theme: "gruvbox-dark-hard",
   keyBindingMode: "helix",
   scrollStepSize: 120,
   fastScrollStepSize: 800,
@@ -25,13 +26,13 @@ const defaultOptions = {
   userDefinedLinkHintCss: `\
 div > .sudaHintMarker {
 /* linkhint boxes */
-background: #d79921;
-border: 1px solid #fabd2f;
+background: var(--gruvbox-yellow);
+border: 1px solid var(--gruvbox-yellow-bright);
 }
 
 div > .sudaHintMarker span {
 /* linkhint text */
-color: #1d2021;
+color: var(--gruvbox-bg-hard);
 font-weight: bold;
 font-size: 12px;
 }
@@ -131,6 +132,7 @@ const Settings = {
     result = this.migrateSettingsIfNecessary(result);
     result["settingsVersion"] = Utils.getCurrentVersion();
     this._settings = Object.assign(globalThis.structuredClone(defaultOptions), result);
+    globalThis.ThemeManager?.apply(this._settings.theme);
   },
 
   isLoaded() {

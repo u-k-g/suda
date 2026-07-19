@@ -28,12 +28,25 @@ const options = {
   settingsVersion: "string", // This is a hidden field.
   showCommandBarModeDescriptions: "boolean",
   smoothScroll: "boolean",
+  theme: "string",
   userDefinedLinkHintCss: "string",
   waitForEnterForFilteredHints: "boolean",
 };
 
 export async function init() {
   await Settings.onLoaded();
+
+  const themeSelect = getOptionEl("theme");
+  if (globalThis.ThemeManager) {
+    themeSelect.textContent = "";
+    for (const theme of ThemeManager.themes) {
+      const option = document.createElement("option");
+      option.value = theme.id;
+      option.textContent = theme.name;
+      themeSelect.appendChild(option);
+    }
+  }
+  themeSelect.addEventListener("input", () => globalThis.ThemeManager?.apply(themeSelect.value));
 
   const shortcutLabel = document.querySelector("#shortcut-to-save-all");
   shortcutLabel.textContent = KeyboardUtils.platform == "Mac" ? "Cmd-Enter" : "Ctrl-Enter";
@@ -46,7 +59,7 @@ export async function init() {
     saveButton.textContent = "Save changes";
   };
 
-  for (const el of document.querySelectorAll("input, textarea")) {
+  for (const el of document.querySelectorAll("input, textarea, select")) {
     // We want to immediately enable the save button when a setting is changed, so we want to use
     // the HTML element's "input" event here rather than the "change" event.
     el.addEventListener("input", () => onUpdated());

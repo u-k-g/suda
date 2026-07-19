@@ -1,6 +1,6 @@
 {
   "fmt": {
-    "exclude": ["icons/*.svg"],
+    "exclude": ["icons/*.svg", "lib/theme_catalog.ts"],
     "lineWidth": 100
   },
   "lint": {

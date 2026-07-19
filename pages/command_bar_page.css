@@ -1,17 +1,17 @@
 :root {
-  --command-bar-panel: #1d2021;
-  --command-bar-input: #282828;
-  --command-bar-row: #32302f;
-  --command-bar-selected: #504945;
-  --command-bar-border: #504945;
-  --command-bar-border-soft: #3c3836;
-  --command-bar-text: #ebdbb2;
-  --command-bar-bright: #fbf1c7;
-  --command-bar-muted: #a89984;
-  --command-bar-dim: #928374;
-  --command-bar-accent: #fabd2f;
-  --command-bar-accent-muted: #d79921;
-  --command-bar-mode: #689d6a;
+  --command-bar-panel: var(--suda-background-color);
+  --command-bar-input: var(--suda-foreground-color);
+  --command-bar-row: var(--gruvbox-bg-soft);
+  --command-bar-selected: var(--suda-border-color);
+  --command-bar-border: var(--suda-border-color);
+  --command-bar-border-soft: var(--gruvbox-bg-1);
+  --command-bar-text: var(--suda-background-text-color);
+  --command-bar-bright: var(--gruvbox-white);
+  --command-bar-muted: var(--suda-muted-color);
+  --command-bar-dim: var(--gruvbox-fg-dim);
+  --command-bar-accent: var(--gruvbox-yellow-bright);
+  --command-bar-accent-muted: var(--suda-link-color);
+  --command-bar-mode: var(--gruvbox-aqua);
 }
 
 * {
@@ -82,10 +82,10 @@ ul {
 }
 
 #command-bar-mode {
-  background: #98971a;
-  border: 1px solid #b8bb26;
+  background: var(--gruvbox-green);
+  border: 1px solid var(--gruvbox-green-bright);
   border-radius: 999px;
-  color: #1d2021;
+  color: var(--suda-background-color);
   flex: none;
   font-size: 13px;
   font-weight: 700;
@@ -160,7 +160,7 @@ ul {
 
 #commandBar li.selected {
   background: var(--command-bar-selected);
-  border-color: #665c54;
+  border-color: var(--suda-border-color);
 }
 
 #commandBar li .completion-row {
@@ -288,9 +288,9 @@ ul {
 
 #commandBar kbd,
 #commandBar li .key {
-  background: #282828;
-  border: 1px solid #665c54;
-  border-bottom-color: #7c6f64;
+  background: var(--suda-foreground-color);
+  border: 1px solid var(--suda-border-color);
+  border-bottom-color: var(--suda-muted-color);
   border-radius: 6px;
   color: var(--command-bar-text);
   display: inline-block;
