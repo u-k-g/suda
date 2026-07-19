@@ -215,7 +215,7 @@ const HintCoordinator = {
     });
     this.onExit = [onExit];
     const protocol = window.location.protocol;
-    // chrome-extension, moz-extension (Firefox), extension (Edge).
+    // chrome-extension and extension schemes.
     const isExtensionPage = protocol.endsWith("extension:");
     chrome.runtime.sendMessage({
       handler: "prepareToActivateLinkHintsMode",
@@ -391,7 +391,7 @@ function activateLocalHint(localHint, mode) {
   if (localHint.reason === "Frame.") {
     return Utils.nextTick(() => focusThisFrame({ highlight: true }));
   } else if (localHint.reason === "Scroll.") {
-    return handlerStack.bubbleEvent(Utils.isFirefox() ? "click" : "DOMActivate", {
+    return handlerStack.bubbleEvent("DOMActivate", {
       target: element,
     });
   } else if (localHint.reason === "Open.") {
@@ -480,8 +480,7 @@ class LinkHintsMode {
       this.containerEl.appendChild(el);
     }
 
-    // TODO(philc): 2024-03-27 Remove this hasPopoverSupport check once Firefox has popover support.
-    // Also move this CSS into suda.css.
+    // Keep the fallback for DOM test environments without popover support.
     const hasPopoverSupport = this.containerEl.showPopover != null;
     if (hasPopoverSupport) {
       this.containerEl.popover = "manual";
@@ -788,7 +787,7 @@ class LinkHintsMode {
             return Utils.nextTick(() => focusThisFrame({ highlight: true }));
           } else if (localHint.reason === "Scroll.") {
             // Tell the scroller that this is the activated element.
-            return handlerStack.bubbleEvent(Utils.isFirefox() ? "click" : "DOMActivate", {
+            return handlerStack.bubbleEvent("DOMActivate", {
               target: clickEl,
             });
           } else if (localHint.reason === "Open.") {

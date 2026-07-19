@@ -13,7 +13,7 @@ async function compileDirectory(sourceDirectory: string, outputDirectory: string
     const outputPath = path.join(outputDirectory, relativePath.replace(/\.ts$/, ".js"));
     const result = await transform(await Deno.readTextFile(entry.path), {
       loader: "ts",
-      target: ["chrome117", "firefox112"],
+      target: "chrome117",
       sourcefile: relativePath,
       sourcemap: false,
     });
@@ -37,7 +37,6 @@ export async function buildExtension() {
     "justfile",
     "deno.json",
     "deno.lock",
-    "reload.html",
     "test_harnesses",
     "tests",
     "types",

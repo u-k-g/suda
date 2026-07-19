@@ -12,7 +12,6 @@ const options = {
   filterLinkHints: "boolean",
   grabBackFocus: "boolean",
   hideHud: "boolean",
-  hideUpdateNotifications: "boolean",
   ignoreKeyboardLayout: "boolean",
   keyBindingMode: "option",
   keyMappings: "string",
@@ -88,9 +87,7 @@ export async function init() {
   };
 
   document.addEventListener("keydown", (event) => {
-    // Firefox on Mac doesn't pass ctrl-enter to our page because MacOS Sequoia treats it as a
-    // shortcut for right click; typing it shows a context menu. So, we also allow cmd-enter to save
-    // all options. Note that ctrl-enter still works on Chrome for some reason.
+    // Support both Ctrl-Enter and Cmd-Enter for saving options.
     const isCtrlEnter = event.ctrlKey && event.keyCode === 13;
     const isCmdEnter = event.metaKey && event.keyCode === 13;
     if (isCtrlEnter || isCmdEnter) {

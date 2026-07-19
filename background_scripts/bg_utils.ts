@@ -1,19 +1,5 @@
 import { TabRecency } from "./tab_recency.js";
 
-// We're using browser.runtime to determine the browser name and version for Firefox. That API is
-// only available on the background page. We're not using window.navigator because it's unreliable.
-// Sometimes browser vendors will provide fake values, like when `privacy.resistFingerprinting` is
-// enabled on `about:config` of Firefox.
-export function isFirefox() {
-  // We want this browser check to also cover Firefox variants, like LibreWolf. See #3773.
-  // We could also just check browserInfo.name against Firefox and Librewolf.
-  return globalThis.browser?.runtime.getURL("").startsWith("moz") ?? false;
-}
-
-export async function getFirefoxVersion() {
-  return isFirefox() ? (await browser.runtime.getBrowserInfo()).version : null;
-}
-
 export function tabNoLongerExists(error) {
   return error?.message?.includes("No tab with id");
 }

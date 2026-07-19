@@ -450,14 +450,7 @@ const DomUtils = {
       const marginLeft = parseInt(style.marginLeft);
       return { top: -rect.top + marginTop, left: -rect.left + marginLeft };
     } else {
-      let clientLeft, clientTop;
-      if (Utils.isFirefox()) {
-        // These are always 0 for documentElement on Firefox, so we derive them from CSS border.
-        clientTop = parseInt(style.borderTopWidth);
-        clientLeft = parseInt(style.borderLeftWidth);
-      } else {
-        ({ clientTop, clientLeft } = box);
-      }
+      const { clientTop, clientLeft } = box;
       return { top: -rect.top - clientTop, left: -rect.left - clientLeft };
     }
   },

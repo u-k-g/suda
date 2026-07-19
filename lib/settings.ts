@@ -22,7 +22,6 @@ const defaultOptions = {
   linkHintNumbers: "0123456789",
   filterLinkHints: false,
   hideHud: false,
-  hideUpdateNotifications: false,
   userDefinedLinkHintCss: `\
 div > .sudaHintMarker {
 /* linkhint boxes */
@@ -200,8 +199,7 @@ const Settings = {
       // or was explicitly set to the browser's default new tab URL.
       settings.newTabDestination = newTabDestinations.browserNewTabPage;
     } else if (settings.newTabUrl == "pages/blank.html") {
-      // This was meant to be used as a blank page, but we no longer include this page in Suda.
-      // We use "u-k-g.github.io/suda/new-tab/" instead.
+      // This legacy blank page is now replaced by Suda's new-tab page.
       settings.newTabDestination = newTabDestinations.sudaNewTabPage;
     } else if (settings.newTabUrl) {
       // It's some other custom URL the user has set.

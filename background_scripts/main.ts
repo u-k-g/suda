@@ -73,12 +73,7 @@ const completers = {
   tabs: new MultiCompleter([completionSources.tabs]),
 };
 
-// A query dictionary for `chrome.tabs.query` that will return only the visible tabs.
 const visibleTabsQueryArgs = { currentWindow: true };
-if (bgUtils.isFirefox()) {
-  // Only Firefox supports hidden tabs.
-  visibleTabsQueryArgs.hidden = false;
-}
 
 function onURLChange(details) {
   // sendMessage will throw "Error: Could not establish connection. Receiving end does not exist."
@@ -168,8 +163,7 @@ async function toggleMuteTab(request, sender) {
   }
 }
 
-// Find a tab's actual index in a given tab array returned by chrome.tabs.query. In Firefox, there
-// may be hidden tabs, so tab.tabIndex may not be the actual index into the array of visible tabs.
+// Find a tab's actual index in a given tab array returned by chrome.tabs.query.
 function getTabIndex(tab, tabs) {
   // First check if the tab is where we expect it, to avoid searching the array.
   if (tabs.length > tab.index && tabs[tab.index].index === tab.index) {
@@ -229,15 +223,7 @@ function createRepeatCommand(command) {
 }
 
 function nextZoomLevel(currentZoom, steps) {
-  // Chrome's default zoom levels.
-  const chromeLevels = [0.25, 0.33, 0.5, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
-  // Firefox's default zoom levels.
-  const firefoxLevels = [0.3, 0.5, 0.67, 0.8, 0.9, 1, 1.1, 1.2, 1.33, 1.5, 1.7, 2, 2.4, 3, 4, 5];
-
-  let zoomLevels = chromeLevels; // Chrome by default
-  if (bgUtils.isFirefox()) {
-    zoomLevels = firefoxLevels;
-  }
+  const zoomLevels = [0.25, 0.33, 0.5, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
 
   if (steps === 0) { // Nothing
     return currentZoom;
@@ -348,11 +334,8 @@ const BackgroundCommands = {
       }
     }
     if (request.registryEntry.options.incognito || request.registryEntry.options.window) {
-      // Firefox does not allow an incognito window to be created with the URL about:newtab. It
-      // throws this error: "Illegal URL: about:newtab".
-      const urls = request.urls.filter((u) => u != UrlUtils.chromeNewTabUrl);
       const windowConfig = {
-        url: urls,
+        url: request.urls,
         incognito: request.registryEntry.options.incognito || false,
       };
       await chrome.windows.create(windowConfig);
@@ -408,9 +391,6 @@ const BackgroundCommands = {
   },
   async removeTab({ count, tab }) {
     await forCountTabs(count, tab, async (tab) => {
-      // In Firefox, Ctrl-W will not close a pinned tab, but on Chrome, it will. We try to be
-      // consistent with each browser's UX for pinned tabs.
-      if (tab.pinned && bgUtils.isFirefox()) return;
       await bgUtils.runTabOperation(() => chrome.tabs.remove(tab.id));
     });
   },
@@ -592,7 +572,6 @@ chrome.webNavigation.onCommitted.addListener(async ({ tabId, frameId }) => {
 // web_accessible_resources in manifest.json.
 async function getFrameIdsForTab(tabId) {
   // getAllFrames unfortunately excludes frames and iframes from chrome-extension:// URLs.
-  // In Firefox, by contrast, pages with moz-extension:// URLs are included.
   const frames = await chrome.webNavigation.getAllFrames({ tabId: tabId });
   return frames.map((f) => f.frameId);
 }
@@ -800,20 +779,9 @@ const sendRequestHandlers = {
       }
     }
 
-    const response = Object.assign({
-      isFirefox: bgUtils.isFirefox(),
-      firefoxVersion: await bgUtils.getFirefoxVersion(),
-      frameId: sender.frameId,
-    }, enabledState);
+    const response = Object.assign({ frameId: sender.frameId }, enabledState);
 
     return response;
-  },
-
-  async getBrowserInfo() {
-    return {
-      isFirefox: bgUtils.isFirefox(),
-      firefoxVersion: await bgUtils.getFirefoxVersion(),
-    };
   },
 
   async filterCompletions(request) {
@@ -821,10 +789,7 @@ const sendRequestHandlers = {
     if (!completer) return [];
     let response = await completer.filter(request);
 
-    // NOTE(smblott): response contains `relevancyFunction` (function) properties which cause
-    // postMessage, below, to fail in Firefox. See #2576. We cannot simply delete these methods,
-    // as they're needed elsewhere. Converting the response to JSON and back is a quick and easy
-    // way to sanitize the object.
+    // Remove function properties before sending the response across the extension message channel.
     response = JSON.parse(JSON.stringify(response));
 
     return response;
@@ -852,10 +817,7 @@ Utils.addChromeRuntimeOnMessageListener(
       sender.frameId,
       // request // Often useful for debugging.
     );
-    // NOTE(philc): We expect all messages to come from a content script in a tab. I've observed in
-    // Firefox when the extension is first installed, domReady and initializeFrame messages come from
-    // content scripts in about:blank URLs, which have a null sender.tab. I don't know what this
-    // corresponds to. Since we expect a valid sender.tab, ignore those messages.
+    // We expect messages to come from a content script in a tab. Ignore messages without one.
     if (sender.tab == null) return;
     await Settings.onLoaded();
     request = Object.assign({ count: 1 }, request, {
@@ -902,57 +864,6 @@ globalThis.runTests = () => open(chrome.runtime.getURL("tests/dom_tests/dom_test
 //
 // Begin initialization.
 //
-
-// True if the major version of Suda has changed.
-// - previousVersion: this will be null for new installs.
-function majorVersionHasIncreased(previousVersion) {
-  const currentVersion = Utils.getCurrentVersion();
-  if (previousVersion == null) return false;
-  const currentMajorVersion = currentVersion.split(".").slice(0, 2).join(".");
-  const previousMajorVersion = previousVersion.split(".").slice(0, 2).join(".");
-  return Utils.compareVersions(currentMajorVersion, previousMajorVersion) == 1;
-}
-
-// Show notification on upgrade.
-async function showUpgradeMessageIfNecessary(onInstalledDetails) {
-  const currentVersion = Utils.getCurrentVersion();
-  // We do not show an upgrade message for patch/silent releases. Such releases have the same
-  // major and minor version numbers.
-  if (
-    !majorVersionHasIncreased(onInstalledDetails.previousVersion) ||
-    Settings.get("hideUpdateNotifications")
-  ) {
-    return;
-  }
-
-  // NOTE(philc): These notifications use the system notification UI. So, if you don't have
-  // notifications enabled from your browser (e.g. in Notification Settings in OSX), then
-  // chrome.notification.create will succeed, but you won't see it.
-  const notificationId = "SudaUpgradeNotification";
-  await chrome.notifications.create(
-    notificationId,
-    {
-      type: "basic",
-      iconUrl: chrome.runtime.getURL("icons/icon128.png"),
-      title: "Suda Upgrade",
-      message:
-        `Suda has been upgraded to version ${currentVersion}. Click here for more information.`,
-      isClickable: true,
-    },
-  );
-  if (!chrome.runtime.lastError) {
-    chrome.notifications.onClicked.addListener(async function (id) {
-      if (id != notificationId) return;
-      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-      const tab = tabs[0];
-      TabOperations.openUrlInNewTab({
-        tab,
-        tabId: tab.id,
-        url: "https://github.com/u-k-g/suda/blob/master/CHANGELOG.md",
-      });
-    });
-  }
-}
 
 async function injectContentScriptsAndCSSIntoExistingTabs() {
   const manifest = chrome.runtime.getManifest();
@@ -1008,15 +919,10 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   // also occur, so we need to initialize Suda here.
   await initializeExtension();
 
-  const shouldInjectContentScripts =
-    // NOTE(philc): 2023-06-16: we do not install the content scripts in all tabs on Firefox.
-    // I believe this is because Firefox does this already. See https://stackoverflow.com/a/37132144
-    // for commentary.
-    !bgUtils.isFirefox() &&
-    (["chrome_update", "shared_module_update"].includes(details.reason));
+  const shouldInjectContentScripts = ["chrome_update", "shared_module_update"].includes(
+    details.reason,
+  );
   if (shouldInjectContentScripts) injectContentScriptsAndCSSIntoExistingTabs();
-
-  await showUpgradeMessageIfNecessary(details);
 });
 
 // Note that this event is not fired when an incognito profile is started.
@@ -1030,7 +936,6 @@ Object.assign(globalThis, {
   // Exported for tests:
   HintCoordinator,
   BackgroundCommands,
-  majorVersionHasIncreased,
   nextZoomLevel,
   resetRecentTabCycle,
   selectSpecificTab,

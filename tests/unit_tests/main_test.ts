@@ -302,13 +302,3 @@ context("Selecting frames", () => {
     assert.equal([1], focusedFrames);
   });
 });
-
-context("majorVersionHasIncreased", () => {
-  should("return whether the major version has changed", () => {
-    assert.equal(false, majorVersionHasIncreased(null));
-    shoulda.stub(Utils, "getCurrentVersion", () => "2.0.1");
-    assert.equal(false, majorVersionHasIncreased("2.0.0"));
-    shoulda.stub(Utils, "getCurrentVersion", () => "2.1.0");
-    assert.equal(true, majorVersionHasIncreased("2.0.0"));
-  });
-});

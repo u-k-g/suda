@@ -182,7 +182,6 @@ function init() {
   UIComponentMessenger.init();
   UIComponentMessenger.registerHandler(async function (event) {
     await Settings.onLoaded();
-    await Utils.populateBrowserInfo();
     switch (event.data.name) {
       case "hide":
         HelpDialogPage.hide();

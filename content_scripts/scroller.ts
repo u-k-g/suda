@@ -364,8 +364,7 @@ const CoreScroller = {
 const Scroller = {
   init() {
     const handler = { _name: "scroller/active-element" };
-    // Only Chrome has a DOMActivate event. On Firefox, we must listen for click. See #3287.
-    const eventName = Utils.isFirefox() ? "click" : "DOMActivate";
+    const eventName = "DOMActivate";
     handler[eventName] = (event) =>
       handlerStack.alwaysContinueBubbling(function () {
         // If event.path is present, the true event taget (potentially inside a Shadow DOM inside

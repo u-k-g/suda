@@ -23,8 +23,7 @@
     "skipLibCheck": true,
     "strict": false,
     "types": [
-      "npm:@types/chrome@^0.0.326",
-      "npm:@types/firefox-webext-browser@^120.0.4"
+      "npm:@types/chrome@^0.0.326"
     ]
   },
   "imports": {

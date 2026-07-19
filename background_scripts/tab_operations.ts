@@ -37,12 +37,8 @@ export async function openUrlInCurrentTab(request) {
       },
       args: [urlStr],
     };
-    if (!bgUtils.isFirefox()) {
-      // The MAIN world -- where the webpage runs -- is less privileged than the ISOLATED world.
-      // Specifying a world is required for Chrome, but not Firefox.
-      // As of Firefox 118, specifying "MAIN" as the world is not yet supported.
-      scriptingArgs.world = "MAIN";
-    }
+    // The MAIN world -- where the webpage runs -- is less privileged than the ISOLATED world.
+    scriptingArgs.world = "MAIN";
     await bgUtils.runTabOperation(() => chrome.scripting.executeScript(scriptingArgs));
   } else {
     // The requested destination is a regular URL.
@@ -64,10 +60,8 @@ export async function openUrlInNewTab(request) {
     case "before":
       tabIndex = request.tab.index;
       break;
-    // if on Chrome or on Firefox but without openerTabId, `tabs.create` opens a tab at the end.
-    // but on Firefox and with openerTabId, it opens a new tab next to the opener tab
     case "end":
-      tabIndex = bgUtils.isFirefox() ? 9999 : null;
+      tabIndex = null;
       break;
     // "after" is the default case when there are no options.
     default:
@@ -86,20 +80,18 @@ export async function openUrlInNewTab(request) {
     // control the precise position of that tab. So, we open a new blank tab using our position
     // parameter, and then execute the search in that tab.
 
-    // In Chrome, if we create a blank tab and call chrome.search.query, the omnibar is focused,
-    // which we don't want. To work around that, first create an empty page. This is not needed in
-    // Firefox. And in fact, firefox doesn't support a data:text URL to the chrome.tab.create API.
+    // Creating a blank tab before calling chrome.search.query focuses the omnibox, so create an
+    // empty page first.
     const query = request.url?.trim();
     if (!query) {
       newTab = await chrome.tabs.create(tabConfig);
     } else {
-      tabConfig.url = bgUtils.isFirefox() ? null : "data:text/html,<html></html>";
+      tabConfig.url = "data:text/html,<html></html>";
       newTab = await chrome.tabs.create(tabConfig);
       await bgUtils.runTabOperation(() => chrome.search.query({ text: query, tabId: newTab.id }));
     }
   } else {
     // The requested destination is a regular URL.
-    // Firefox does not support "about:newtab" in chrome.tabs.create, so omit it.
     if (urlStr != UrlUtils.chromeNewTabUrl) {
       tabConfig.url = urlStr;
     }
@@ -116,10 +108,6 @@ export async function openUrlInNewWindow(request) {
   };
   if (request.active != null) {
     winConfig.active = request.active;
-  }
-  // Firefox does not support "about:newtab" in chrome.tabs.create, so omit it.
-  if (tabConfig["url"] === UrlUtils.chromeNewTabUrl) {
-    delete winConfig["url"];
   }
   await chrome.windows.create(winConfig);
 }

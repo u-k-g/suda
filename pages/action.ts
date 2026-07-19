@@ -3,7 +3,6 @@ import "../lib/utils.js";
 import "../lib/dom_utils.js";
 import "../lib/settings.js";
 
-import * as bgUtils from "../background_scripts/bg_utils.js";
 import { generateDefaultPattern } from "../background_scripts/exclusions.js";
 import { ExclusionRulesEditor } from "./exclusion_rules_editor.js";
 
@@ -18,28 +17,6 @@ const ActionPage = {
       document.querySelector("#dialog-body").style.display = "none";
       document.querySelector("footer").style.display = "none";
     };
-
-    // In Firefox, prompt the user if they haven't enabled the "all hosts" permission. Suda needs
-    // this permission to work correctly, and as of 2023-11-06, Firefox does not grant this
-    // permission without user consent, and doesn't make it clear that the user needs to do
-    // anything. See #4348 for discussion, and https://stackoverflow.com/q/76083327 for
-    // implementation notes.
-    const permission = { origins: ["<all_urls>"] };
-    if (bgUtils.isFirefox()) {
-      const hasAllHostsPermission = await browser.permissions.contains(permission);
-      if (!hasAllHostsPermission) {
-        hideUI();
-        document.querySelector("#grant-hosts-permission").addEventListener("click", async (e) => {
-          browser.permissions.request(permission);
-          // We close the action page because if the user clicks on this button once, clicks "deny"
-          // on the browser's permissions dialog, and then clicks on the button a second time, the
-          // browser permissions dialog will now be shown *under* the action page!
-          globalThis.close();
-        });
-        document.querySelector("#firefox-missing-permissions-error").style.display = "block";
-        return;
-      }
-    }
 
     if (!await this.isSudaInstalledInTab(activeTab.id)) {
       hideUI();

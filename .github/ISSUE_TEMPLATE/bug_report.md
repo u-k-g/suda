@@ -21,8 +21,5 @@ Include a screenshot if applicable.
 
 **Browser and Suda version**
 
-If you're using Chrome, include the Chrome and OS version found at chrome://version. Also include
-the Suda version found at chrome://extensions.
-
-If you're using Firefox, report the Firefox and OS version found at about:support. Also include the
-Suda version found at about:addons.
+Include the Chrome and OS version found at chrome://version. Also include the Suda version found at
+chrome://extensions.

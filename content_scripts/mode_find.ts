@@ -489,8 +489,7 @@ const highlight = (textNode, startIndex, length) => {
     const screenHeight = globalThis.innerHeight;
     globalThis.scrollTo({
       top: globalThis.scrollY + rect.top + rect.height / 2 - screenHeight / 2,
-      // Scroll instantly when we find a search result. This matches the behavior of Chrome and
-      // Firefox's native search UI. See #4661.
+      // Scroll instantly when we find a search result, matching Chrome's native search UI.
       behavior: "instant",
     });
   }

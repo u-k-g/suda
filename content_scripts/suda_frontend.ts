@@ -267,7 +267,6 @@ async function initializeOnDomReady() {
   // Show the CommandBar.
   await Settings.onLoaded();
   if (Settings.get("openCommandBarOnNewTabPage")) {
-    await Utils.populateBrowserInfo();
     DomUtils.injectUserCss();
     CommandBar.activateNewTab(0);
   }
@@ -348,8 +347,7 @@ function focusThisFrame(request) {
 
   Utils.nextTick(function () {
     globalThis.focus();
-    // On Firefox, window.focus doesn't always draw focus back from a child frame (bug 554039). We
-    // blur the active element if it is an iframe, which gives the window back focus as intended.
+    // Blur an active iframe so the window gets focus back as intended.
     if (document.activeElement.tagName.toLowerCase() === "iframe") {
       document.activeElement.blur();
     }
@@ -465,11 +463,6 @@ async function checkIfEnabledForUrl() {
 
     isEnabledForUrl = response.isEnabledForUrl;
 
-    // This browser info is used by other content scripts, but can only be determinted by the
-    // background page.
-    Utils._isFirefox = response.isFirefox;
-    Utils._firefoxVersion = response.firefoxVersion;
-    Utils._browserInfoLoaded = true;
     // This is the first time we learn what this frame's ID is.
     globalThis.frameId = response.frameId;
 

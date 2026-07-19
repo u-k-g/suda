@@ -127,14 +127,6 @@ export const handlers = {
     inputEl.addEventListener(
       "input",
       executeQuery = function (event) {
-        // On Chrome when IME is on, the order of events is:
-        //   keydown, input.isComposing=true, keydown, input.true, ..., keydown, input.true, compositionend;
-        // while on Firefox, the order is: keydown, input.true, ..., input.true, keydown, compositionend, input.false.
-        // Therefore, check event.isComposing here, to avoid window focus changes during typing with
-        // IME, since such changes will prevent normal typing on Firefox (see #3480)
-        if (Utils.isFirefox() && event.isComposing) {
-          return;
-        }
         // Replace \u00A0 (&nbsp;) with a normal space.
         findMode.rawQuery = inputEl.textContent.replace("\u00A0", " ");
         UIComponentMessenger.postMessage({ name: "search", query: findMode.rawQuery });
@@ -146,11 +138,6 @@ export const handlers = {
     countEl.style.float = "right";
     hudEl.appendChild(countEl);
     Utils.setTimeout(TIME_TO_WAIT_FOR_IPC_MESSAGES, function () {
-      // On Firefox, the page must first be focused before the HUD input element can be focused.
-      // #3460.
-      if (Utils.isFirefox()) {
-        globalThis.focus();
-      }
       inputEl.focus();
     });
 
@@ -167,9 +154,6 @@ export const handlers = {
     // Don't do anything if we're not in find mode.
     if (countEl == null) return;
 
-    if (Utils.isFirefox()) {
-      document.querySelector("#hud-find-input").focus();
-    }
     const countText = matchCount > 0
       ? `${matchCount} match${matchCount === 1 ? "" : "es"}`
       : "no matches";
@@ -225,7 +209,6 @@ function init() {
 
   UIComponentMessenger.init();
   UIComponentMessenger.registerHandler(async function (event) {
-    await Utils.populateBrowserInfo();
     const handler = handlers[event.data.name];
     Utils.assert(handler != null, "Unrecognized message type.", event.data);
     return handler(event.data);

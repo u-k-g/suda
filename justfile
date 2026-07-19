@@ -47,12 +47,3 @@ test suite="all" *args:
       exit 2
       ;;
   esac
-
-# Build the static command listing and Chrome, Chrome Canary, and Firefox store archives in dist/.
-package:
-  ./build_scripts/write_command_listing_page.ts
-  ./build_scripts/package.ts
-
-# Build dist/suda with a Firefox-compatible development manifest.
-write-firefox-manifest:
-  ./build_scripts/write_firefox_manifest.ts

@@ -63,7 +63,7 @@ const HUD = {
       classList.add("suda-clickable");
       // Note(gdh1995): Chrome 74 only acknowledges text selection when a frame has been visible.
       // See more in #3277.
-      // Note(mrmr1993): Show the HUD frame, so Firefox will actually perform the paste.
+      // Show the HUD frame before interacting with its selection.
       this.hudUI.setIframeVisible(true);
       // Force the re-computation of styles, so Chrome sends a visibility change message to the
       // child frame. See https://github.com/u-k-g/suda/pull/3277#issuecomment-487363284
@@ -97,8 +97,7 @@ const HUD = {
   },
 
   search(data) {
-    // NOTE(mrmr1993): On Firefox, window.find moves the window focus away from the HUD. We use
-    // postFindFocus to put it back, so the user can continue typing.
+    // Keep focus in the HUD so the user can continue typing after a search.
     this.findMode.findInPlace(data.query, {
       "postFindFocus": this.hudUI.iframeElement.contentWindow,
     });
@@ -193,12 +192,8 @@ const HUD = {
     }
   },
 
-  // These commands manage copying and pasting from the clipboard in the HUD frame.
-  // NOTE(mrmr1993): We need this to copy and paste on Firefox:
-  // * an element can't be focused in the background page, so copying/pasting doesn't work
-  // * we don't want to disrupt the focus in the page, in case the page is listening for focus/blur
-  // * events.
-  // * the HUD shouldn't be active for this frame while any of the copy/paste commands are running.
+  // These commands manage copying and pasting from the clipboard in the HUD frame without
+  // disrupting focus in the page.
   async copyToClipboard(text) {
     await DomUtils.documentComplete();
     await this.init();
@@ -221,8 +216,7 @@ const HUD = {
   },
 
   unfocusIfFocused() {
-    // On Firefox, if an <iframe> disappears when it's focused, then it will keep "focused", which
-    // means keyboard events will always be dispatched to the HUD iframe
+    // Return keyboard focus to the page before the HUD iframe disappears.
     if (this.hudUI && this.hudUI.showing) {
       this.hudUI.iframeElement.blur();
       globalThis.focus();

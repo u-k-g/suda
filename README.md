@@ -81,7 +81,6 @@ stay direct and predictable.
 - `just check` type-checks the source
 - `just lint` runs the linter
 - `just fmt` formats the repository
-- `just package` creates browser packages in `dist/`
 
 </details>
 

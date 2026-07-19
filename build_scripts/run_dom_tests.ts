@@ -140,7 +140,7 @@ const httpServer = Deno.serve({ port }, async (request) => {
     if (await fs.exists(sourcePath)) {
       const result = await transform(await Deno.readTextFile(sourcePath), {
         loader: "ts",
-        target: ["chrome117", "firefox112"],
+        target: "chrome117",
         sourcefile: path.relative(projectPath, sourcePath),
       });
       return new Response(result.code, {

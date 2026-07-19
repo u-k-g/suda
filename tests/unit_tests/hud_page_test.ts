@@ -23,7 +23,6 @@ function newKeyEvent(properties) {
 context("hud page", () => {
   let ui;
   setup(async () => {
-    stub(Utils, "isFirefox", () => false);
     await testHelper.jsdomStub("pages/hud_page.html");
     // Make Utils.setTimeout synchronous so that the tests easier to deal with.
     stub(Utils, "setTimeout", (timeout, fn) => {

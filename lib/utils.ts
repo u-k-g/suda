@@ -13,15 +13,6 @@ if (globalThis.forTrusted == null) {
   };
 }
 
-// Firefox does not have the storage.session API as of 2023-05-20. Until it does, use storage.local.
-// Firefox 115 has beta support for storage.session, but this storage is not exposed to content
-// scripts unless we use `setAccessLevel`, and that API is not yet implemented in Firefox 115.
-if (chrome.storage.session == null || chrome.storage.session.setAccessLevel == null) {
-  chrome.storage.session = chrome.storage.local;
-  // Polyfill chrome.storage.session.setAccessLevel.
-  chrome.storage.session.setAccessLevel = function () {};
-}
-
 const Utils = {
   debug: false,
 
@@ -31,37 +22,8 @@ const Utils = {
     }
   },
 
-  // The Firefox browser name and version can only be reliably accessed from the browser page using
-  // browser.runtime.getBrowserInfo(). This information is passed to the frontend via the
-  // initializeFrame message, which sets each of these values. These values can also be set using
-  // Utils.populateBrowserInfo().
-  _browserInfoLoaded: false,
-  _firefoxVersion: null,
-  _isFirefox: null,
-
-  // This should only be used by content scripts. Background pages should use BgUtils.isFirefox().
-  isFirefox() {
-    if (!this._browserInfoLoaded) throw new Error("browserInfo has not yet loaded.");
-    return this._isFirefox;
-  },
-
-  // This should only be used by content scripts. Background pages should use
-  // bg_utils.firefoxVersion().
-  firefoxVersion() {
-    if (!this._browserInfoLoaded) throw new Error("browserInfo has not yet loaded.");
-    return this._firefoxVersion;
-  },
-
   getCurrentVersion() {
     return chrome.runtime.getManifest().version;
-  },
-
-  async populateBrowserInfo() {
-    if (this._browserInfoLoaded) return;
-    const result = await chrome.runtime.sendMessage({ handler: "getBrowserInfo" });
-    this._isFirefox = result.isFirefox;
-    this._firefoxVersion = result.firefoxVersion;
-    this._browserInfoLoaded = true;
   },
 
   // Escape all special characters, so RegExp will parse the string 'as is'.

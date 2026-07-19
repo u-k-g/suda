@@ -82,28 +82,11 @@ Here's the rationale behind this policy:
 
 Suda is written in TypeScript and compiled to browser-ready JavaScript. To install Suda from source:
 
-**On Chrome/Chromium:**
-
 1. Run `just build` in the Suda directory.
 1. Navigate to `chrome://extensions`.
 1. Toggle into Developer Mode.
 1. Click on "Load Unpacked Extension...".
 1. Select `dist/suda` inside the Suda directory.
-
-**On Firefox:**
-
-Firefox needs a modified version of the manifest.json that's used for Chrome. To build the extension
-with that manifest, run
-
-`just write-firefox-manifest`
-
-After that:
-
-1. Open Firefox.
-1. Enter `about:debugging` in the URL bar.
-1. Click "This Firefox" on the left side.
-1. Click "Load Temporary Add-on".
-1. Select `dist/suda/manifest.json` inside the Suda directory.
 
 ### Running the tests
 
@@ -130,5 +113,5 @@ run one test suite. A suite can be followed by an optional test-name filter, suc
   [Airbnb JavaScript style guide](https://github.com/airbnb/javascript).
 - We wrap lines at 100 characters.
 - When writing comments, uppercase the first letter of your sentence, and put a period at the end.
-- The TypeScript compiler targets the minimum Chrome and Firefox versions declared by the build.
-  Update those targets together with the manifest's minimum browser versions.
+- The TypeScript compiler targets the minimum Chrome version declared by the manifest. Update both
+  targets together.

@@ -12,7 +12,6 @@
 //    bookmarks).
 //  - cancel(): (optional) cancels any pending, cancelable action.
 
-import * as bgUtils from "./../bg_utils.js";
 import * as completionSearch from "./search_wrapper.js";
 import * as userSearchEngines from "../user_search_engines.js";
 import * as ranking from "./ranking.js";
@@ -94,7 +93,7 @@ export class Suggestion {
       domain: "globe",
     };
     let iconHtml = "";
-    if (this.description === "tab" && !bgUtils.isFirefox()) {
+    if (this.description === "tab") {
       const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
       faviconUrl.searchParams.set("pageUrl", this.url);
       faviconUrl.searchParams.set("size", "16");
@@ -910,7 +909,7 @@ export const HistoryCache = {
 
     const history = await this.chromeHistoryPromise;
 
-    // On Firefox, some history entries do not have titles.
+    // Be defensive about history entries without titles.
     for (const entry of history) {
       if (entry.title == null) entry.title = "";
     }
@@ -930,7 +929,7 @@ export const HistoryCache = {
   // When a page we've seen before has been visited again, be sure to replace our History item so it
   // has the correct "lastVisitTime". That's crucial for ranking CommandBar suggestions.
   onVisited(newPage) {
-    // On Firefox, some history entries do not have titles.
+    // Be defensive about history entries without titles.
     if (newPage.title == null) newPage.title = "";
     const i = HistoryCache.binarySearch(newPage, this.history, this.compareHistoryByUrl);
     const pageWasFound = this.history[i]?.url == newPage.url;
