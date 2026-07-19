@@ -121,7 +121,7 @@ Additional advanced browsing commands:
 
     ]], [[  Follow the link labeled 'next' or '>' ('previous' or '<')
               - helpful for browsing paginated sites
-    <a-f>   open multiple links in a new tab
+    <space>f select one or more links; press ; to choose an action
     gi      focus the first (or n-th) text input box on the page. Use <tab> to cycle through options.
     gu      go up one level in the URL hierarchy
     gU      go up to root of the URL hierarchy

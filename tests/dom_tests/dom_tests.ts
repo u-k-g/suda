@@ -75,6 +75,62 @@ const activateLinkHintsMode = () => {
   return HintCoordinator.linkHintsMode;
 };
 
+context("Selection-first link hints", () => {
+  setup(() => {
+    initializeModeState();
+    document.getElementById("test-div").innerHTML =
+      '<a href="https://example.com/one">one</a><a href="https://example.com/two">two</a>';
+    stubSettings("filterLinkHints", false);
+    stubSettings("linkHintCharacters", "ab");
+    stub(globalThis, "windowIsFocused", () => true);
+    HintCoordinator.pendingLinkSelection = null;
+  });
+
+  teardown(() => {
+    HintCoordinator.exit({ isSuccess: false });
+    HintCoordinator.pendingLinkSelection = null;
+    document.getElementById("test-div").innerHTML = "";
+  });
+
+  should("use selection mode by default", () => {
+    let preparedMode = null;
+    stub(HintCoordinator, "prepareToActivateMode", (mode) => preparedMode = mode.name);
+
+    LinkHints.activateMode(1, {});
+
+    assert.equal("select", preparedMode);
+  });
+
+  should("toggle links without activating them and open actions with semicolon", () => {
+    let actionCount = null;
+    stub(Vomnibar, "activateLinkActions", (_frameId, count) => actionCount = count);
+    stub(Utils, "nextTick", (callback) => callback());
+
+    HintCoordinator.getHintDescriptors({ modeIndex: LinkHints.selectionModeIndex }, {});
+    HintCoordinator.activateMode({
+      frameIdToHintDescriptors: {},
+      modeIndex: LinkHints.selectionModeIndex,
+      originatingFrameId: frameId,
+      frameId,
+    });
+    const mode = HintCoordinator.linkHintsMode;
+    const markers = mode.hintMarkers.filter((marker) => marker.localHint?.element.href);
+
+    mode.activateLink(markers[0]);
+    mode.activateLink(markers[1]);
+
+    assert.equal(2, mode.selectedLinks.size);
+    assert.isTrue(markers[0].element.classList.contains("vimiumSelectedHintMarker"));
+    assert.isTrue(markers[1].element.classList.contains("vimiumSelectedHintMarker"));
+
+    mode.onKeyDownInMode({ key: ";", repeat: false });
+
+    assert.equal(2, actionCount);
+    assert.equal(2, HintCoordinator.pendingLinkSelection.links.length);
+    assert.equal(null, HintCoordinator.linkHintsMode);
+  });
+});
+
 //
 // Generate tests that are common to both default and filtered
 // link hinting modes.

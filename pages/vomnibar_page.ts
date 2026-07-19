@@ -74,6 +74,20 @@ function renderModeCompletion(mode, keybindings) {
   };
 }
 
+function renderLinkActionCompletion(action, selectionCount) {
+  const plural = selectionCount === 1 ? "" : "s";
+  return {
+    commandBarAction: action.name,
+    html: `<div class="completion-row mode-result">
+      <span class="result-icon">${phosphorIcon(action.icon)}</span>
+      <span class="completion-copy">
+        <span class="mode-name">${Utils.escapeHtml(action.label(selectionCount))}</span>
+        <span class="mode-description">${Utils.escapeHtml(action.description + plural)}</span>
+      </span>
+    </div>`,
+  };
+}
+
 const modeSelector = {
   name: "modes",
   description: "Choose a command-bar mode",
@@ -154,41 +168,43 @@ const commandBarModes = [
     icon: "map-pin",
     bindingCommands: ["Vomnibar.activateMarks"],
   },
+];
+
+const linkActionMode = {
+  name: "link-actions",
+  description: "Choose an action for the selected links",
+  aliases: "",
+  completer: "local",
+  selectFirst: true,
+  icon: "link",
+  bindingCommands: [],
+};
+
+const linkActions = [
   {
-    name: "link:current",
-    description: "Select a link to open in the current tab",
-    aliases: "hint click",
-    action: true,
+    name: "link-action:current",
+    label: () => "Open in current tab",
+    description: "Activate the selected link",
     icon: "link",
-    bindingCommands: ["LinkHints.activateMode"],
+    singleOnly: true,
   },
   {
-    name: "link:new",
-    description: "Select a link to open in a new tab",
-    aliases: "hint background",
-    action: true,
-    icon: "link",
-    bindingCommands: ["LinkHints.activateModeToOpenInNewTab"],
+    name: "link-action:new",
+    label: (count) => `Open in new tab${count === 1 ? "" : "s"}`,
+    description: "Open the selected link",
+    icon: "tabs",
   },
   {
-    name: "link:multi",
-    description: "Select multiple links to open in new tabs",
-    aliases: "hint queue many",
-    action: true,
+    name: "link-action:copy",
+    label: (count) => `Copy URL${count === 1 ? "" : "s"}`,
+    description: "Copy the selected link URL",
     icon: "link",
-    bindingCommands: ["LinkHints.activateModeWithQueue"],
-  },
-  {
-    name: "link:copy",
-    description: "Select a link and copy its URL",
-    aliases: "hint yank clipboard",
-    action: true,
-    icon: "link",
-    bindingCommands: ["LinkHints.activateModeToCopyLinkUrl"],
   },
 ];
 
-const commandBarModesByName = Object.fromEntries(commandBarModes.map((mode) => [mode.name, mode]));
+const commandBarModesByName = Object.fromEntries(
+  [...commandBarModes, linkActionMode].map((mode) => [mode.name, mode]),
+);
 
 // An instance of VomnibarUI. Exported for use by tests.
 export let ui;
@@ -214,6 +230,7 @@ export async function activate(options) {
     prefixCount: 1,
     mode: "search",
     currentUrl: "",
+    linkSelectionCount: 0,
   };
 
   options = Object.assign(defaults, options);
@@ -224,6 +241,7 @@ export async function activate(options) {
   ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
+  ui.linkSelectionCount = options.linkSelectionCount;
   ui.setPrefixCount(options.prefixCount);
   ui.setMode(options.mode, {
     completer: options.completer,
@@ -291,7 +309,9 @@ class VomnibarUI {
     const query = mode?.useCurrentUrl ? this.currentUrl : options.query ?? "";
     this.setQuery(query);
 
-    this.modeIndicator.textContent = name;
+    this.modeIndicator.textContent = name === linkActionMode.name
+      ? `links · ${this.linkSelectionCount}`
+      : name;
     this.modeIndicator.hidden = isModeless;
     this.statusIndicator.hidden = true;
     this.input.placeholder = isModeless
@@ -568,6 +588,14 @@ class VomnibarUI {
       return;
     }
 
+    if (this.mode === linkActionMode.name && completion?.commandBarAction) {
+      UIComponentMessenger.postMessage({
+        name: "commandBarAction",
+        action: completion.commandBarAction,
+      });
+      return;
+    }
+
     const openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.altKey ||
       event.metaKey;
 
@@ -703,6 +731,16 @@ class VomnibarUI {
             </span>
           </div>`,
         }));
+        this.selection = this.completions.length > 0 ? 0 : -1;
+      } else if (this.mode === linkActionMode.name) {
+        const query = this.input.value.trim().toLowerCase();
+        this.completions = linkActions.filter((action) =>
+          !action.singleOnly || this.linkSelectionCount === 1
+        ).filter((action) =>
+          `${action.label(this.linkSelectionCount)} ${action.description}`.toLowerCase().includes(
+            query,
+          )
+        ).map((action) => renderLinkActionCompletion(action, this.linkSelectionCount));
         this.selection = this.completions.length > 0 ? 0 : -1;
       } else {
         this.completions = [];

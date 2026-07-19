@@ -48,10 +48,7 @@ context("options page", () => {
       document.querySelectorAll('[name="disabledModelessCommandBarSources"]:not(:checked)'),
     ).map((element) => element.value);
 
-    assert.equal(
-      ["url", "link:new"],
-      uncheckedModeValues,
-    );
+    assert.equal(["url"], uncheckedModeValues);
     assert.equal(["history"], uncheckedSourceValues);
   });
 
@@ -67,10 +64,7 @@ context("options page", () => {
 
     await optionsPage.saveOptions();
 
-    assert.equal(
-      ["marks", "link:new"],
-      Settings.get("disabledCommandBarModes"),
-    );
+    assert.equal(["marks"], Settings.get("disabledCommandBarModes"));
     assert.equal(["bookmarks"], Settings.get("disabledModelessCommandBarSources"));
   });
 

@@ -17,4 +17,6 @@ globalThis.VomnibarShowOptions = {
   mode: "string",
   // The URL of the page which opened the command bar. Used by URL-edit mode.
   currentUrl: "string",
+  // Number of links selected before opening the link-action picker.
+  linkSelectionCount: "number",
 };

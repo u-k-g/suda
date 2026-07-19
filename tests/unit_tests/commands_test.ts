@@ -107,7 +107,7 @@ context("KeyMappingsParser", () => {
   });
 
   should("reject unknown options on map statements", () => {
-    assert.equal(0, getErrors("map j LinkHints.activateMode action=focus").length);
+    assert.equal(1, getErrors("map j LinkHints.activateMode action=focus").length);
     assert.equal(1, getErrors("map j LinkHints.activateMode unknownOption=a").length);
   });
 
@@ -294,6 +294,20 @@ context("Validate commands and options data structures", () => {
 
   should("leave Space-d unbound", () => {
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>d"));
+  });
+
+  should("use Space-f as the only Helix link-hint binding", () => {
+    assert.equal("LinkHints.activateMode", helixKeyMappings["<space>f"]);
+    for (const key of ["<space>F", "<space>a", "<space>y"]) {
+      assert.isFalse(Object.hasOwn(helixKeyMappings, key));
+    }
+  });
+
+  should("expose only the selection-first link-hint command", () => {
+    assert.equal(
+      ["LinkHints.activateMode"],
+      allCommands.map(({ name }) => name).filter((name) => name.startsWith("LinkHints.")),
+    );
   });
 
   should("bind u and U to browser history navigation", () => {

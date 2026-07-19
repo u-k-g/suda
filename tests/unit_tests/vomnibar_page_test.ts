@@ -77,15 +77,14 @@ context("vomnibar page", () => {
     assert.isTrue(ui.forceNewTab);
   });
 
-  should("open the mode selector as its own mode", async () => {
+  should("exclude legacy link-action modes from the mode selector", async () => {
     await vomnibarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("copy link");
     await ui.update();
 
     assert.equal("modes", ui.mode);
     assert.isFalse(ui.modeIndicator.hidden);
-    assert.equal(1, ui.completions.length);
-    assert.equal("link:copy", ui.completions[0].commandBarMode);
+    assert.equal([], ui.completions);
   });
 
   should("exclude the removed keybindings mode from the mode selector", async () => {
@@ -94,6 +93,36 @@ context("vomnibar page", () => {
     await ui.update();
 
     assert.equal([], ui.completions);
+  });
+
+  should("show link actions for one selected link", async () => {
+    await vomnibarPage.activate({
+      mode: "link-actions",
+      completer: "local",
+      linkSelectionCount: 1,
+    });
+
+    assert.equal("links · 1", ui.modeIndicator.textContent);
+    assert.equal(
+      ["link-action:current", "link-action:new", "link-action:copy"],
+      ui.completions.map((completion) => completion.commandBarAction),
+    );
+    assert.equal(0, ui.selection);
+  });
+
+  should("omit current-tab activation for multiple selected links", async () => {
+    await vomnibarPage.activate({
+      mode: "link-actions",
+      completer: "local",
+      linkSelectionCount: 2,
+    });
+
+    assert.equal("links · 2", ui.modeIndicator.textContent);
+    assert.equal(
+      ["link-action:new", "link-action:copy"],
+      ui.completions.map((completion) => completion.commandBarAction),
+    );
+    assert.equal(0, ui.selection);
   });
 
   should("hide user-disabled modes from the mode selector", async () => {

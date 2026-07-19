@@ -156,6 +156,15 @@ div > .vimiumActiveHintMarker span {
   color: var(--gruvbox-bg-2) !important;
 }
 
+div.internal-vimium-hint-marker.vimiumSelectedHintMarker {
+  background: var(--gruvbox-green-bright);
+  border-color: var(--gruvbox-fg);
+}
+
+div.internal-vimium-hint-marker.vimiumSelectedHintMarker span {
+  color: var(--gruvbox-bg-hard) !important;
+}
+
 /* Input hints CSS */
 
 div.internal-vimium-input-hint {

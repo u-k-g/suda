@@ -26,6 +26,7 @@ class HintMarker {
   linkWords;
   score;
   stableSortCount;
+  selected;
   constructor() {
     Object.seal(this);
   }
@@ -75,6 +76,10 @@ const isMac = KeyboardUtils.platform === "Mac";
 const OPEN_IN_CURRENT_TAB = {
   name: "curr-tab",
   indicator: "Open link in current tab",
+};
+const SELECT_LINKS = {
+  name: "select",
+  indicator: "Select links; press ; for actions",
 };
 const OPEN_IN_NEW_BG_TAB = {
   name: "bg-tab",
@@ -152,12 +157,16 @@ const availableModes = [
   COPY_LINK_TEXT,
   HOVER_LINK,
   FOCUS_LINK,
+  SELECT_LINKS,
 ];
+
+const hintKey = ({ frameId, localIndex }) => `${frameId}:${localIndex}`;
 
 const HintCoordinator = {
   onExit: [],
   localHints: null,
   cacheAllKeydownEvents: null,
+  pendingLinkSelection: null,
 
   // A WeakRef to the last clicked element. We track this so that we can mouse of it if the user
   // types ESC after clicking on it. See #3073.
@@ -168,9 +177,14 @@ const HintCoordinator = {
   // hidden, but is still receiving link hints messages via broadcastLinkHintsMessage.
   willHandleMessage(messageType) {
     if (this.linkHintsMode) return true;
-    return ["prepareToActivateMode", "activateMode", "getHintDescriptors", "exit"].includes(
-      messageType,
-    );
+    return [
+      "prepareToActivateMode",
+      "activateMode",
+      "getHintDescriptors",
+      "exit",
+      "activateSelectedLinks",
+      "clearSelectedLinks",
+    ].includes(messageType);
   },
 
   sendMessage(messageType, request) {
@@ -258,7 +272,11 @@ const HintCoordinator = {
     if (frameId !== originatingFrameId) {
       this.onExit = [];
     }
-    this.linkHintsMode = new LinkHintsMode(hintDescriptors, availableModes[modeIndex]);
+    this.linkHintsMode = new LinkHintsMode(
+      hintDescriptors,
+      availableModes[modeIndex],
+      originatingFrameId,
+    );
     // Replay keydown events which we missed (but for filtered hints only).
     if (Settings.get("filterLinkHints" && this.cacheAllKeydownEvents)) {
       this.cacheAllKeydownEvents.replayKeydownEvents();
@@ -278,6 +296,31 @@ const HintCoordinator = {
   },
   activateActiveHintMarker() {
     this.linkHintsMode.activateLink(this.linkHintsMode.markerMatcher.activeHintMarker);
+  },
+  toggleLinkSelection({ selection }) {
+    this.linkHintsMode.toggleLinkSelection(selection);
+  },
+  finishLinkSelection() {
+    const selection = this.linkHintsMode?.finishSelection();
+    if (!selection) return;
+    this.pendingLinkSelection = selection;
+    this.linkHintsMode = this.localHints = null;
+    this.onExit = [];
+    if (frameId === selection.originatingFrameId) {
+      Utils.nextTick(() => Vomnibar.activateLinkActions(frameId, selection.links.length));
+    }
+  },
+  activateSelectedLinks({ action }) {
+    const selection = this.pendingLinkSelection;
+    if (!selection) return;
+    const mode = action === "link-action:new" ? OPEN_IN_NEW_BG_TAB : OPEN_IN_CURRENT_TAB;
+    for (const localHint of selection.localHints) {
+      activateLocalHint(localHint, mode);
+    }
+    this.pendingLinkSelection = null;
+  },
+  clearSelectedLinks() {
+    this.pendingLinkSelection = null;
   },
   getLocalHint(hint) {
     return this.localHints[hint.localIndex];
@@ -304,21 +347,11 @@ const HintCoordinator = {
 };
 
 const LinkHints = {
-  activateMode(count, { mode, registryEntry }) {
-    if (count == null) count = 1;
-    if (mode == null) mode = OPEN_IN_CURRENT_TAB;
+  selectionModeIndex: availableModes.indexOf(SELECT_LINKS),
 
-    switch (registryEntry?.options.action) {
-      case "copy-text":
-        mode = COPY_LINK_TEXT;
-        break;
-      case "hover":
-        mode = HOVER_LINK;
-        break;
-      case "focus":
-        mode = FOCUS_LINK;
-        break;
-    }
+  activateMode(count, { mode } = {}) {
+    if (count == null) count = 1;
+    if (mode == null) mode = SELECT_LINKS;
 
     if ((count > 0) || (mode === OPEN_WITH_QUEUE)) {
       HintCoordinator.prepareToActivateMode(mode, function (isSuccess) {
@@ -331,28 +364,58 @@ const LinkHints = {
     }
   },
 
-  activateModeToOpenInNewTab(count) {
-    this.activateMode(count, { mode: OPEN_IN_NEW_BG_TAB });
+  performSelectedAction(action) {
+    const selection = HintCoordinator.pendingLinkSelection;
+    if (!selection) return;
+    if (action === "link-action:copy") {
+      const urls = selection.links.map(({ href }) => href).filter(Boolean);
+      if (urls.length === 0) {
+        HUD.show("Selected items have no URLs to copy.", 2000);
+      } else {
+        HUD.copyToClipboard(urls.join("\n"));
+        HUD.show(`Yanked ${urls.length} link URL${urls.length === 1 ? "" : "s"}.`, 2000);
+      }
+      HintCoordinator.sendMessage("clearSelectedLinks");
+    } else {
+      HintCoordinator.sendMessage("activateSelectedLinks", { action });
+    }
   },
-  activateModeToOpenInNewForegroundTab(count) {
-    this.activateMode(count, { mode: OPEN_IN_NEW_FG_TAB });
-  },
-  activateModeToCopyLinkUrl(count) {
-    this.activateMode(count, { mode: COPY_LINK_URL });
-  },
-  activateModeWithQueue() {
-    this.activateMode(1, { mode: OPEN_WITH_QUEUE });
-  },
-  activateModeToOpenIncognito(count) {
-    this.activateMode(count, { mode: OPEN_INCOGNITO });
+
+  cancelSelectedLinks() {
+    HintCoordinator.sendMessage("clearSelectedLinks");
   },
 };
 
+function activateLocalHint(localHint, mode) {
+  const element = localHint.element;
+  if (localHint.reason === "Frame.") {
+    return Utils.nextTick(() => focusThisFrame({ highlight: true }));
+  } else if (localHint.reason === "Scroll.") {
+    return handlerStack.bubbleEvent(Utils.isFirefox() ? "click" : "DOMActivate", {
+      target: element,
+    });
+  } else if (localHint.reason === "Open.") {
+    element.open = !element.open;
+    return;
+  } else if (DomUtils.isSelectable(element)) {
+    globalThis.focus();
+    return DomUtils.simulateSelect(element);
+  }
+
+  if (["input", "select", "object", "embed"].includes(element.nodeName.toLowerCase())) {
+    element.focus();
+  }
+  HintCoordinator.lastClickedElementRef = new WeakRef(element);
+  return DomUtils.simulateClick(element, mode.clickModifiers);
+}
+
 class LinkHintsMode {
   // @mode: One of the enums listed at the top of this file.
-  constructor(hintDescriptors, mode) {
+  constructor(hintDescriptors, mode, originatingFrameId = frameId) {
     if (mode == null) mode = OPEN_IN_CURRENT_TAB;
     this.mode = mode;
+    this.originatingFrameId = originatingFrameId;
+    this.selectedLinks = new Map();
     // We need documentElement to be ready in order to append links.
     if (!document.documentElement) return;
 
@@ -458,8 +521,11 @@ class LinkHintsMode {
       const typedCharacters = this.markerMatcher.linkTextKeystrokeQueue
         ? this.markerMatcher.linkTextKeystrokeQueue.join("")
         : "";
-      const indicator = this.mode.indicator + (typedCharacters ? `: \"${typedCharacters}\"` : "") +
-        ".";
+      const selectionStatus = this.mode === SELECT_LINKS
+        ? ` (${this.selectedLinks.size} selected)`
+        : "";
+      const indicator = this.mode.indicator + selectionStatus +
+        (typedCharacters ? `: \"${typedCharacters}\"` : "") + ".";
       this.hintMode.setIndicator(indicator);
     }
   }
@@ -494,7 +560,13 @@ class LinkHintsMode {
     if (event.repeat) return;
 
     // NOTE(smblott) The modifier behaviour here applies only to alphabet hints.
-    if (
+    if (event.key === ";" && this.mode === SELECT_LINKS) {
+      if (this.selectedLinks.size === 0) {
+        HUD.show("Select at least one link first.", 1500);
+      } else {
+        HintCoordinator.sendMessage("finishLinkSelection");
+      }
+    } else if (
       ["Control", "Shift"].includes(event.key) && !Settings.get("filterLinkHints") &&
       [OPEN_IN_CURRENT_TAB, OPEN_WITH_QUEUE, OPEN_IN_NEW_BG_TAB, OPEN_IN_NEW_FG_TAB].includes(
         this.mode,
@@ -690,6 +762,21 @@ class LinkHintsMode {
     if (userMightOverType == null) {
       userMightOverType = false;
     }
+    if (this.mode === SELECT_LINKS) {
+      if (linkMatched.isLocalMarker()) {
+        const { element } = linkMatched.localHint;
+        HintCoordinator.sendMessage("toggleLinkSelection", {
+          selection: {
+            key: hintKey(linkMatched.hintDescriptor),
+            frameId: linkMatched.hintDescriptor.frameId,
+            localIndex: linkMatched.hintDescriptor.localIndex,
+            href: typeof element.href === "string" ? element.href : "",
+            text: element.textContent?.trim() ?? "",
+          },
+        });
+      }
+      return;
+    }
     this.removeHintMarkers();
 
     if (linkMatched.isLocalMarker()) {
@@ -753,6 +840,42 @@ class LinkHintsMode {
       Utils.setTimeout(400, removeFlashElements);
       return HintCoordinator.sendMessage("exit", { isSuccess: true });
     }
+  }
+
+  toggleLinkSelection(selection) {
+    if (this.selectedLinks.has(selection.key)) {
+      this.selectedLinks.delete(selection.key);
+    } else {
+      this.selectedLinks.set(selection.key, selection);
+    }
+
+    this.markerMatcher.hintKeystrokeQueue = [];
+    if (this.markerMatcher.linkTextKeystrokeQueue) {
+      this.markerMatcher.linkTextKeystrokeQueue = [];
+    }
+    this.tabCount = 0;
+    const { linksMatched } = this.markerMatcher.getMatchingHints(this.hintMarkers, 0);
+    for (const marker of this.hintMarkers) this.hideMarker(marker);
+    for (const marker of linksMatched) this.showMarker(marker, 0);
+    for (const marker of this.hintMarkers) {
+      marker.selected = this.selectedLinks.has(hintKey(marker.hintDescriptor));
+      marker.element?.classList.toggle("vimiumSelectedHintMarker", marker.selected);
+    }
+    this.setIndicator();
+  }
+
+  finishSelection() {
+    if (this.selectedLinks.size === 0) return null;
+    const links = Array.from(this.selectedLinks.values());
+    const localHints = links.filter((link) => link.frameId === frameId).map((link) =>
+      HintCoordinator.localHints[link.localIndex]
+    ).filter(Boolean);
+    this.deactivateMode();
+    return {
+      links,
+      localHints,
+      originatingFrameId: this.originatingFrameId,
+    };
   }
 
   // Shows the marker, highlighting matchingCharCount characters.
@@ -1314,8 +1437,7 @@ const LocalHints = {
   // In the process, we try to find rects where elements do not overlap so that link hints are
   // unambiguous. Because of this, the rects returned will frequently *NOT* be equivalent to the
   // rects for the whole element.
-  // - requireHref: true if the hintable element must have an href, because an href is required for
-  //   commands like "LinkHints.activateModeToCopyLinkUrl".
+  // - requireHref: true if the hintable element must have an href.
   getLocalHints(requireHref) {
     // We need documentElement to be ready in order to find links.
     if (!document.documentElement) return [];

@@ -440,9 +440,6 @@ const vimKeyMappings = {
 
   // Link hints
   "f": "LinkHints.activateMode",
-  "F": "LinkHints.activateModeToOpenInNewTab",
-  "<a-f>": "LinkHints.activateModeWithQueue",
-  "yf": "LinkHints.activateModeToCopyLinkUrl",
 
   // Using find
   "/": "enterFindMode",
@@ -554,9 +551,6 @@ const helixKeyMappings = {
 
   // Space mode: browser pickers and actions.
   "<space>f": "LinkHints.activateMode",
-  "<space>F": "LinkHints.activateModeToOpenInNewTab",
-  "<space>a": "LinkHints.activateModeWithQueue",
-  "<space>y": "LinkHints.activateModeToCopyLinkUrl",
   "<space>t": "Vomnibar.activateAll",
   "<space>b": "Vomnibar.activateTabSelection",
   "<space>B": "Vomnibar.activateBookmarks",

@@ -220,47 +220,9 @@ const allCommands = [
 
   {
     name: "LinkHints.activateMode",
-    desc: "Open a link in the current tab",
-    options: {
-      action: "one of `hover`, `focus`, `copy-text`. When a link is selected, " +
-        "instead of clicking on the link, perform the specified action.",
-    },
+    desc: "Select links, then choose an action",
     group: "navigation",
-    advanced: true,
-  },
-
-  {
-    name: "LinkHints.activateModeToOpenInNewTab",
-    desc: "Open a link in a new tab",
-    group: "navigation",
-  },
-
-  {
-    name: "LinkHints.activateModeToOpenInNewForegroundTab",
-    desc: "Open a link in a new tab & switch to it",
-    group: "navigation",
-  },
-
-  {
-    name: "LinkHints.activateModeWithQueue",
-    desc: "Open multiple links in a new tab",
-    group: "navigation",
-    advanced: true,
     noRepeat: true,
-  },
-
-  {
-    name: "LinkHints.activateModeToOpenIncognito",
-    desc: "Open a link in incognito window",
-    group: "navigation",
-    advanced: true,
-  },
-
-  {
-    name: "LinkHints.activateModeToCopyLinkUrl",
-    desc: "Copy a link URL to the clipboard",
-    group: "navigation",
-    advanced: true,
   },
 
   {

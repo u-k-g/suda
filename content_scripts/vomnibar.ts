@@ -5,6 +5,7 @@
 const Vomnibar = {
   vomnibarUI: null,
   markRegistryEntry: null,
+  linkSelectionActive: false,
 
   // sourceFrameId here (and below) is the ID of the frame from which this request originates, which
   // may be different from the current frame.
@@ -67,6 +68,16 @@ const Vomnibar = {
   activateMarks(sourceFrameId, registryEntry) {
     this.markRegistryEntry = registryEntry;
     this.open(sourceFrameId, { completer: "local", mode: "marks", selectFirst: true });
+  },
+
+  activateLinkActions(sourceFrameId, linkSelectionCount) {
+    this.linkSelectionActive = true;
+    this.open(sourceFrameId, {
+      completer: "local",
+      mode: "link-actions",
+      selectFirst: true,
+      linkSelectionCount,
+    });
   },
 
   activateTabSelection(sourceFrameId) {
@@ -149,7 +160,7 @@ const Vomnibar = {
           Marks.gotoMark(data.key, data.shiftKey);
         });
       case "commandBarAction":
-        this.finishMode(false);
+        this.finishMode(data.action.startsWith("link-action:"));
         await this.vomnibarUI.hide();
         return Utils.nextTick(() => this.runAction(data.action));
     }
@@ -162,7 +173,11 @@ const Vomnibar = {
     }
   },
 
-  finishMode() {},
+  finishMode(commit) {
+    if (!this.linkSelectionActive) return;
+    this.linkSelectionActive = false;
+    if (!commit) LinkHints.cancelSelectedLinks();
+  },
 
   runAction(action) {
     const actions = {
@@ -170,12 +185,12 @@ const Vomnibar = {
         Marks.setPreviousPosition();
         return new FindMode();
       },
-      "link:current": () => LinkHints.activateMode(1, {}),
-      "link:new": () => LinkHints.activateModeToOpenInNewTab(1),
-      "link:multi": () => LinkHints.activateModeWithQueue(),
-      "link:copy": () => LinkHints.activateModeToCopyLinkUrl(1),
     };
-    actions[action]?.();
+    if (action.startsWith("link-action:")) {
+      LinkHints.performSelectedAction(action);
+    } else {
+      actions[action]?.();
+    }
   },
 
   // Opens the vomnibar.

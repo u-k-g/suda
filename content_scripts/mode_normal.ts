@@ -395,12 +395,6 @@ const NormalModeCommands = {
   },
 
   "LinkHints.activateMode": LinkHints.activateMode.bind(LinkHints),
-  "LinkHints.activateModeToOpenInNewTab": LinkHints.activateModeToOpenInNewTab.bind(LinkHints),
-  "LinkHints.activateModeToOpenInNewForegroundTab": LinkHints.activateModeToOpenInNewForegroundTab
-    .bind(LinkHints),
-  "LinkHints.activateModeWithQueue": LinkHints.activateModeWithQueue.bind(LinkHints),
-  "LinkHints.activateModeToOpenIncognito": LinkHints.activateModeToOpenIncognito.bind(LinkHints),
-  "LinkHints.activateModeToCopyLinkUrl": LinkHints.activateModeToCopyLinkUrl.bind(LinkHints),
 
   "Vomnibar.activate": Vomnibar.activate.bind(Vomnibar),
   "Vomnibar.activateAll": Vomnibar.activateAll.bind(Vomnibar),
