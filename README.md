@@ -1,14 +1,14 @@
 <h1 align="center">suda</h1>
 
 <p align="center">
-  An opinionated, keyboard-first browser extension inspired by Helix.
+  an opinionated, keyboard first browser extension inspired by the helix editor.
 </p>
 
 <details open>
 <summary><strong>overview</strong></summary>
 
 `suda` is an opinionated, keyboard-first browser extension for fast navigation and control of the
-web. it favors a compact workflow inspired by the helix editor and its `hx` philosophy.
+web. it favors a compact workflow inspired by the helix editor.
 
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
