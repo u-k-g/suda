@@ -559,7 +559,7 @@ class LinkHintsMode {
     if (event.repeat) return;
 
     // NOTE(smblott) The modifier behaviour here applies only to alphabet hints.
-    if (event.key === ";" && this.mode === SELECT_LINKS) {
+    if (event.key === "Enter" && this.mode === SELECT_LINKS) {
       if (this.selectedLinks.size === 0) {
         HUD.show("Select at least one link first.", 1500);
       } else {

@@ -1,7 +1,7 @@
 // @ts-nocheck -- loaded as a classic script in content-script and extension-page contexts.
 
 const ThemeManager = {
-  defaultTheme: "gruvbox-dark-hard",
+  defaultTheme: "arc-dark",
 
   get themes() {
     return globalThis.SudaThemeCatalog || [];

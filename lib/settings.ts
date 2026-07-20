@@ -10,7 +10,7 @@ const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
   "chrome-extension://suda/pages/new_tab.html";
 
 const defaultOptions = {
-  theme: "gruvbox-dark-hard",
+  theme: "arc-dark",
   keyBindingMode: "helix",
   scrollStepSize: 120,
   fastScrollStepSize: 800,

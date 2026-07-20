@@ -56,8 +56,8 @@ context("themes", () => {
 
   should("source the default palette from the theme catalog", () => {
     const theme = ThemeManager.get(ThemeManager.defaultTheme);
-    assert.equal("gruvbox-dark-hard", theme.id);
-    assert.equal("#1d2021", theme.background);
-    assert.equal("#d79921", theme.accent);
+    assert.equal("arc-dark", theme.id);
+    assert.equal("#19191b", theme.background);
+    assert.equal("#8b7cf6", theme.accent);
   });
 });

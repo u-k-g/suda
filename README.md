@@ -13,7 +13,7 @@ web. it favors a compact workflow inspired by the helix editor.
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
 - an Arc Browser-inspired command bar and configurable key mappings
-- gruvbox-inspired interface styling
+- Arc Dark interface styling by default, with a broad selection of optional themes
 
 <p align="center">
   <img src="icons/icon1024.png" width="192" alt="suda icon">

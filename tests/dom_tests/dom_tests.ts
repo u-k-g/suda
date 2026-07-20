@@ -101,7 +101,7 @@ context("Selection-first link hints", () => {
     assert.equal("select", preparedMode);
   });
 
-  should("toggle links without activating them and open actions with semicolon", () => {
+  should("toggle links without activating them and open actions with Enter", () => {
     let actionCount = null;
     stub(CommandBar, "activateLinkActions", (_frameId, count) => actionCount = count);
     stub(Utils, "nextTick", (callback) => callback());
@@ -123,7 +123,7 @@ context("Selection-first link hints", () => {
     assert.isTrue(markers[0].element.classList.contains("sudaSelectedHintMarker"));
     assert.isTrue(markers[1].element.classList.contains("sudaSelectedHintMarker"));
 
-    mode.onKeyDownInMode({ key: ";", repeat: false });
+    mode.onKeyDownInMode({ key: "Enter", repeat: false });
 
     assert.equal(2, actionCount);
     assert.equal(2, HintCoordinator.pendingLinkSelection.links.length);
