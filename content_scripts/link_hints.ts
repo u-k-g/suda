@@ -79,7 +79,7 @@ const OPEN_IN_CURRENT_TAB = {
 };
 const SELECT_LINKS = {
   name: "select",
-  indicator: "Select links; press ; for actions",
+  indicator: "Select links; press Enter for actions",
 };
 const OPEN_IN_NEW_BG_TAB = {
   name: "bg-tab",

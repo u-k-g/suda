@@ -94,11 +94,12 @@ context("Selection-first link hints", () => {
 
   should("use selection mode by default", () => {
     let preparedMode = null;
-    stub(HintCoordinator, "prepareToActivateMode", (mode) => preparedMode = mode.name);
+    stub(HintCoordinator, "prepareToActivateMode", (mode) => preparedMode = mode);
 
     LinkHints.activateMode(1, {});
 
-    assert.equal("select", preparedMode);
+    assert.equal("select", preparedMode.name);
+    assert.equal("Select links; press Enter for actions", preparedMode.indicator);
   });
 
   should("toggle links without activating them and open actions with Enter", () => {
