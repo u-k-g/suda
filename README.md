@@ -4,6 +4,10 @@
   keyboard driven browser navigation inspired by the helix editor.
 </p>
 
+<p align="center">
+  <img src="icons/icon1024.png" width="192" alt="suda icon">
+</p>
+
 <details open>
 <summary><strong>overview</strong></summary>
 
@@ -15,10 +19,6 @@ web. it favors a compact workflow inspired by the helix editor.
 - keyboard-driven links, tabs, history, bookmarks and search
 - an Arc Browser-inspired command bar and configurable key mappings
 - Arc Dark interface styling by default, with a broad selection of optional themes
-
-<p align="center">
-  <img src="icons/icon1024.png" width="192" alt="suda icon">
-</p>
 
 </details>
 
