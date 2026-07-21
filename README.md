@@ -11,10 +11,8 @@
 <details open>
 <summary><strong>overview</strong></summary>
 
-`suda` is an opinionated, keyboard-first browser extension for fast navigation and control of the
-web. it favors a compact workflow inspired by the helix editor.
+`suda` is an opinionated vimium fork inspired by the helix philosophy.
 
-- an opinionated vimium fork inspired by the helix philosophy.
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
 - an Arc Browser-inspired command bar and configurable key mappings
@@ -38,26 +36,32 @@ web. it favors a compact workflow inspired by the helix editor.
 <summary><strong>key bindings</strong></summary>
 
 - `h` `j` `k` `l` scroll the viewport
+- `J` / `K` scroll down / up quickly
 - `gg` / `ge` go to the top / bottom of the page
 - `gh` / `gl` go to the left / right edge of the page
 - `ctrl-d` / `ctrl-u` scroll half a page down / up
 - `ctrl-o` / `ctrl-i` go backward / forward in browser history
 - `gn` / `gp` go to the next / previous tab
 - `v` enters select mode and `x` selects the current line
-- `space f` / `space F` open a link in this / a new tab
+- `space f` selects one or more links; press `enter` to choose an action
+- `space t` opens the all-mode command bar
 - `space b` opens the tab picker
-- `space /` opens a URL, bookmark, history entry or search
-- `space h` shows all active bindings
-- `:` opens the command palette
+- `space B` opens the bookmark picker
+- `space /` opens find mode; `n` / `N` move through matches
+- `space m` creates a mark and `space '` opens the mark picker
+- `:` opens the command-bar mode selector
 - `ctrl-w q` / `ctrl-w u` close / restore a tab
+- `ctrl-w n` opens search mode in a new tab
+- `cmd-t` (`ctrl-t` elsewhere) opens all mode in the current tab; protected browser pages use a
+  temporary Suda tab which is replaced by the selected result
 
 </details>
 
 <details>
 <summary><strong>configuration</strong></summary>
 
-open Suda's options from `chrome://extensions` to switch binding profiles, define custom key
-mappings, configure search engines, exclusions, link hints and new-tab behavior.
+open Suda's options to switch binding profiles and themes, define custom key mappings, and configure
+search engines, exclusions, link hints and optional new-tab behavior.
 
 custom mappings are layered over the selected profile. each line accepts `map key command`,
 `unmap key` or `unmapAll`.
