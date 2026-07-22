@@ -1,5 +1,3 @@
-// @ts-nocheck -- loaded as a classic script in content-script and extension-page contexts.
-
 const ThemeManager = {
   defaultTheme: "arc-dark",
 
@@ -126,9 +124,10 @@ const ThemeManager = {
   // Terminal palettes provide strong base colors but do not define application surfaces. Derive
   // those roles consistently instead of treating an arbitrary ANSI color as a panel background.
   resolveTheme(spec) {
-    const foreground = this.ensureContrast(spec.foreground, spec.background, 4.5);
+    const baseForeground = this.ensureContrast(spec.foreground, spec.background, 4.5);
     const surface = spec.surface ??
-      this.mixHexColors(foreground, spec.background, spec.surfaceWeight ?? 0.07);
+      this.mixHexColors(baseForeground, spec.background, spec.surfaceWeight ?? 0.07);
+    const foreground = this.ensureContrast(baseForeground, surface, 4.5);
     const border = spec.border ??
       this.mixHexColors(foreground, spec.background, spec.borderWeight ?? 0.18);
     const mutedCandidate = spec.muted ??

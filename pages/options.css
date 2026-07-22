@@ -451,35 +451,13 @@ input#upload-backup {
  * these rules scoped so options.css can continue to provide the base styles for action.html.
  */
 :root {
-  --options-panel: var(--suda-canvas-color);
+  --options-panel: var(--suda-overlay-color);
   --options-row: color-mix(in srgb, var(--suda-surface-color) 72%, transparent);
   --options-row-hover: color-mix(in srgb, var(--suda-surface-color) 88%, transparent);
-  --options-border: var(--suda-border-color);
+  --options-border: var(--suda-overlay-border-color);
   --options-border-soft: var(--suda-surface-color);
   --options-text: var(--suda-text-color);
   --options-muted: var(--suda-muted-color);
-}
-
-html[data-suda-theme="arc-dark"] {
-  --options-panel: color-mix(
-    in srgb,
-    var(--suda-accent-subtle-color) 10%,
-    var(--suda-canvas-color)
-  );
-  --options-border: color-mix(
-    in srgb,
-    var(--suda-accent-color) 2%,
-    var(--suda-border-color)
-  );
-  --options-border-soft: var(--options-border);
-}
-
-html[data-suda-theme="arc-light"] {
-  --options-panel: color-mix(
-    in srgb,
-    var(--suda-accent-subtle-color) 18%,
-    var(--suda-canvas-color)
-  );
 }
 
 body.options-page {

@@ -16,10 +16,7 @@ const HUD = {
   // Set by @pasteFromClipboard to handle the value returned by pasteResponse
   pasteListener: null,
 
-  // This HUD is styled to precisely mimick the chrome HUD on Mac. Use the
-  // "has_popup_and_link_hud.html" test harness to tweak these styles to match Chrome's. One
-  // limitation of our HUD display is that it doesn't sit on top of horizontal scrollbars like
-  // Chrome's HUD does.
+  // The HUD is rendered in an isolated extension frame so page styles cannot affect it.
 
   handleUIComponentMessage({ data }) {
     const handlers = {
@@ -69,8 +66,8 @@ const HUD = {
       // child frame. See https://github.com/u-k-g/suda/pull/3277#issuecomment-487363284
       getComputedStyle(this.hudUI.iframeElement).display;
     } else {
-      classList.remove("suda-non-clickable");
-      classList.add("suda-clickable");
+      classList.add("suda-non-clickable");
+      classList.remove("suda-clickable");
     }
   },
 

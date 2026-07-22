@@ -395,7 +395,7 @@ const DomUtils = {
     const { ctrlKey, shiftKey, metaKey, altKey } = modifiers;
 
     // Mac uses a different new tab modifier (meta vs. ctrl).
-    if (KeyboardUtils.platform === "Mac") {
+    if (KeyboardUtils.isMacOS) {
       newTabModifier = (metaKey === true) && (ctrlKey === false);
     } else {
       newTabModifier = (metaKey === false) && (ctrlKey === true);

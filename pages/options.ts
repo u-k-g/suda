@@ -55,7 +55,7 @@ export async function init() {
   getOptionEl("accentColor").addEventListener("input", () => applyThemePreview());
 
   const shortcutLabel = document.querySelector("#shortcut-to-save-all");
-  shortcutLabel.textContent = KeyboardUtils.platform == "Mac" ? "Cmd-Enter" : "Ctrl-Enter";
+  shortcutLabel.textContent = `${KeyboardUtils.primaryModifierLabel}-Enter`;
 
   const saveButton = document.querySelector("#save");
 

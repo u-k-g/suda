@@ -1,6 +1,6 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 const UrlUtils = {
-  chromeNewTabUrl: "about:newtab",
+  browserNewTabUrl: "about:newtab",
 
   // A set of top-level domains, e.g. ["com"] recognized by https://www.iana.org/domains/root/db
   tlds: null,
@@ -94,7 +94,7 @@ const UrlUtils = {
     string = string.trim();
 
     // Special-case about:[url], view-source:[url] and the like
-    if (this.hasChromeProtocol(string)) {
+    if (this.hasSpecialProtocol(string)) {
       return string;
     } else if (this.hasJavascriptProtocol(string)) {
       return string;
@@ -105,9 +105,9 @@ const UrlUtils = {
     }
   },
 
-  _chromePrefixes: ["about:", "view-source:", "extension:", "chrome-extension:", "data:"],
-  hasChromeProtocol(url) {
-    return this._chromePrefixes.some((prefix) => url.startsWith(prefix));
+  _specialPrefixes: ["about:", "view-source:", "extension:", "chrome-extension:", "data:"],
+  hasSpecialProtocol(url) {
+    return this._specialPrefixes.some((prefix) => url.startsWith(prefix));
   },
 
   hasJavascriptProtocol(url) {

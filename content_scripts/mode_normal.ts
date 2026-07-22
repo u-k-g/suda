@@ -204,12 +204,6 @@ const NormalModeCommands = {
     ).then((url) => {
       if (url != null) {
         HUD.copyToClipboard(url);
-        // This length is determined empirically based on a 350px width of the HUD. An alternate
-        // solution is to have the HUD ellipsize based on its width.
-        const maxLength = 40;
-        if (url.length > maxLength) {
-          url = url.slice(0, maxLength - 2) + "...";
-        }
         HUD.show(`Yanked ${url}`, 2000);
       }
     });

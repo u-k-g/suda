@@ -444,6 +444,27 @@ context("commandBar page", () => {
     assert.isFalse(ui.box.classList.contains("has-completions"));
   });
 
+  should("render structured completions without interpreting result text as HTML", () => {
+    ui.renderCompletions([{
+      kind: "tab",
+      source: "tab",
+      title: "Title <img src=x>",
+      titleMatches: [],
+      url: "https://example.com",
+      displayUrl: "example.com",
+      urlMatches: [],
+    }]);
+
+    assert.equal("Title <img src=x>", ui.completionList.querySelector(".title").textContent);
+    assert.equal(1, ui.completionList.querySelectorAll("img").length);
+    assert.isTrue(
+      ui.completionList.querySelector(".completion-row").classList.contains(
+        "tab-completion",
+      ),
+    );
+    assert.isTrue(ui.completionList.querySelector(".tab-action") != null);
+  });
+
   should("keep direct mark creation out of the mode selector", async () => {
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("mark");

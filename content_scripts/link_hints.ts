@@ -72,7 +72,7 @@ class HintDescriptor {
 // The "name" property below is a short-form name to appear in the link-hints mode's name. It's for
 // debug only.
 //
-const isMac = KeyboardUtils.platform === "Mac";
+const isMac = KeyboardUtils.isMacOS;
 const OPEN_IN_CURRENT_TAB = {
   name: "curr-tab",
   indicator: "Open link in current tab",

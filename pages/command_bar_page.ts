@@ -1,4 +1,3 @@
-// @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 //
 // This controls the contents of the CommandBar iframe. We use an iframe to avoid changing the
 // selection on the page (useful for bookmarklets), ensure that the CommandBar style is unaffected by
@@ -22,7 +21,7 @@ function formatKeyToken(token) {
   const modifierNames = {
     a: "Alt",
     c: "Ctrl",
-    m: KeyboardUtils.platform == "Mac" ? "Cmd" : "Meta",
+    m: KeyboardUtils.isMacOS ? "Cmd" : "Meta",
     s: "Shift",
   };
   const modifiers = [];
@@ -95,7 +94,11 @@ function createLinkActionCompletion(action, selectionCount) {
 
 function renderCompletionIcon(completion) {
   if (completion.kind === "tab") {
-    const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/"));
+    const currentDocumentUrl = document.defaultView?.location?.href ?? "";
+    const documentUrl = /^(?:https?|chrome-extension):/.test(currentDocumentUrl)
+      ? currentDocumentUrl
+      : "https://suda.invalid/";
+    const faviconUrl = new URL(chrome.runtime.getURL("/_favicon/") || "/_favicon/", documentUrl);
     faviconUrl.searchParams.set("pageUrl", completion.url);
     faviconUrl.searchParams.set("size", "16");
     return `<img class="icon" src="${Utils.escapeHtml(faviconUrl.toString())}" />`;
@@ -167,12 +170,8 @@ function renderCompletion(completion) {
          <span class="completion-arrow">${phosphorIcon("arrow-right")}</span>
        </span>`
     : "";
-  const bottom = isCustomSearch || completion.kind === "verbatim"
-    ? ""
-    : `<span class="bottom-half">
-         <span class="url">${
-      renderMatchedText(completion.displayUrl, completion.urlMatches)
-    }</span>
+  const bottom = isCustomSearch || completion.kind === "verbatim" ? "" : `<span class="bottom-half">
+         <span class="url">${renderMatchedText(completion.displayUrl, completion.urlMatches)}</span>
        </span>`;
   return `<div class="completion-row${isTab ? " tab-completion" : ""}">
     <span class="result-icon">${renderCompletionIcon(completion)}</span>
@@ -188,7 +187,27 @@ function renderCompletion(completion) {
   </div>`;
 }
 
-const modeSelector = {
+type CommandBarMode = {
+  name: string;
+  description: string;
+  aliases: string;
+  icon: string;
+  bindingCommands: string[];
+  action?: boolean;
+  completer?: string;
+  newTab?: boolean;
+  selectFirst?: boolean;
+  useCurrentUrl?: boolean;
+};
+
+type SetModeOptions = {
+  completer?: string;
+  newTab?: boolean;
+  query?: string;
+  selectFirst?: boolean;
+};
+
+const modeSelector: CommandBarMode = {
   name: "modes",
   description: "Choose a command-bar mode",
   aliases: "mode selector scopes",
@@ -196,7 +215,7 @@ const modeSelector = {
   bindingCommands: ["CommandBar.activateModeSelection"],
 };
 
-const commandBarModes = [
+const commandBarModes: CommandBarMode[] = [
   {
     name: "find",
     description: "Find text on the current page",
@@ -270,7 +289,7 @@ const commandBarModes = [
   },
 ];
 
-const linkActionMode = {
+const linkActionMode: CommandBarMode = {
   name: "link-actions",
   description: "Choose an action for the selected links",
   aliases: "",
@@ -302,7 +321,7 @@ const linkActions = [
   },
 ];
 
-const commandBarModesByName = Object.fromEntries(
+const commandBarModesByName: Record<string, CommandBarMode> = Object.fromEntries(
   [...commandBarModes, linkActionMode].map((mode) => [mode.name, mode]),
 );
 
@@ -357,6 +376,10 @@ export async function activate(options) {
 }
 
 class CommandBarUI {
+  // This legacy UI object is also used as a white-box test fixture and populated during initDom.
+  // deno-lint-ignore no-explicit-any
+  [key: string]: any;
+
   constructor() {
     this.onKeyEvent = this.onKeyEvent.bind(this);
     this.onInput = this.onInput.bind(this);
@@ -397,7 +420,7 @@ class CommandBarUI {
     return Array.from(new Set(keys));
   }
 
-  setMode(name, options = {}) {
+  setMode(name, options: SetModeOptions = {}) {
     const mode = commandBarModesByName[name];
     const isModeless = name.length === 0;
     const isModeSelector = name === modeSelector.name;
@@ -536,8 +559,11 @@ class CommandBarUI {
     }
 
     // Highlight the selected entry.
-    for (const [i, el] of Object.entries(this.completionList.children)) {
-      el.className = i == this.selection ? "selected" : "";
+    const completionElements = Array.from(
+      this.completionList.children as HTMLCollectionOf<HTMLElement>,
+    );
+    for (const [i, el] of completionElements.entries()) {
+      el.className = i === this.selection ? "selected" : "";
     }
 
     // Keep keyboard navigation anchored to something visible. The completion list is its own
@@ -1006,7 +1032,7 @@ class CommandBarUI {
     }
   }
 
-  async launchUrl(url, openInNewTab) {
+  async launchUrl(url, openInNewTab = false) {
     // If the URL is a bookmarklet (so, prefixed with "javascript:"), then always open it in the
     // current tab.
     if (openInNewTab && UrlUtils.hasJavascriptProtocol(url)) {

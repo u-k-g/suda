@@ -289,8 +289,7 @@ const onUnload = Utils.makeIdempotent(() => {
 // tabs. Those scripts cannot reconnect, so shut them down without reporting an unhandled promise
 // rejection. A page refresh installs the current content scripts.
 function extensionContextWasInvalidated(error) {
-  return extensionHasBeenUnloaded() ||
-    error?.message?.includes("Extension context invalidated");
+  return extensionHasBeenUnloaded() || Utils.extensionContextWasInvalidated(error);
 }
 
 function handleExtensionContextError(error) {

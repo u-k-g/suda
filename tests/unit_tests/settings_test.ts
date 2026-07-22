@@ -2,6 +2,27 @@ import "./test_helper.js";
 import "../../lib/settings.js";
 
 context("settings", () => {
+  context("accent setting migration", () => {
+    teardown(async () => {
+      await Settings.clear();
+    });
+
+    should("migrate the old Arc-specific setting name", async () => {
+      await chrome.storage.sync.set({
+        settingsVersion: "2.4.1",
+        arcAccentColor: "#12ABEF",
+      });
+
+      await Settings.load();
+      assert.equal("#12ABEF", Settings.get("accentColor"));
+      assert.isFalse(Object.hasOwn(Settings.getSettings(), "arcAccentColor"));
+
+      await Settings.setSettings(Settings.getSettings());
+      const stored = await chrome.storage.sync.get(null);
+      assert.isFalse(Object.hasOwn(stored, "arcAccentColor"));
+    });
+  });
+
   context("v2.0 migration", () => {
     setup(async () => {
       // Prior to Suda 2.0.0, the settings values were encoded as JSON strings.

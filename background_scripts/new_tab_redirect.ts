@@ -36,7 +36,7 @@ export function getConfiguredNewTabUrl() {
   } else if (destination == Settings.newTabDestinations.customUrl && customUrl.length > 0) {
     return customUrl;
   }
-  return UrlUtils.chromeNewTabUrl;
+  return UrlUtils.browserNewTabUrl;
 }
 
 export async function redirectBrowserNewTab(tab, url = tab.pendingUrl || tab.url) {
@@ -44,7 +44,7 @@ export async function redirectBrowserNewTab(tab, url = tab.pendingUrl || tab.url
 
   await Settings.onLoaded();
   const configuredUrl = getConfiguredNewTabUrl();
-  if (configuredUrl == UrlUtils.chromeNewTabUrl) return false;
+  if (configuredUrl == UrlUtils.browserNewTabUrl) return false;
 
   // Updating Chrome's protected new-tab page races with Chrome's own navigation, which can replace
   // our URL after chrome.tabs.update succeeds. Create the configured tab first and then remove the
@@ -110,7 +110,7 @@ export async function handleSettledCreatedTab(tabId) {
   }
 
   // Some Chrome versions expose neither url nor pendingUrl for their new-tab page.
-  const newTabUrl = currentUrl || initialUrl || UrlUtils.chromeNewTabUrl;
+  const newTabUrl = currentUrl || initialUrl || UrlUtils.browserNewTabUrl;
 
   stopTrackingTab(tabId);
   return await redirectBrowserNewTab(tab, newTabUrl);

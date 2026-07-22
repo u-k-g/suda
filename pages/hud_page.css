@@ -32,6 +32,9 @@
   border-radius: 0;
   width: 100%;
   outline: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   box-sizing: border-box;
   line-height: 20px;
   color: var(--suda-text-color);

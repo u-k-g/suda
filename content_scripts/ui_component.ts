@@ -1,4 +1,3 @@
-// @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 // A UIComponent is an iframe containing a Suda extension page, like the CommandBar. This class
 // provides methods that content scripts can use to interact with that page:
 // - show
@@ -9,9 +8,11 @@
 // page in the iframe uses the module ui_component_messenger.js to manage message passing back to
 // this class. Since the iframe's page can receive messages from untrusted javascript, secure
 // message passing is achieved using ports from MessageChannel() and a sudaSecret handshake.
+type UIFocusOptions = { focus?: boolean; sourceFrameId?: number };
+
 class UIComponent {
-  iframeElement;
-  iframePort;
+  iframeElement!: HTMLIFrameElement;
+  iframePort!: Promise<MessagePort>;
   showing = false;
   hiding = false;
   visibilityRequestId = 0;
@@ -20,7 +21,7 @@ class UIComponent {
   iframeFrameId;
   // These are the focus options set when show() is invoked. We store them while the UIComponent
   // is visible so we know how to revert focus once it's dismissed.
-  focusOptions = {};
+  focusOptions: UIFocusOptions = {};
   shadowDOM;
   // When we open ports to the iframe using MessageChannel, we save them so that our unit tests can
   // close the ports. See ui_component_test.js for details.
@@ -30,7 +31,7 @@ class UIComponent {
   // - className: the CSS class to add to the iframe.
   // - messageHandler: optional; a function to handle messages from the iframe's page.
   async load(iframeUrl, className, messageHandler) {
-    if (this.iframeFrameElement) throw new Error("init should only be called once.");
+    if (this.iframeElement) throw new Error("load should only be called once.");
     this.messageHandler = messageHandler;
     const isDomTests = iframeUrl.includes("?dom_tests=true");
     this.iframeElement = DomUtils.createElement("iframe");
@@ -49,8 +50,13 @@ class UIComponent {
 
     // Fetch "content_scripts/suda.css" from chrome.storage.session; the background page caches
     // it there.
-    chrome.storage.session.get("sudaCSSInChromeStorage")
-      .then((items) => styleSheet.innerHTML = items.sudaCSSInChromeStorage);
+    const cssItems = await Utils.withExtensionContext(() =>
+      chrome.storage.session.get("sudaCSSInChromeStorage")
+    );
+    if (!cssItems) return;
+    if (cssItems.sudaCSSInChromeStorage) {
+      styleSheet.innerHTML = cssItems.sudaCSSInChromeStorage;
+    }
 
     this.iframeElement.className = className;
 
@@ -72,19 +78,33 @@ class UIComponent {
     });
 
     this.setIframeVisible(false);
-    this.iframeElement.src = chrome.runtime.getURL(iframeUrl);
+    const resolvedIframeUrl = await Utils.withExtensionContext(() =>
+      Promise.resolve(chrome.runtime.getURL(iframeUrl))
+    );
+    if (resolvedIframeUrl == null) return;
+    this.iframeElement.src = resolvedIframeUrl;
     await DomUtils.documentReady();
-    this.handleDarkReaderFilter();
+    this.handlePageColorFilter();
     document.documentElement.appendChild(shadowWrapper);
 
-    const secret = (await chrome.storage.session.get("sudaSecret")).sudaSecret;
+    const secretItems = await Utils.withExtensionContext(() =>
+      chrome.storage.session.get("sudaSecret")
+    );
+    if (!secretItems) return;
+    const secret = secretItems.sudaSecret;
     const { port1, port2 } = new MessageChannel();
     this.messageChannelPorts = [port1, port2];
     this.iframeElement.addEventListener("load", () => {
       // Get sudaSecret so the iframe can determine that our message isn't the page
       // impersonating us.
       // Outside of tests, target origin starts with chrome-extension://{suda's-id}
-      const targetOrigin = isDomTests ? "*" : chrome.runtime.getURL("");
+      let targetOrigin;
+      try {
+        targetOrigin = isDomTests ? "*" : chrome.runtime.getURL("");
+      } catch (error) {
+        if (Utils.extensionContextWasInvalidated(error)) return;
+        throw error;
+      }
       this.iframeElement.contentWindow.postMessage(secret, targetOrigin, [port2]);
       port1.onmessage = (event) => {
         let eventName = null;
@@ -122,25 +142,32 @@ class UIComponent {
     });
   }
 
-  // This ensures that Suda's UI elements (HUD, CommandBar) honor the browser's light/dark theme
-  // preference, even when the user is also using the DarkReader extension. DarkReader is the most
-  // popular dark mode Chrome extension in use as of 2020.
-  handleDarkReaderFilter() {
-    const reverseFilterClass = "suda-reverse-dark-reader-filter";
+  // Page-wide color filters also affect extension iframes. Reverse any such filter so Suda can
+  // render its own theme; detect the visual effect rather than a particular extension's DOM ID.
+  handlePageColorFilter() {
+    const reverseFilterClass = "suda-reverse-page-filter";
     const reverseFilterIfExists = () => {
-      // The DarkReader extension creates this element if it's actively modifying the current page.
-      const darkReaderElement = document.getElementById("dark-reader-style");
-      if (darkReaderElement && darkReaderElement.innerHTML.includes("filter")) {
-        this.iframeElement.classList.add(reverseFilterClass);
-      } else {
-        this.iframeElement.classList.remove(reverseFilterClass);
-      }
+      const elements = [document.documentElement, document.body].filter(Boolean);
+      const getStyle = document.defaultView?.getComputedStyle?.bind(document.defaultView);
+      if (!getStyle) return;
+      const hasPageFilter = elements.some((element) => {
+        const filter = getStyle(element).filter;
+        return filter && filter !== "none";
+      });
+      this.iframeElement.classList.toggle(reverseFilterClass, hasPageFilter);
     };
 
     reverseFilterIfExists();
 
     const observer = new MutationObserver(reverseFilterIfExists);
     observer.observe(document.head, { characterData: true, subtree: true, childList: true });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+    if (document.body) {
+      observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    }
   }
 
   setIframeVisible(visible) {
@@ -184,8 +211,7 @@ class UIComponent {
     }
   }
 
-  async hide(shouldRefocusOriginalFrame) {
-    if (shouldRefocusOriginalFrame == null) shouldRefocusOriginalFrame = true;
+  async hide(shouldRefocusOriginalFrame = true) {
     if (!this.showing && !this.hiding) return;
 
     const visibilityRequestId = ++this.visibilityRequestId;
@@ -224,4 +250,4 @@ class UIComponent {
   }
 }
 
-globalThis.UIComponent = UIComponent;
+Object.assign(globalThis, { UIComponent });

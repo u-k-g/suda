@@ -217,6 +217,22 @@ const Utils = {
     });
   },
 
+  extensionContextWasInvalidated(error) {
+    return error?.message?.includes("Extension context invalidated") === true;
+  },
+
+  // Chrome APIs can reject or throw synchronously after an extension reload leaves an old content
+  // script behind. Consume only that terminal lifecycle condition; unrelated failures still surface.
+  async withExtensionContext(operation, onInvalidated = null) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!this.extensionContextWasInvalidated(error)) throw error;
+      onInvalidated?.();
+      return undefined;
+    }
+  },
+
   // This is a wrapper around chrome.runtime.onMessage.addListener.
   // As of 2023-06-26 Chrome doesn't support passing an async function argument to the addListener
   // function. If you do, the return value to the caller of chrome.runtime.sendMessage is always

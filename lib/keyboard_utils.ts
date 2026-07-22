@@ -16,20 +16,25 @@ const KeyboardUtils = {
   },
 
   init() {
-    // TODO(philc): Remove this guard clause once Deno has a userAgent.
-    // https://github.com/denoland/deno/issues/14362
-    // As of 2022-04-30, Deno does not have userAgent defined on navigator.
-    if (navigator.userAgent == null) {
+    const platformName = navigator.userAgentData?.platform ?? navigator.platform ??
+      navigator.userAgent;
+    if (!platformName) {
       this.platform = "Unknown";
+      this.isMacOS = false;
+      this.primaryModifierLabel = "Ctrl";
       return;
     }
-    if (navigator.userAgent.indexOf("Mac") !== -1) {
+    this.isMacOS = /Mac|iPhone|iPad|iPod/i.test(platformName);
+    if (this.isMacOS) {
       this.platform = "Mac";
-    } else if (navigator.userAgent.indexOf("Linux") !== -1) {
+    } else if (/Linux/i.test(platformName)) {
       this.platform = "Linux";
-    } else {
+    } else if (/Win/i.test(platformName)) {
       this.platform = "Windows";
+    } else {
+      this.platform = "Other";
     }
+    this.primaryModifierLabel = this.isMacOS ? "Cmd" : "Ctrl";
   },
 
   getKeyChar(event) {
@@ -38,7 +43,7 @@ const KeyboardUtils = {
       // On MacOS, when alt (option) is pressed, event.key is a symbol. E.g. the <a-c> key press
       // yields ç. In such cases, use event.code instead to identify which key was pressed, so that
       // the user can intuitively map <a-c> in their keymappings, rather than <a-ç>. See #3197.
-      !(this.platform == "Mac" && event.altKey);
+      !(this.isMacOS && event.altKey);
 
     if (canUseEventKey) {
       key = event.key;

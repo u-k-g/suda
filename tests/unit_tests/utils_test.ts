@@ -137,6 +137,36 @@ context("promiseIgnoringClosedTab", () => {
   });
 });
 
+context("withExtensionContext", () => {
+  should("preserve successful operation results", async () => {
+    assert.equal("ok", await Utils.withExtensionContext(async () => "ok"));
+  });
+
+  should("consume invalidated extension contexts", async () => {
+    let invalidated = false;
+    const result = await Utils.withExtensionContext(
+      async () => {
+        throw new Error("Extension context invalidated.");
+      },
+      () => invalidated = true,
+    );
+    assert.equal(undefined, result);
+    assert.isTrue(invalidated);
+  });
+
+  should("preserve unrelated failures", async () => {
+    let caughtError;
+    try {
+      await Utils.withExtensionContext(async () => {
+        throw new Error("Unexpected failure");
+      });
+    } catch (error) {
+      caughtError = error;
+    }
+    assert.equal("Unexpected failure", caughtError.message);
+  });
+});
+
 context("addChromeRuntimeOnMessageListener", () => {
   let originalAddListener;
 

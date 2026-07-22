@@ -13,6 +13,7 @@ declare const handlerStack: any;
 declare const FindModeHistory: any;
 declare const UIComponent: any;
 declare const UIComponentMessenger: any;
+declare const CommandBarShowOptions: any;
 declare const Mode: any;
 declare const KeyHandlerMode: any;
 declare const NormalMode: any;

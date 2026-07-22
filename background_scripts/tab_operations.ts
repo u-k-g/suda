@@ -92,7 +92,7 @@ export async function openUrlInNewTab(request) {
     }
   } else {
     // The requested destination is a regular URL.
-    if (urlStr != UrlUtils.chromeNewTabUrl) {
+    if (urlStr != UrlUtils.browserNewTabUrl) {
       tabConfig.url = urlStr;
     }
     newTab = await chrome.tabs.create(tabConfig);

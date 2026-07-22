@@ -1,4 +1,3 @@
-// @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 // This file contains the definition of the completers used for the CommandBar's suggestion UI. A
 // completer will take a query (whatever the user typed into the CommandBar) and return a list of
 // Suggestions, e.g. bookmarks, domains, URLs from history.
@@ -24,6 +23,7 @@ const showRelevancy = false;
 
 // TODO(philc): Consider moving out the "computeRelevancy" function.
 export class Suggestion {
+  static stripPatterns;
   kind;
   queryTerms;
   description;
@@ -60,6 +60,7 @@ export class Suggestion {
 
   constructor(options) {
     this.kind = options.kind ?? options.description;
+    this.queryTerms = options.queryTerms ?? [];
     Object.seal(this);
     Object.assign(this, options);
   }
@@ -221,16 +222,10 @@ Suggestion.stripPatterns = [
 
 const folderSeparator = "/";
 
-// If these names occur as top-level bookmark names, then they are not included in the names of
-// bookmark folders.
-const ignoredTopLevelBookmarks = {
-  "Other Bookmarks": true,
-  "Mobile Bookmarks": true,
-  "Bookmarks Bar": true,
-};
-
 // this.bookmarks are loaded asynchronously when refresh() is called.
 export class BookmarkCompleter {
+  bookmarks;
+  bookmarksTreePromise;
   async filter({ queryTerms, showAllOnEmpty = false }) {
     if (!this.bookmarks) await this.refresh();
 
@@ -295,22 +290,22 @@ export class BookmarkCompleter {
   }
 
   // Recursive helper for `traverseBookmarks`.
-  traverseBookmarksRecursive(bookmark, results, parent) {
+  traverseBookmarksRecursive(bookmark, results, parent = null, omitTitle = false) {
     if (parent == null) {
       parent = { pathAndTitle: "" };
     }
-    if (
-      bookmark.title &&
-      !((parent.pathAndTitle === "") && ignoredTopLevelBookmarks[bookmark.title])
-    ) {
+    // Chrome's root has no title; its children are localized browser containers (bookmarks bar,
+    // mobile, and other bookmarks). Omit them structurally rather than matching English names.
+    if (bookmark.title && !omitTitle) {
       bookmark.pathAndTitle = parent.pathAndTitle + folderSeparator + bookmark.title;
     } else {
       bookmark.pathAndTitle = parent.pathAndTitle;
     }
     results.push(bookmark);
     if (bookmark.children) {
+      const childrenAreBrowserContainers = parent == null && !bookmark.title;
       for (const child of bookmark.children) {
-        this.traverseBookmarksRecursive(child, results, bookmark);
+        this.traverseBookmarksRecursive(child, results, bookmark, childrenAreBrowserContainers);
       }
     }
   }
@@ -527,7 +522,7 @@ export class DomainCompleter {
 
   // Return something like "http://www.example.com" or false.
   parseDomainAndScheme(url) {
-    if (UrlUtils.urlHasProtocol(url) && !UrlUtils.hasChromeProtocol(url)) {
+    if (UrlUtils.urlHasProtocol(url) && !UrlUtils.hasSpecialProtocol(url)) {
       return url.split("/", 3).join("/");
     }
   }
@@ -587,6 +582,7 @@ export class TabCompleter {
 }
 
 export class SearchEngineCompleter {
+  static debug;
   cancel() {
     completionSearch.cancel();
   }
@@ -687,6 +683,7 @@ function modelessSourceForCompleter(completer) {
 }
 
 export class MultiCompleter {
+  completers;
   constructor(completers) {
     this.completers = completers;
   }
@@ -787,19 +784,36 @@ export class MultiCompleter {
 
 // Provides cached access to Chrome's history. As the user browses to new pages, we add those pages
 // to this history cache.
+type HistoryEntry = {
+  url: string;
+  title?: string;
+  lastVisitTime?: number;
+};
+
+type HistoryRemoval = {
+  allHistory: boolean;
+  urls?: string[];
+};
+
 export const HistoryCache = {
   size: 20000,
   // An array of History items returned from Chrome.
-  history: null,
+  history: [] as HistoryEntry[],
+  loaded: false,
+  chromeHistoryPromise: null as Promise<HistoryEntry[]> | null,
+  _onVisitedListener: (_entry: HistoryEntry) => {},
+  _onVisitRemovedListener: (_removal: HistoryRemoval) => {},
 
   reset() {
-    this.history = null;
+    this.history = [];
+    this.loaded = false;
+    this.chromeHistoryPromise = null;
     chrome.history.onVisited.removeListener(this._onVisitedListener);
     chrome.history.onVisitRemoved.removeListener(this._onVisitRemovedListener);
   },
 
   async onLoaded() {
-    if (this.history) return;
+    if (this.loaded) return;
     await this.fetchHistory();
   },
 
@@ -822,12 +836,13 @@ export const HistoryCache = {
     }
     history.sort(this.compareHistoryByUrl);
     this.history = history;
+    this.loaded = true;
     chrome.history.onVisited.addListener(this._onVisitedListener);
     chrome.history.onVisitRemoved.addListener(this._onVisitRemovedListener);
     this.chromeHistoryPromise = null;
   },
 
-  compareHistoryByUrl(a, b) {
+  compareHistoryByUrl(a: HistoryEntry, b: HistoryEntry) {
     if (a.url === b.url) return 0;
     if (a.url > b.url) return 1;
     return -1;
@@ -835,7 +850,7 @@ export const HistoryCache = {
 
   // When a page we've seen before has been visited again, be sure to replace our History item so it
   // has the correct "lastVisitTime". That's crucial for ranking CommandBar suggestions.
-  onVisited(newPage) {
+  onVisited(newPage: HistoryEntry) {
     // Be defensive about history entries without titles.
     if (newPage.title == null) newPage.title = "";
     const i = HistoryCache.binarySearch(newPage, this.history, this.compareHistoryByUrl);
@@ -848,11 +863,11 @@ export const HistoryCache = {
   },
 
   // When a page is removed from the chrome history, remove it from the suda history too.
-  onVisitRemoved(toRemove) {
+  onVisitRemoved(toRemove: HistoryRemoval) {
     if (toRemove.allHistory) {
       this.history = [];
     } else {
-      for (const url of toRemove.urls) {
+      for (const url of toRemove.urls ?? []) {
         const i = HistoryCache.binarySearch({ url }, this.history, this.compareHistoryByUrl);
         if ((i < this.history.length) && (this.history[i].url === url)) {
           this.history.splice(i, 1);
@@ -860,35 +875,29 @@ export const HistoryCache = {
       }
     }
   },
+
+  // Returns the matching index or the closest matching index if the element is not found. That
+  // means callers must check the element at the returned index to know whether it was found.
+  binarySearch<T>(targetElement: T, array: T[], compareFunction: (a: T, b: T) => number) {
+    if (array.length === 0) return 0;
+    let middle = 0;
+    let high = array.length - 1;
+    let low = 0;
+
+    while (low <= high) {
+      middle = Math.floor((low + high) / 2);
+      const compareResult = compareFunction(array[middle], targetElement);
+      if (compareResult > 0) {
+        high = middle - 1;
+      } else if (compareResult < 0) {
+        low = middle + 1;
+      } else {
+        return middle;
+      }
+    }
+    return compareFunction(array[middle], targetElement) < 0 ? middle + 1 : middle;
+  },
 };
 
 HistoryCache._onVisitedListener = HistoryCache.onVisited.bind(HistoryCache);
 HistoryCache._onVisitRemovedListener = HistoryCache.onVisitRemoved.bind(HistoryCache);
-
-// Returns the matching index or the closest matching index if the element is not found. That means
-// you must check the element at the returned index to know whether the element was actually found.
-// This method is used for quickly searching through our history cache.
-HistoryCache.binarySearch = function (targetElement, array, compareFunction) {
-  let element, middle;
-  let high = array.length - 1;
-  let low = 0;
-
-  while (low <= high) {
-    middle = Math.floor((low + high) / 2);
-    element = array[middle];
-    const compareResult = compareFunction(element, targetElement);
-    if (compareResult > 0) {
-      high = middle - 1;
-    } else if (compareResult < 0) {
-      low = middle + 1;
-    } else {
-      return middle;
-    }
-  }
-  // We didn't find the element. Return the position where it should be in this array.
-  if (compareFunction(element, targetElement) < 0) {
-    return middle + 1;
-  } else {
-    return middle;
-  }
-};

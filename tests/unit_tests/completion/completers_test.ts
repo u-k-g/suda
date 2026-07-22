@@ -438,7 +438,6 @@ context("multi completer", () => {
           description: "domain",
           url: "https://phosphoricons.com",
           relevancy: 2,
-          html: "domain",
         }),
         new Suggestion({
           description: "tab",
@@ -446,7 +445,6 @@ context("multi completer", () => {
           title: "Phosphor Icons",
           relevancy: 0.1,
           deDuplicate: false,
-          html: "tab",
         }),
       ],
     };
@@ -455,11 +453,11 @@ context("multi completer", () => {
       commandBarMode: "",
     });
 
-    assert.equal(["tab", "domain"], results.map((suggestion) => suggestion.description));
+    assert.equal(["tab", "domain"], results.map((suggestion) => suggestion.kind));
   });
 
   should("deduplicate suggestions with the same URL", async () => {
-    const make = (url, relevancy) => new Suggestion({ url, relevancy, html: url });
+    const make = (url, relevancy) => new Suggestion({ url, relevancy });
     const fakeCompleter = {
       filter: () => [
         make("http://example.com", 1),

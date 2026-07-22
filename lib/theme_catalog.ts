@@ -1,4 +1,3 @@
-// @ts-nocheck -- classic-script palette catalog.
 // Base colors sourced from mbadolato/iTerm2-Color-Schemes, plus curated Suda themes. Application
 // surfaces, borders, muted text, and contrast corrections are derived by ThemeManager.
 globalThis.SudaThemeCatalog = [

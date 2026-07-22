@@ -71,19 +71,19 @@ context("createSearchUrl", () => {
   });
 });
 
-context("hasChromeProtocol", () => {
+context("hasSpecialProtocol", () => {
   should("detect chrome prefixes of URLs", () => {
-    assert.isTrue(UrlUtils.hasChromeProtocol("about:foobar"));
-    assert.isTrue(UrlUtils.hasChromeProtocol("view-source:foobar"));
-    assert.isTrue(UrlUtils.hasChromeProtocol("chrome-extension:foobar"));
-    assert.isTrue(UrlUtils.hasChromeProtocol("data:foobar"));
-    assert.isTrue(UrlUtils.hasChromeProtocol("data:"));
-    assert.isFalse(UrlUtils.hasChromeProtocol(""));
-    assert.isFalse(UrlUtils.hasChromeProtocol("about"));
-    assert.isFalse(UrlUtils.hasChromeProtocol("view-source"));
-    assert.isFalse(UrlUtils.hasChromeProtocol("chrome-extension"));
-    assert.isFalse(UrlUtils.hasChromeProtocol("data"));
-    assert.isFalse(UrlUtils.hasChromeProtocol("data :foobar"));
+    assert.isTrue(UrlUtils.hasSpecialProtocol("about:foobar"));
+    assert.isTrue(UrlUtils.hasSpecialProtocol("view-source:foobar"));
+    assert.isTrue(UrlUtils.hasSpecialProtocol("chrome-extension:foobar"));
+    assert.isTrue(UrlUtils.hasSpecialProtocol("data:foobar"));
+    assert.isTrue(UrlUtils.hasSpecialProtocol("data:"));
+    assert.isFalse(UrlUtils.hasSpecialProtocol(""));
+    assert.isFalse(UrlUtils.hasSpecialProtocol("about"));
+    assert.isFalse(UrlUtils.hasSpecialProtocol("view-source"));
+    assert.isFalse(UrlUtils.hasSpecialProtocol("chrome-extension"));
+    assert.isFalse(UrlUtils.hasSpecialProtocol("data"));
+    assert.isFalse(UrlUtils.hasSpecialProtocol("data :foobar"));
   });
 });
 

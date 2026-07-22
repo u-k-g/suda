@@ -285,10 +285,8 @@ iframe.suda-non-clickable {
 }
 
 @media all {
-  /* DarkReader is a popular dark mode browser extension. It can apply an invert filter to the whole
-   * page to make the page dark, when used in Filter and Filter+ modes. We want to reverse/invert
-   * that filter again for Suda's UI elements, because Suda is already dark mode aware. */
-  iframe.suda-reverse-dark-reader-filter {
+  /* Reverse page-wide color filters because Suda already renders its own color scheme. */
+  iframe.suda-reverse-page-filter {
     -webkit-filter: invert(100%) hue-rotate(180deg) !important;
     filter: invert(100%) hue-rotate(180deg) !important;
   }

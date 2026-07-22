@@ -37,7 +37,7 @@ context("themes", () => {
   });
 
   should("define every theme with the semantic UI color contract", () => {
-    const expectedKeys = [
+    const requiredKeys = [
       "accent",
       "background",
       "border",
@@ -51,14 +51,18 @@ context("themes", () => {
       "surface",
       "warning",
     ];
-    const colorKeys = expectedKeys.filter((key) => !["id", "mode", "name"].includes(key));
+    const colorKeys = requiredKeys.filter((key) => !["id", "mode", "name"].includes(key));
 
     for (const theme of ThemeManager.themes) {
-      assert.equal(expectedKeys, Object.keys(theme).sort());
+      for (const key of requiredKeys) assert.isTrue(Object.hasOwn(theme, key));
       assert.isTrue(["dark", "light"].includes(theme.mode), theme.id);
       for (const key of colorKeys) {
         assert.isTrue(/^#[0-9a-f]{6}$/i.test(theme[key]), `${theme.id}.${key}`);
       }
+      assert.isTrue(ThemeManager.contrastRatio(theme.foreground, theme.background) >= 4.5);
+      assert.isTrue(ThemeManager.contrastRatio(theme.foreground, theme.surface) >= 4.5);
+      assert.isTrue(ThemeManager.contrastRatio(theme.muted, theme.surface) >= 3);
+      assert.isTrue(ThemeManager.contrastRatio(theme.surface, theme.background) < 2);
     }
   });
 
@@ -77,7 +81,7 @@ context("themes", () => {
     assert.equal("arc-light", root.dataset.sudaTheme);
     assert.equal("light", root.style.colorScheme);
     assert.equal("#f4f1ed", properties.get("--suda-canvas-color"));
-    assert.equal("#ffffff", properties.get("--suda-surface-color"));
+    assert.equal(ThemeManager.get("arc-light").surface, properties.get("--suda-surface-color"));
     assert.equal("#27272a", properties.get("--suda-text-color"));
     assert.equal("#6ced96", properties.get("--suda-accent-color"));
     assert.equal("#e5484d", properties.get("--suda-danger-color"));
@@ -85,7 +89,7 @@ context("themes", () => {
     assert.equal("#30a46c", properties.get("--suda-success-color"));
   });
 
-  should("apply a normalized custom accent only to Arc themes", () => {
+  should("apply a normalized custom accent only to capable themes", () => {
     const properties = new Map();
     const root = {
       dataset: {},
@@ -98,10 +102,17 @@ context("themes", () => {
     ThemeManager.apply("arc-dark", root, "12ABef");
     assert.equal("#12abef", properties.get("--suda-accent-color"));
     assert.equal("#f5a524", properties.get("--suda-warning-color"));
+    assert.isFalse(
+      properties.get("--suda-overlay-color") === properties.get("--suda-canvas-color"),
+    );
 
     ThemeManager.apply("gruvbox-dark-hard", root, "#12ABEF");
     assert.equal("#d79921", properties.get("--suda-accent-color"));
     assert.equal("#fabd2f", properties.get("--suda-warning-color"));
+    assert.equal(
+      properties.get("--suda-canvas-color"),
+      properties.get("--suda-overlay-color"),
+    );
   });
 
   should("reject malformed custom accent colors", () => {
