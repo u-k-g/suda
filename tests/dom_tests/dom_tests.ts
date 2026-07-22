@@ -31,6 +31,25 @@ const getHintMarkerEls = () => Array.from(document.querySelectorAll(".sudaHintMa
 
 const stubSettings = (key, value) => stub(Settings._settings, key, value);
 
+context("CommandBar page zoom geometry", () => {
+  for (const zoomFactor of [0.8, 1, 1.25]) {
+    should(`retain its visual size and position at ${zoomFactor * 100}% zoom`, () => {
+      const geometry = CommandBar.calculateFrameGeometry({
+        innerHeight: 900 / zoomFactor,
+        innerWidth: 1400 / zoomFactor,
+        outerHeight: 1000,
+        outerWidth: 1600,
+      }, zoomFactor);
+
+      assert.equal(780, geometry.width);
+      assert.equal(678, geometry.height);
+      assert.equal(210, geometry.left * zoomFactor);
+      assert.equal(222, geometry.top * zoomFactor);
+      assert.equal(1, geometry.scale * zoomFactor);
+    });
+  }
+});
+
 context("mark jump highlight", () => {
   should("highlight the content at the center of the marked viewport", () => {
     const target = document.createElement("div");

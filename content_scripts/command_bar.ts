@@ -6,6 +6,7 @@ const CommandBar = {
   commandBarUI: null,
   markRegistryEntry: null,
   linkSelectionActive: false,
+  zoomFactor: 1,
 
   // sourceFrameId here (and below) is the ID of the frame from which this request originates, which
   // may be different from the current frame.
@@ -151,7 +152,7 @@ const CommandBar = {
         "commandBar-frame",
         this.handleMessage.bind(this),
       );
-      globalThis.addEventListener("resize", () => this.positionInBrowserWindow());
+      globalThis.addEventListener("resize", () => this.refreshPositionInBrowserWindow());
       globalThis.addEventListener(
         "pointerdown",
         forTrusted((event) => {
@@ -172,24 +173,56 @@ const CommandBar = {
     return Math.max(0, Math.min(innerSize, (outerSize / 2) - browserChromeSize));
   },
 
-  positionInBrowserWindow() {
+  async refreshPositionInBrowserWindow() {
+    try {
+      const zoomFactor = await chrome.runtime.sendMessage({ handler: "getCurrentZoom" });
+      if (Number.isFinite(zoomFactor) && zoomFactor > 0) this.zoomFactor = zoomFactor;
+    } catch (_error) {
+      // The extension may have been reloaded while this content script was still attached. Keep
+      // the last known zoom rather than creating an unhandled rejection from a resize event.
+    }
+    this.positionInBrowserWindow();
+  },
+
+  calculateFrameGeometry(windowDimensions, zoomFactor) {
+    const viewportWidth = windowDimensions.innerWidth * zoomFactor;
+    const viewportHeight = windowDimensions.innerHeight * zoomFactor;
     const centerY = this.browserWindowCenterInViewport(
-      globalThis.outerHeight,
-      globalThis.innerHeight,
+      windowDimensions.outerHeight,
+      viewportHeight,
     );
     const desiredCenterX = this.browserWindowCenterInViewport(
-      globalThis.outerWidth,
-      globalThis.innerWidth,
+      windowDimensions.outerWidth,
+      viewportWidth,
     );
-    const commandBarWidth = Math.min(780, Math.max(340, globalThis.innerWidth - 44));
+    const commandBarWidth = Math.min(780, Math.max(340, viewportWidth - 44));
     const centerX = Math.max(
       commandBarWidth / 2,
-      Math.min(globalThis.innerWidth - (commandBarWidth / 2), desiredCenterX),
+      Math.min(viewportWidth - (commandBarWidth / 2), desiredCenterX),
     );
     const top = Math.max(16, centerY - 170);
+    return {
+      height: Math.max(0, viewportHeight - top + 8),
+      left: (centerX - (commandBarWidth / 2)) / zoomFactor,
+      scale: 1 / zoomFactor,
+      top: (top - 8) / zoomFactor,
+      width: commandBarWidth,
+    };
+  },
+
+  positionInBrowserWindow() {
+    const geometry = this.calculateFrameGeometry({
+      innerHeight: globalThis.innerHeight,
+      innerWidth: globalThis.innerWidth,
+      outerHeight: globalThis.outerHeight,
+      outerWidth: globalThis.outerWidth,
+    }, this.zoomFactor);
     const style = this.commandBarUI?.iframeElement?.style;
-    style?.setProperty("--suda-command-bar-center-x", `${centerX}px`);
-    style?.setProperty("--suda-command-bar-top-y", `${top}px`);
+    style?.setProperty("--suda-command-bar-width", `${geometry.width}px`);
+    style?.setProperty("--suda-command-bar-height", `${geometry.height}px`);
+    style?.setProperty("--suda-command-bar-left", `${geometry.left}px`);
+    style?.setProperty("--suda-command-bar-top", `${geometry.top}px`);
+    style?.setProperty("--suda-command-bar-scale", `${geometry.scale}`);
   },
 
   async handleMessage({ data }) {
@@ -246,9 +279,9 @@ const CommandBar = {
   //     selectFirst: Optional. Whether to select the first entry.
   //     newTab: Optional. Whether to open the result in a new tab.
   //     keyword: A keyword which will scope the search to a UserSearchEngine.
-  open(sourceFrameId, commandBarShowOptions) {
+  async open(sourceFrameId, commandBarShowOptions) {
     this.init();
-    this.positionInBrowserWindow();
+    await this.refreshPositionInBrowserWindow();
     // The CommandBar cannot coexist with the help dialog (it causes focus issues).
     HelpDialog.abort();
     Utils.assertType(CommandBarShowOptions, commandBarShowOptions);

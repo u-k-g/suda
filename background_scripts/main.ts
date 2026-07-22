@@ -707,6 +707,9 @@ const sendRequestHandlers = {
   getCurrentTabUrl({ tab }) {
     return tab.url;
   },
+  getCurrentZoom({ tabId }) {
+    return chrome.tabs.getZoom(tabId);
+  },
   openUrlInNewTab: createRepeatCommand(async (request, callback) => {
     await TabOperations.openUrlInNewTab(request, callback);
   }),

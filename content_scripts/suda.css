@@ -215,16 +215,16 @@ iframe.commandBar-frame {
 
   display: block;
   position: fixed;
-  width: min(780px, calc(100vw - 44px));
+  width: var(--suda-command-bar-width, min(780px, calc(100vw - 44px)));
   min-width: 340px;
-  /* JavaScript translates the center of the entire browser window into content-viewport
-   * coordinates. This accounts for Chromium's tabs, toolbar and vertical sidebar. The panel has an
-   * 8px inset inside this iframe, and completion rows grow downward without moving its top edge. */
-  height: calc(100vh - var(--suda-command-bar-top-y, 32vh) + 8px);
-  top: calc(var(--suda-command-bar-top-y, 32vh) - 8px);
-  left: var(--suda-command-bar-center-x, 50vw);
+  /* JavaScript translates the browser-window center into the page's zoomed coordinate space. The
+   * inverse scale keeps the iframe and its contents at the same visual size at every page zoom. */
+  height: var(--suda-command-bar-height, calc(68vh + 8px));
+  top: var(--suda-command-bar-top, calc(32vh - 8px));
+  left: var(--suda-command-bar-left, calc(50vw - 390px));
   margin: 0;
-  transform: translateX(-50%);
+  transform: scale(var(--suda-command-bar-scale, 1));
+  transform-origin: top left;
   border: none;
   font-family: sans-serif;
   z-index: 2147483647;
