@@ -109,16 +109,16 @@ ul {
   display: block;
   fill: currentColor;
   flex: none;
-  height: 18px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
 }
 
 .command-bar-search-icon {
   color: var(--command-bar-bright);
-  height: 20px;
+  height: 18px;
   margin-left: 3px;
   opacity: 0.88;
-  width: 20px;
+  width: 18px;
 }
 
 #command-bar-mode {
@@ -297,17 +297,17 @@ ul {
 
 #commandBar li .result-icon .phosphor-icon,
 #commandBar li .result-icon .ph-icon {
-  height: 16px;
-  width: 16px;
+  height: 14px;
+  width: 14px;
 }
 
 #commandBar li .result-icon .icon {
   border-radius: 4px;
-  height: 18px;
+  height: 16px;
   margin: 0;
   object-fit: contain;
   padding: 0;
-  width: 18px;
+  width: 16px;
 }
 
 #commandBar li .mode-name,
@@ -389,11 +389,11 @@ ul {
 
 #commandBar li .icon {
   border-radius: 5px;
-  height: 18px;
+  height: 16px;
   margin: 0 7px 0 4px;
   object-fit: contain;
   padding: 0;
-  width: 18px;
+  width: 16px;
 }
 
 #commandBar li .source {
