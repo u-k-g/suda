@@ -7,6 +7,8 @@ const CommandBar = {
   markRegistryEntry: null,
   linkSelectionActive: false,
   zoomFactor: 1,
+  openRequestId: 0,
+  opening: false,
 
   // sourceFrameId here (and below) is the ID of the frame from which this request originates, which
   // may be different from the current frame.
@@ -156,16 +158,52 @@ const CommandBar = {
       globalThis.addEventListener(
         "pointerdown",
         forTrusted((event) => {
-          if (!this.commandBarUI?.showing) return true;
+          if (!this.opening && !this.commandBarUI?.showing) return true;
           const eventPath = event.composedPath?.() ?? [];
           if (!eventPath.includes(this.commandBarUI.iframeElement)) {
-            this.commandBarUI.postMessage({ name: "hide" });
+            this.dismiss();
           }
           return true;
         }),
         true,
       );
+      globalThis.addEventListener(
+        "focusin",
+        forTrusted((event) => {
+          if (!this.opening && !this.commandBarUI?.showing) return true;
+          const eventPath = event.composedPath?.() ?? [];
+          if (!eventPath.includes(this.commandBarUI.iframeElement)) this.dismiss();
+          return true;
+        }),
+        true,
+      );
+      globalThis.addEventListener(
+        "keydown",
+        forTrusted((event) => {
+          if (
+            event.key !== "Escape" ||
+            (!this.opening && !this.commandBarUI?.showing)
+          ) return true;
+          this.dismiss();
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return false;
+        }),
+        true,
+      );
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) this.dismiss();
+      });
+      globalThis.addEventListener("pagehide", () => this.dismiss());
     }
+  },
+
+  dismiss() {
+    this.openRequestId += 1;
+    this.opening = false;
+    if (!this.commandBarUI?.showing && !this.commandBarUI?.hiding) return;
+    this.finishMode(false);
+    this.commandBarUI.hide(false);
   },
 
   browserWindowCenterInViewport(outerSize, innerSize) {
@@ -234,6 +272,10 @@ const CommandBar = {
       case "commandBarModeChanged":
         return await this.prepareMode(data.mode);
       case "commandBarFinishMode":
+        if (!data.commit) {
+          this.openRequestId += 1;
+          this.opening = false;
+        }
         return this.finishMode(data.commit);
       case "commandBarMark":
         this.finishMode(false);
@@ -284,8 +326,14 @@ const CommandBar = {
   //     newTab: Optional. Whether to open the result in a new tab.
   //     keyword: A keyword which will scope the search to a UserSearchEngine.
   async open(sourceFrameId, commandBarShowOptions) {
+    const openRequestId = ++this.openRequestId;
+    this.opening = true;
     this.init();
     await this.refreshPositionInBrowserWindow();
+    if (openRequestId !== this.openRequestId || document.hidden) {
+      if (openRequestId === this.openRequestId) this.opening = false;
+      return;
+    }
     // The CommandBar cannot coexist with the help dialog (it causes focus issues).
     HelpDialog.abort();
     Utils.assertType(CommandBarShowOptions, commandBarShowOptions);
@@ -294,10 +342,11 @@ const CommandBar = {
       mode: "search",
       currentUrl: globalThis.location.href,
     }, commandBarShowOptions);
-    this.commandBarUI.show(
+    await this.commandBarUI.show(
       Object.assign(options, { name: "activate" }),
       { sourceFrameId, focus: true },
     );
+    if (openRequestId === this.openRequestId) this.opening = false;
   },
 };
 

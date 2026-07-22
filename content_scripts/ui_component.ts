@@ -13,6 +13,8 @@ class UIComponent {
   iframeElement;
   iframePort;
   showing = false;
+  hiding = false;
+  visibilityRequestId = 0;
   // An optional message handler for handling messages from the iFrame.
   messageHandler;
   iframeFrameId;
@@ -144,9 +146,11 @@ class UIComponent {
   setIframeVisible(visible) {
     const classes = this.iframeElement.classList;
     if (visible) {
+      this.iframeElement.style.removeProperty("display");
       classes.remove("suda-ui-component-hidden");
       classes.add("suda-ui-component-visible");
     } else {
+      this.iframeElement.style.setProperty("display", "none", "important");
       classes.add("suda-ui-component-hidden");
       classes.remove("suda-ui-component-visible");
     }
@@ -168,41 +172,55 @@ class UIComponent {
     if (focusOptions) {
       Utils.assertType({ focus: "boolean", sourceFrameId: "number" }, focusOptions);
     }
+    const visibilityRequestId = ++this.visibilityRequestId;
     this.focusOptions = focusOptions;
+    this.showing = true;
+    this.hiding = false;
     await this.postMessage(messageData);
+    if (visibilityRequestId !== this.visibilityRequestId || !this.showing) return;
     this.setIframeVisible(true);
     if (this.focusOptions.focus) {
       this.iframeElement.focus();
     }
-    this.showing = true;
   }
 
   async hide(shouldRefocusOriginalFrame) {
     if (shouldRefocusOriginalFrame == null) shouldRefocusOriginalFrame = true;
+    if (!this.showing && !this.hiding) return;
 
-    await this.iframePort;
-    if (!this.showing) return;
+    const visibilityRequestId = ++this.visibilityRequestId;
+    const focusOptions = this.focusOptions;
     this.showing = false;
+    this.hiding = true;
+    // Hide synchronously. Dismissal must not depend on the iframe message port being responsive.
     this.setIframeVisible(false);
-    if (this.focusOptions.focus) {
+    if (focusOptions.focus) {
       this.iframeElement.blur();
       if (shouldRefocusOriginalFrame) {
-        if (this.focusOptions.sourceFrameId != null) {
-          chrome.runtime.sendMessage({
-            handler: "sendMessageToFrames",
-            frameId: this.focusOptions.sourceFrameId,
-            message: {
-              handler: "focusFrame",
-              forceFocusThisFrame: true,
-            },
-          });
+        if (focusOptions.sourceFrameId != null) {
+          try {
+            chrome.runtime.sendMessage({
+              handler: "sendMessageToFrames",
+              frameId: focusOptions.sourceFrameId,
+              message: {
+                handler: "focusFrame",
+                forceFocusThisFrame: true,
+              },
+            }).catch(() => {});
+          } catch (_error) {
+            // The extension may have been reloaded while an older content script is still present.
+          }
         } else {
           Utils.nextTick(() => globalThis.focus());
         }
       }
     }
     this.focusOptions = {};
-    this.postMessage({ name: "hidden" }); // Inform the UI component that it is hidden.
+
+    const port = await this.iframePort;
+    if (visibilityRequestId !== this.visibilityRequestId || this.showing) return;
+    port.postMessage({ name: "hidden" }); // Inform the UI component that it is hidden.
+    this.hiding = false;
   }
 }
 

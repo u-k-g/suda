@@ -42,4 +42,18 @@ context("UIComponent", () => {
     c.show();
     assert.equal(c.iframeElement.getRootNode().host, document.activeElement);
   });
+
+  should("hide synchronously while showing is still waiting for iframe readiness", async () => {
+    c = new UIComponent("testing.html", "example-class");
+    await c.load("example.html", "example-class");
+
+    c.show({}, { focus: true, sourceFrameId: 0 });
+    assert.isTrue(c.showing);
+
+    c.hide(false);
+    assert.isFalse(c.showing);
+    assert.isTrue(c.hiding);
+    assert.equal("none", c.iframeElement.style.display);
+    assert.isTrue(c.iframeElement.classList.contains("suda-ui-component-hidden"));
+  });
 });

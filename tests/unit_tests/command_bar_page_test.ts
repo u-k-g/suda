@@ -75,6 +75,19 @@ context("commandBar page", () => {
     assert.isTrue(callbackWasCalled);
   });
 
+  should("recover from an interrupted hide when reactivated", async () => {
+    ui.hide();
+    assert.isTrue(ui.isHiding);
+
+    await commandBarPage.activate();
+    assert.isFalse(ui.isHiding);
+
+    ui.setQuery("www.example.com");
+    await ui.onKeyEvent(newKeyEvent({ key: "Escape" }));
+    assert.equal("", ui.input.value);
+    assert.isTrue(ui.isHiding);
+  });
+
   should("use the bold command-bar search icon", () => {
     const searchIcon = document.querySelector(".command-bar-search-icon");
     assert.equal("bold", searchIcon.dataset.phosphorWeight);

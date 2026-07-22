@@ -238,6 +238,7 @@ export async function activate(options) {
   if (ui == null) {
     ui = new CommandBarUI();
   }
+  ui.prepareToActivate();
   ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
@@ -261,6 +262,7 @@ class CommandBarUI {
     this.onInput = this.onInput.bind(this);
     this.update = this.update.bind(this);
     this.isHiding = false;
+    this.hideTimeout = null;
     this.onHiddenCallback = null;
     this.initDom();
     // The user's custom search engine, if they have prefixed their query with the keyword for one
@@ -370,25 +372,38 @@ class CommandBarUI {
   //
   // This ensures that the commandBar is actually hidden before any new tab is created, and avoids
   // flicker after opening a link in a new tab then returning to the original tab. See #1485.
+  prepareToActivate() {
+    if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
+    this.hideTimeout = null;
+    this.isHiding = false;
+    this.onHiddenCallback = null;
+  }
+
   hide(onHiddenCallback = null) {
-    if (this.isHiding) return;
+    if (!this.isHiding || onHiddenCallback != null) {
+      this.onHiddenCallback = onHiddenCallback;
+    }
     this.isHiding = true;
-    this.onHiddenCallback = onHiddenCallback;
     this.input.blur();
     this.reset();
+    if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
     // Wait until this iframe's DOM has been rendered before hiding the iframe. This is to prevent
     // Chrome caching the previous visual state of the commandBar iframe. See #4708.
-    setTimeout(() => {
+    this.hideTimeout = setTimeout(() => {
+      this.hideTimeout = null;
       UIComponentMessenger.postMessage({ name: "hide" });
     }, 0);
   }
 
   onHidden() {
+    if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
+    this.hideTimeout = null;
     UIComponentMessenger.postMessage({ name: "commandBarFinishMode", commit: false });
-    this.onHiddenCallback?.();
+    const onHiddenCallback = this.onHiddenCallback;
     this.onHiddenCallback = null;
     this.reset();
     this.isHiding = false;
+    onHiddenCallback?.();
   }
 
   reset() {

@@ -74,6 +74,39 @@ context("CommandBar page zoom geometry", () => {
   });
 });
 
+context("CommandBar dismissal", () => {
+  should("cancel an open which is still waiting for positioning", async () => {
+    let finishPositioning;
+    let didShow = false;
+    stub(CommandBar, "init", () => {});
+    stub(
+      CommandBar,
+      "refreshPositionInBrowserWindow",
+      () => new Promise((resolve) => finishPositioning = resolve),
+    );
+    stub(CommandBar, "commandBarUI", {
+      hide() {},
+      hiding: false,
+      show() {
+        didShow = true;
+      },
+      showing: false,
+    });
+
+    const openPromise = CommandBar.open(0, {
+      completer: "omni",
+      mode: "search",
+      newTab: true,
+    });
+    CommandBar.dismiss();
+    finishPositioning();
+    await openPromise;
+
+    assert.isFalse(didShow);
+    assert.isFalse(CommandBar.opening);
+  });
+});
+
 context("mark jump highlight", () => {
   should("highlight the content at the center of the marked viewport", () => {
     const target = document.createElement("div");
