@@ -11,6 +11,8 @@ const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
 
 const defaultOptions = {
   theme: "arc-dark",
+  // Custom accent color used by the Arc themes.
+  arcAccentColor: "#6CED96",
   keyBindingMode: "helix",
   scrollStepSize: 120,
   fastScrollStepSize: 800,
@@ -132,7 +134,7 @@ const Settings = {
     result = this.migrateSettingsIfNecessary(result);
     result["settingsVersion"] = Utils.getCurrentVersion();
     this._settings = Object.assign(globalThis.structuredClone(defaultOptions), result);
-    globalThis.ThemeManager?.apply(this._settings.theme);
+    globalThis.ThemeManager?.apply(this._settings.theme, undefined, this._settings.arcAccentColor);
   },
 
   isLoaded() {

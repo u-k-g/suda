@@ -6,6 +6,7 @@ import { Commands, KeyMappingsParser } from "../background_scripts/commands.js";
 import * as userSearchEngines from "../background_scripts/user_search_engines.js";
 
 const options = {
+  arcAccentColor: "string",
   disabledCommandBarModes: "inverted-set",
   disabledModelessCommandBarSources: "inverted-set",
   fastScrollStepSize: "number",
@@ -46,7 +47,11 @@ export async function init() {
       themeSelect.appendChild(option);
     }
   }
-  themeSelect.addEventListener("input", () => globalThis.ThemeManager?.apply(themeSelect.value));
+  themeSelect.addEventListener("input", () => {
+    maintainArcAccentView();
+    applyThemePreview();
+  });
+  getOptionEl("arcAccentColor").addEventListener("input", () => applyThemePreview());
 
   const shortcutLabel = document.querySelector("#shortcut-to-save-all");
   shortcutLabel.textContent = KeyboardUtils.platform == "Mac" ? "Cmd-Enter" : "Ctrl-Enter";
@@ -161,6 +166,8 @@ function setFormFromSettings(settings) {
   ExclusionRulesEditor.setForm(settings["exclusionRules"]);
 
   document.querySelector("#upload-backup").value = "";
+  maintainArcAccentView();
+  applyThemePreview();
   maintainLinkHintsView();
   maintainNewTabUrlView();
 }
@@ -199,8 +206,37 @@ function getSettingsFromForm() {
   if (settings["linkHintCharacters"] != null) {
     settings["linkHintCharacters"] = settings["linkHintCharacters"].toLowerCase();
   }
+  const normalizedAccent = globalThis.ThemeManager?.normalizeHexColor(
+    settings["arcAccentColor"],
+  );
+  if (normalizedAccent) settings["arcAccentColor"] = normalizedAccent.toUpperCase();
   settings["exclusionRules"] = ExclusionRulesEditor.getRules();
   return settings;
+}
+
+function isArcThemeSelected() {
+  return globalThis.ThemeManager?.arcThemes.has(getOptionEl("theme").value) ?? false;
+}
+
+// The accent is part of Arc's appearance, so keep this setting out of the way for other themes.
+function maintainArcAccentView() {
+  const visible = isArcThemeSelected();
+  showElement(document.querySelector("#arc-accent-heading"), visible);
+  showElement(document.querySelector("#arc-accent-container"), visible);
+  showElement(document.querySelector("#arc-accent-example"), visible);
+}
+
+// Live-preview both the chosen theme and a valid custom Arc accent.
+function applyThemePreview() {
+  const accentInput = getOptionEl("arcAccentColor");
+  const normalizedAccent = globalThis.ThemeManager?.normalizeHexColor(accentInput.value);
+  globalThis.ThemeManager?.apply(
+    getOptionEl("theme").value,
+    document.documentElement,
+    normalizedAccent,
+  );
+  document.querySelector("#arc-accent-swatch").style.backgroundColor = normalizedAccent ??
+    "transparent";
 }
 
 function getValidationErrors() {
@@ -237,12 +273,18 @@ function getValidationErrors() {
     results["linkHintNumbers"] = "This must be at least two characters long.";
   }
 
+  // Arc accent color field. Hidden theme-specific controls must not block saving another theme.
+  text = getOptionEl("arcAccentColor").value.trim();
+  if (isArcThemeSelected() && !globalThis.ThemeManager?.normalizeHexColor(text)) {
+    results["arcAccentColor"] = "Enter a six-digit hex color, for example #6CED96.";
+  }
+
   return results;
 }
 
 function addValidationMessage(el, message) {
   el.classList.add("validation-error");
-  const exampleEl = el.nextElementSibling;
+  const exampleEl = el.closest("#arc-accent-container") ?? el.nextElementSibling ?? el;
   const messageEl = document.createElement("div");
   messageEl.classList.add("validation-message");
   messageEl.textContent = message;

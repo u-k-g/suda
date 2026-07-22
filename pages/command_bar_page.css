@@ -1,17 +1,46 @@
 :root {
   --command-bar-panel: var(--suda-background-color);
-  --command-bar-input: var(--suda-foreground-color);
-  --command-bar-row: var(--gruvbox-bg-soft);
-  --command-bar-selected: var(--suda-border-color);
+  --command-bar-input: var(--suda-background-color);
+  --command-bar-row: color-mix(in srgb, var(--suda-foreground-color) 72%, transparent);
+  --command-bar-selected: var(--suda-accent-color);
+  --command-bar-selected-text: var(--suda-accent-contrast-color);
   --command-bar-border: var(--suda-border-color);
   --command-bar-border-soft: var(--gruvbox-bg-1);
   --command-bar-text: var(--suda-background-text-color);
   --command-bar-bright: var(--gruvbox-white);
   --command-bar-muted: var(--suda-muted-color);
   --command-bar-dim: var(--gruvbox-fg-dim);
-  --command-bar-accent: var(--gruvbox-yellow-bright);
+  --command-bar-accent: var(--suda-accent-text-color);
   --command-bar-accent-muted: var(--suda-link-color);
   --command-bar-mode: var(--gruvbox-aqua);
+}
+
+html[data-suda-theme="arc-dark"] {
+  --command-bar-panel: color-mix(
+    in srgb,
+    var(--suda-accent-subtle-color) 45%,
+    var(--suda-background-color)
+  );
+  --command-bar-input: var(--command-bar-panel);
+  --command-bar-border: color-mix(
+    in srgb,
+    var(--suda-accent-color) 9%,
+    var(--suda-border-color)
+  );
+  --command-bar-border-soft: color-mix(
+    in srgb,
+    var(--suda-accent-color) 7%,
+    var(--suda-border-color)
+  );
+}
+
+html[data-suda-theme="arc-light"] {
+  --command-bar-panel: color-mix(
+    in srgb,
+    var(--suda-accent-subtle-color) 18%,
+    var(--suda-background-color)
+  );
+  --command-bar-input: var(--command-bar-panel);
 }
 
 * {
@@ -35,7 +64,10 @@ ul {
 #commandBar {
   background: var(--command-bar-panel);
   border: 1px solid var(--command-bar-border);
-  border-radius: 18px;
+  border-radius: 17px;
+  box-shadow:
+    0 22px 55px rgb(0 0 0 / 34%),
+    inset 0 0 0 1px color-mix(in srgb, white 9%, transparent);
   color: var(--command-bar-text);
   display: block;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -50,19 +82,26 @@ ul {
 
 #commandBar-search-area {
   background: var(--command-bar-input);
-  border-bottom: 1px solid var(--command-bar-border-soft);
-  padding: 13px 17px;
+  border-bottom: 0;
+  padding: 15px 19px;
+  position: relative;
 }
 
-#commandBar:not(.has-completions) #commandBar-search-area {
-  border-bottom-color: transparent;
+#commandBar.has-completions #commandBar-search-area::after {
+  background: var(--command-bar-border-soft);
+  bottom: 0;
+  content: "";
+  height: 1px;
+  left: 12px;
+  position: absolute;
+  right: 12px;
 }
 
 #command-bar-input-row {
   align-items: center;
   display: flex;
-  gap: 10px;
-  min-height: 40px;
+  gap: 12px;
+  min-height: 38px;
 }
 
 .phosphor-icon,
@@ -75,23 +114,23 @@ ul {
 }
 
 .command-bar-search-icon {
-  color: var(--command-bar-dim);
+  color: var(--command-bar-muted);
   height: 20px;
   margin-left: 3px;
   width: 20px;
 }
 
 #command-bar-mode {
-  background: var(--gruvbox-green);
-  border: 1px solid var(--gruvbox-green-bright);
+  background: color-mix(in srgb, var(--suda-accent-color) 22%, var(--command-bar-panel));
+  border: 1px solid color-mix(in srgb, var(--suda-accent-color) 38%, transparent);
   border-radius: 999px;
-  color: var(--suda-background-color);
+  color: var(--suda-accent-text-color);
   flex: none;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 26px;
-  padding: 0 11px;
+  padding: 0 12px;
 }
 
 #command-bar-status {
@@ -114,12 +153,14 @@ ul {
   background: transparent;
   border: 0;
   box-shadow: none;
+  caret-color: var(--suda-accent-text-color);
   color: var(--command-bar-bright);
   flex: 1;
   font-family: inherit;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
-  height: 40px;
+  height: 38px;
+  letter-spacing: -0.01em;
   min-width: 0;
   outline: none;
   padding: 0;
@@ -133,41 +174,43 @@ ul {
 }
 
 #commandBar input::selection {
-  background: var(--command-bar-accent-muted);
-  color: var(--command-bar-panel);
+  background: var(--command-bar-selected);
+  color: var(--command-bar-selected-text);
 }
 
 #commandBar ul {
   background: var(--command-bar-panel);
   max-height: min(344px, calc(100vh - 96px));
   overflow: hidden auto;
+  padding: 8px 10px 10px;
   scrollbar-color: var(--command-bar-border) transparent;
   scrollbar-width: thin;
 }
 
 #commandBar li {
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--command-bar-text);
   display: list-item;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.25;
   margin: 2px 0;
-  min-height: 46px;
-  padding: 7px 11px;
+  min-height: 50px;
+  padding: 8px 12px;
   position: relative;
 }
 
 #commandBar li.selected {
   background: var(--command-bar-selected);
-  border-color: var(--suda-border-color);
+  border-color: transparent;
+  color: var(--command-bar-selected-text);
 }
 
 #commandBar li .completion-row {
   align-items: center;
   display: flex;
   gap: 12px;
-  min-height: 30px;
+  min-height: 32px;
   width: 100%;
 }
 
@@ -177,6 +220,18 @@ ul {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+}
+
+#commandBar li .completion-row:not(.mode-result):not(.mark-result) .completion-copy {
+  align-items: baseline;
+  flex-direction: row;
+  gap: 6px;
+  overflow: hidden;
+}
+
+#commandBar li .completion-row:not(.mode-result):not(.mark-result) .bottom-half::before {
+  content: "\2014";
+  margin-right: 6px;
 }
 
 #commandBar li .completion-end {
@@ -191,7 +246,7 @@ ul {
 #commandBar li .completion-action {
   color: var(--command-bar-muted);
   flex: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   margin-left: 12px;
 }
@@ -200,70 +255,64 @@ ul {
   align-items: center;
   background: var(--command-bar-row);
   border: 1px solid var(--command-bar-border);
-  border-radius: 7px;
+  border-radius: 8px;
   color: var(--command-bar-dim);
   display: flex;
   flex: none;
-  height: 26px;
+  height: 28px;
   justify-content: center;
   margin-left: 8px;
-  width: 26px;
+  width: 28px;
 }
 
 #commandBar li .completion-arrow svg {
   fill: currentColor;
-  height: 13px;
-  width: 13px;
-}
-
-#commandBar li.selected .completion-action {
-  color: var(--command-bar-bright);
+  height: 14px;
+  width: 14px;
 }
 
 #commandBar li.selected .completion-arrow {
   background: var(--command-bar-bright);
   border-color: var(--command-bar-bright);
-  color: var(--command-bar-panel);
+  color: var(--command-bar-selected);
 }
 
 #commandBar li .result-icon {
   align-items: center;
-  background: var(--command-bar-row);
-  border: 1px solid var(--command-bar-border-soft);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 8px;
   color: var(--command-bar-dim);
   display: flex;
   flex: none;
-  height: 30px;
+  height: 32px;
   justify-content: center;
-  width: 30px;
+  width: 32px;
 }
 
 #commandBar li.selected .result-icon {
-  background: var(--command-bar-bright);
-  border-color: var(--command-bar-bright);
-  color: var(--command-bar-panel);
+  color: var(--command-bar-selected-text);
 }
 
 #commandBar li .result-icon .phosphor-icon,
 #commandBar li .result-icon .ph-icon {
-  height: 14px;
-  width: 14px;
+  height: 16px;
+  width: 16px;
 }
 
 #commandBar li .result-icon .icon {
-  border-radius: 3px;
-  height: 16px;
+  border-radius: 4px;
+  height: 18px;
   margin: 0;
   object-fit: contain;
   padding: 0;
-  width: 16px;
+  width: 18px;
 }
 
 #commandBar li .mode-name,
 #commandBar li .mark-key {
   color: var(--command-bar-bright);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
 }
 
@@ -278,8 +327,8 @@ ul {
 }
 
 #commandBar.show-mode-descriptions li {
-  min-height: 52px;
-  padding-block: 9px;
+  min-height: 56px;
+  padding-block: 10px;
 }
 
 #commandBar.show-mode-descriptions li .mode-description {
@@ -325,7 +374,7 @@ ul {
 #commandBar li .bottom-half {
   color: var(--command-bar-muted);
   font-size: 12px;
-  margin-top: 3px;
+  margin-top: 0;
   padding-left: 1px;
 }
 
@@ -355,6 +404,10 @@ ul {
   text-transform: uppercase;
 }
 
+#commandBar li .completion-row:not(.mode-result) .source {
+  display: none;
+}
+
 #commandBar li .url {
   color: var(--command-bar-muted);
   overflow: hidden;
@@ -375,6 +428,29 @@ ul {
   font-style: normal;
   font-weight: 620;
   margin-left: 0;
+}
+
+#commandBar li.selected em,
+#commandBar li.selected .title,
+#commandBar li.selected .mode-name,
+#commandBar li.selected .mark-key,
+#commandBar li.selected .match,
+#commandBar li.selected em .match,
+#commandBar li.selected .title .match {
+  color: var(--command-bar-selected-text);
+}
+
+/* On the accent fill, secondary text stays legible but visually subordinate, like Arc. */
+#commandBar li.selected .mode-description,
+#commandBar li.selected .mark-scope,
+#commandBar li.selected .url,
+#commandBar li.selected .bottom-half,
+#commandBar li.selected .completion-action {
+  color: color-mix(
+    in srgb,
+    var(--command-bar-selected-text) 74%,
+    var(--command-bar-selected)
+  );
 }
 
 #commandBar li .relevancy {

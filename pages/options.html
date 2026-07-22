@@ -50,6 +50,11 @@
           <input id="vimKeyBindings" type="radio" name="keyBindingMode" value="vim" />
           <label for="vimKeyBindings">Suda classic</label>
         </div>
+        <div class="example">
+          Helix mode uses <code>g</code> for goto commands, <code>Ctrl-w</code> for tabs,
+          <code>Space</code> for pickers, and selection-first text navigation. Custom mappings below
+          are applied after the selected mode's defaults.
+        </div>
 
         <h2>Theme</h2>
         <select name="theme">
@@ -58,10 +63,21 @@
         <div class="example">
           Choose a Suda interface theme.
         </div>
-        <div class="example">
-          Helix mode uses <code>g</code> for goto commands, <code>Ctrl-w</code> for tabs,
-          <code>Space</code> for pickers, and selection-first text navigation. Custom mappings below
-          are applied after the selected mode's defaults.
+        <h2 id="arc-accent-heading">Accent color</h2>
+        <div id="arc-accent-container" aria-labelledby="arc-accent-heading">
+          <span id="arc-accent-swatch" aria-hidden="true"></span>
+          <input
+            type="text"
+            name="arcAccentColor"
+            aria-label="Custom Arc accent hex color"
+            autocomplete="off"
+            maxlength="7"
+            placeholder="#6CED96"
+            spellcheck="false"
+          />
+        </div>
+        <div class="example" id="arc-accent-example">
+          Accent color for the Arc themes, as a hex code.
         </div>
 
         <h2>Custom key mappings</h2>

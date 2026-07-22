@@ -51,13 +51,56 @@ context("themes", () => {
     assert.equal("arc-light", root.dataset.sudaTheme);
     assert.equal("light", root.style.colorScheme);
     assert.equal("#f4f1ed", properties.get("--suda-background-color"));
-    assert.equal("#6d5bd0", properties.get("--suda-link-color"));
+    assert.equal("#6ced96", properties.get("--suda-link-color"));
+  });
+
+  should("apply a normalized custom accent only to Arc themes", () => {
+    const properties = new Map();
+    const root = {
+      dataset: {},
+      style: {
+        colorScheme: "",
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+
+    ThemeManager.apply("arc-dark", root, "12ABef");
+    assert.equal("#12abef", properties.get("--suda-accent-color"));
+    assert.equal("#12abef", properties.get("--suda-link-color"));
+
+    ThemeManager.apply("gruvbox-dark-hard", root, "#12ABEF");
+    assert.equal("#d79921", properties.get("--suda-accent-color"));
+  });
+
+  should("reject malformed custom accent colors", () => {
+    assert.equal("#6ced96", ThemeManager.normalizeHexColor(" 6CED96 "));
+    assert.equal(null, ThemeManager.normalizeHexColor("#6CED9"));
+    assert.equal(null, ThemeManager.normalizeHexColor("green"));
+  });
+
+  should("derive readable text colors from the accent color", () => {
+    const properties = new Map();
+    const root = {
+      dataset: {},
+      style: {
+        colorScheme: "",
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+
+    // The default mint accent is light, so text drawn on a solid accent fill must be dark.
+    ThemeManager.apply("arc-dark", root, "#6CED96");
+    assert.equal("#1d1d1f", properties.get("--suda-accent-contrast-color"));
+
+    // A dark accent gets white text on top of it.
+    ThemeManager.apply("arc-dark", root, "#312e81");
+    assert.equal("#ffffff", properties.get("--suda-accent-contrast-color"));
   });
 
   should("source the default palette from the theme catalog", () => {
     const theme = ThemeManager.get(ThemeManager.defaultTheme);
     assert.equal("arc-dark", theme.id);
     assert.equal("#19191b", theme.background);
-    assert.equal("#8b7cf6", theme.accent);
+    assert.equal("#6ced96", theme.accent);
   });
 });
