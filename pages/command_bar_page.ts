@@ -164,13 +164,18 @@ function renderCompletion(completion) {
   const isCustomSearch = completion.kind === "custom-search";
   const insertTextClass = completion.insertText ? "" : "no-insert-text";
   const source = completion.source ?? (completion.isUrlMode ? "url" : "search");
+  const hasTitle = completion.title?.length > 0;
+  const primaryText = hasTitle ? completion.title : completion.displayUrl;
+  const primaryMatches = hasTitle ? completion.titleMatches : completion.urlMatches;
   const action = isTab
     ? `<span class="completion-end tab-action">
          <span class="completion-action">Switch to tab</span>
          <span class="completion-arrow">${phosphorIcon("arrow-right")}</span>
        </span>`
     : "";
-  const bottom = isCustomSearch || completion.kind === "verbatim" ? "" : `<span class="bottom-half">
+  const bottom = isCustomSearch || completion.kind === "verbatim" || !hasTitle
+    ? ""
+    : `<span class="bottom-half">
          <span class="url">${renderMatchedText(completion.displayUrl, completion.urlMatches)}</span>
        </span>`;
   return `<div class="completion-row${isTab ? " tab-completion" : ""}">
@@ -179,7 +184,7 @@ function renderCompletion(completion) {
       <span class="top-half">
         <span class="source ${insertTextClass}">${completion.insertText ? "&#8618;" : ""}</span>
         <span class="source">${Utils.escapeHtml(source)}</span>
-        <span class="title">${renderMatchedText(completion.title, completion.titleMatches)}</span>
+        <span class="title">${renderMatchedText(primaryText, primaryMatches)}</span>
       </span>
       ${bottom}
     </span>

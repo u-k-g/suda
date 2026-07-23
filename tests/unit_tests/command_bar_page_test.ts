@@ -465,6 +465,21 @@ context("commandBar page", () => {
     assert.isTrue(ui.completionList.querySelector(".tab-action") != null);
   });
 
+  should("align a URL-only completion in the primary text column", () => {
+    ui.renderCompletions([{
+      kind: "domain",
+      source: "domain",
+      title: "",
+      titleMatches: [],
+      url: "https://fast.com",
+      displayUrl: "fast.com",
+      urlMatches: [[0, 6]],
+    }]);
+
+    assert.equal("fast.com", ui.completionList.querySelector(".title").textContent);
+    assert.equal(null, ui.completionList.querySelector(".bottom-half"));
+  });
+
   should("keep direct mark creation out of the mode selector", async () => {
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("mark");
