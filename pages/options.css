@@ -243,7 +243,6 @@ input[name="scrollStepSize"] {
 }
 
 textarea[name="userDefinedLinkHintCss"],
-textarea[name="keyMappings"],
 textarea[name="searchEngines"] {
   width: 100%;
   min-height: 140px;
@@ -537,6 +536,29 @@ body.options-page h1 {
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin: 0;
+}
+
+#options-title-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.options-page-link {
+  background: var(--options-row);
+  border: 1px solid var(--options-border);
+  border-radius: 7px;
+  color: var(--options-text);
+  font-size: 12px;
+  line-height: 32px;
+  padding: 0 12px;
+  text-decoration: none;
+}
+
+.options-page-link:hover {
+  background: var(--options-row-hover);
+  border-color: var(--suda-accent-color);
+  color: var(--suda-accent-text-color);
 }
 
 #options-shortcut {
@@ -950,6 +972,14 @@ body.options-page #save[disabled] {
 
   #options-shortcut span {
     display: none;
+  }
+
+  #options-title-actions {
+    gap: 7px;
+  }
+
+  .options-page-link {
+    padding: 0 9px;
   }
 
   body.options-page #settings-grid-container {

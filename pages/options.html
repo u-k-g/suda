@@ -25,10 +25,13 @@
             <h1>Options</h1>
           </div>
         </div>
-        <div id="options-shortcut" aria-label="Open options shortcut">
-          <span>Open with</span>
-          <kbd>Space</kbd>
-          <kbd>,</kbd>
+        <div id="options-title-actions">
+          <a class="options-page-link" href="keybindings.html">Keybindings</a>
+          <div id="options-shortcut" aria-label="Open options shortcut">
+            <span>Open with</span>
+            <kbd>Space</kbd>
+            <kbd>,</kbd>
+          </div>
         </div>
       </header>
       <input type="hidden" name="settingsVersion" />
@@ -54,26 +57,6 @@
           "Keys": Suda will exclude these keys and pass them through to the page.
         </div>
 
-        <h2>Keybinding mode</h2>
-        <div>
-          <input
-            id="helixKeyBindings"
-            type="radio"
-            name="keyBindingMode"
-            value="helix"
-            checked
-          />
-          <label for="helixKeyBindings">Helix</label>
-          <br>
-          <input id="vimKeyBindings" type="radio" name="keyBindingMode" value="vim" />
-          <label for="vimKeyBindings">Suda classic</label>
-        </div>
-        <div class="example">
-          Helix mode uses <code>g</code> for goto commands, <code>Ctrl-w</code> for tabs,
-          <code>Space</code> for pickers, and selection-first text navigation. Custom mappings below
-          are applied after the selected mode's defaults.
-        </div>
-
         <h2>Theme</h2>
         <select name="theme">
           <option value="arc-dark">Arc Dark</option>
@@ -96,22 +79,6 @@
         </div>
         <div class="example" id="accent-example">
           Accent color for themes which support customization, as a hex code.
-        </div>
-
-        <h2>Custom key mappings</h2>
-        <textarea name="keyMappings" type="text" spellcheck="false"></textarea>
-        <div class="example">
-          Example syntax:<br>
-          <pre
-            id="exampleKeyMapping"
-          >
-map j scrollDown
-map z2 setZoom level=2
-unmap j
-unmapAll
-" this is a comment
-# this is also a comment</pre>
-          <a href="/pages/command_listing.html" target="_blank">See all available commands</a>.
         </div>
 
         <h2>Custom search engines</h2>

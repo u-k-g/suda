@@ -61,8 +61,8 @@
 <details>
 <summary><strong>configuration</strong></summary>
 
-open Suda's options to switch binding profiles and themes, define custom key mappings, and configure
-search engines, exclusions, link hints and optional new-tab behavior.
+open Suda's keybindings page to switch binding profiles and define custom key mappings. use the
+options page for themes, search engines, exclusions, link hints and optional new-tab behavior.
 
 custom mappings are layered over the selected profile. each line accepts `map key command`,
 `unmap key` or `unmapAll`.

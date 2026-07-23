@@ -13,17 +13,20 @@ context("options page", () => {
     await Settings.clear();
   });
 
-  should("populate the form fields with the settings", () => {
-    const settings = Settings.getSettings();
-    const field = optionsPage.getOptionEl("keyMappings");
-    assert.isTrue(Settings.defaultOptions.keyMappings.length > 0);
-    assert.equal(Settings.defaultOptions.keyMappings, settings.keyMappings);
-    assert.equal(settings.keyMappings, field.value);
+  should("move keybinding controls to the dedicated page", () => {
+    assert.equal(null, optionsPage.getOptionEl("keyMappings"));
+    assert.equal(null, optionsPage.getOptionEl("keyBindingMode"));
+    assert.isTrue(document.querySelector('.options-page-link[href="keybindings.html"]') != null);
   });
 
-  should("select Helix by default while retaining the Suda classic option", () => {
-    assert.isTrue(document.querySelector("#helixKeyBindings").checked);
-    assert.isFalse(document.querySelector("#vimKeyBindings").checked);
+  should("preserve keybinding settings when saving options", async () => {
+    await Settings.set("keyBindingMode", "vim");
+    await Settings.set("keyMappings", "map q scrollUp");
+
+    await optionsPage.saveOptions();
+
+    assert.equal("vim", Settings.get("keyBindingMode"));
+    assert.equal("map q scrollUp", Settings.get("keyMappings"));
   });
 
   should("show the configurable scroll defaults", () => {
@@ -123,20 +126,6 @@ context("options page", () => {
     assert.equal(["bookmarks"], Settings.get("disabledModelessCommandBarSources"));
   });
 
-  should("show validation errors for invalid fields on save", async () => {
-    const el = optionsPage.getOptionEl("keyMappings");
-    assert.isFalse(el.classList.contains("validation-error"));
-    assert.equal(0, document.querySelectorAll(".validation-message").length);
-
-    el.value = "invalid-mapping-statement";
-    await optionsPage.saveOptions();
-    assert.isTrue(el.classList.contains("validation-error"));
-
-    const messageEls = document.querySelectorAll(".validation-message");
-    assert.equal(1, messageEls.length);
-    assert.isTrue(messageEls[0].innerHTML.includes(el.value));
-  });
-
   should("show exclusion rule editor for exclusion rules", async () => {
     const rule = {
       passKeys: "",
@@ -155,16 +144,16 @@ context("options page", () => {
       assert.equal(["settingsVersion"], Object.keys(settings));
     });
 
-    should("include settings which have changed from the default", () => {
-      optionsPage.getOptionEl("keyMappings").value = "map a scrollUp";
+    should("include settings which have changed on another settings page", async () => {
+      await Settings.set("keyMappings", "map a scrollUp");
       const settings = JSON.parse(optionsPage.prepareBackupSettings());
       assert.equal(["keyMappings", "settingsVersion"], Object.keys(settings));
       assert.equal("map a scrollUp", settings.keyMappings);
     });
 
-    should("export settings with sorted keys", () => {
+    should("export settings with sorted keys", async () => {
       optionsPage.getOptionEl("linkHintCharacters").value = "abcd";
-      optionsPage.getOptionEl("keyMappings").value = "map a scrollUp";
+      await Settings.set("keyMappings", "map a scrollUp");
       const settings = JSON.parse(optionsPage.prepareBackupSettings());
       assert.equal(["keyMappings", "linkHintCharacters", "settingsVersion"], Object.keys(settings));
     });

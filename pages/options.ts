@@ -1,8 +1,7 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 import "./all_content_scripts.js";
 import { ExclusionRulesEditor } from "./exclusion_rules_editor.js";
-import { allCommands } from "../background_scripts/all_commands.js";
-import { Commands, KeyMappingsParser } from "../background_scripts/commands.js";
+import { Commands } from "../background_scripts/commands.js";
 import * as userSearchEngines from "../background_scripts/user_search_engines.js";
 
 const options = {
@@ -15,8 +14,6 @@ const options = {
   grabBackFocus: "boolean",
   hideHud: "boolean",
   ignoreKeyboardLayout: "boolean",
-  keyBindingMode: "option",
-  keyMappings: "string",
   linkHintCharacters: "string",
   linkHintNumbers: "string",
   newTabCustomUrl: "string",
@@ -174,7 +171,8 @@ function setFormFromSettings(settings) {
 }
 
 function getSettingsFromForm() {
-  const settings = {};
+  // Preserve settings which live on dedicated pages, such as keyBindingMode and keyMappings.
+  const settings = Settings.getSettings();
   for (const [optionName, optionType] of Object.entries(options)) {
     const el = getOptionEl(optionName);
     let value;
@@ -243,13 +241,6 @@ function applyThemePreview() {
 function getValidationErrors() {
   const results = {};
   let text, parsed;
-
-  // keyMappings field.
-  text = getOptionEl("keyMappings").value.trim();
-  parsed = KeyMappingsParser.parse(text);
-  if (parsed.validationErrors.length > 0) {
-    results["keyMappings"] = parsed.validationErrors.join("\n");
-  }
 
   // searchEngines field.
   text = getOptionEl("searchEngines").value.trim();

@@ -110,6 +110,7 @@
         "pages/help_dialog_page.html",
         "pages/doc_search_completion.html",
         "pages/command_listing.html",
+        "pages/keybindings.html",
         "pages/reload.html",
         "resources/tlds.txt",
         "_favicon/*"
