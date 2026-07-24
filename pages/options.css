@@ -220,10 +220,12 @@ input[name="newTabCustomUrl"] {
   width: 400px;
 }
 
+/* These used to be display:contents for the legacy 3-column grid. Structured rows keep them as
+ * normal block/grid containers so left-copy / right-control layout is preserved. */
 #link-hint-characters-container,
 #link-hint-numbers-container,
 #wait-for-enter {
-  display: contents;
+  display: grid;
 }
 
 .link-hint-characters-field {

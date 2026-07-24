@@ -94,20 +94,19 @@ context("options page", () => {
   should("show the default accent field only for Arc themes", () => {
     const theme = optionsPage.getOptionEl("theme");
     const accent = optionsPage.getOptionEl("accentColor");
-    const container = document.querySelector("#accent-container");
+    const row = document.querySelector("#accent-row");
 
     assert.equal("arc-dark", theme.value);
     assert.equal("#6CED96", accent.value);
-    assert.isFalse(container.style.display === "none");
+    assert.isFalse(row.style.display === "none");
 
     theme.value = "gruvbox-dark-hard";
     theme.dispatchEvent(new window.Event("input"));
-    assert.equal("none", container.style.display);
-    assert.equal("none", document.querySelector("#accent-heading").style.display);
+    assert.equal("none", row.style.display);
 
     theme.value = "arc-light";
     theme.dispatchEvent(new window.Event("input"));
-    assert.isFalse(container.style.display === "none");
+    assert.isFalse(row.style.display === "none");
   });
 
   should("preview and save a valid custom Arc accent", async () => {

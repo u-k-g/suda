@@ -122,6 +122,7 @@ export async function init() {
 
 function enhanceSettingsControls() {
   const enhanceRadioGroup = (container, label) => {
+    if (!container || container.classList.contains("enhanced-radio-group")) return;
     const radios = Array.from(container.querySelectorAll(':scope > input[type="radio"]'));
     const select = document.createElement("select");
     select.className = "setting-enum-select";
@@ -145,13 +146,16 @@ function enhanceSettingsControls() {
 
   enhanceRadioGroup(document.querySelector("#new-tab-url-container"), "New tab destination");
   enhanceRadioGroup(
-    document.querySelector("#commandBarCenterWindow").parentElement,
+    document.querySelector("#command-bar-center-container"),
     "Command bar centering",
   );
 
   const createEditorDisclosure = (target, label) => {
+    if (!target) return;
     const row = target.closest(".setting-row");
-    const control = row.querySelector(".setting-control");
+    const control = row?.querySelector(".setting-control");
+    if (!row || !control || row.querySelector(".setting-editor-toggle")) return;
+
     const panel = document.createElement("div");
     const toggle = document.createElement("button");
     const panelId = `setting-editor-${target.id || target.name}`;
@@ -190,109 +194,11 @@ function syncEnhancedControls() {
   }
 }
 
+// Settings markup is authored as left-copy / right-control rows. Keep this hook so tests and
+// callers can still re-run init without double-enhancing controls.
 function structureSettingsLayout() {
   const container = document.querySelector("#settings-grid-container");
-  if (container.dataset.layoutReady === "true") return;
   container.dataset.layoutReady = "true";
-
-  const createRow = (heading, control, description, row = document.createElement("div")) => {
-    row.classList.add("setting-row");
-    const copy = document.createElement("div");
-    copy.className = "setting-copy";
-    const controlContainer = document.createElement("div");
-    controlContainer.className = "setting-control";
-    copy.append(heading);
-    if (description) copy.append(description);
-    controlContainer.append(control);
-    row.append(copy, controlContainer);
-    return row;
-  };
-
-  const createBooleanRow = (
-    sourceLabel,
-    description,
-    row = document.createElement("div"),
-  ) => {
-    const input = sourceLabel.querySelector('input[type="checkbox"]');
-    const title = sourceLabel.textContent.trim();
-    input.id ||= `setting-${input.name}`;
-
-    const heading = document.createElement("label");
-    heading.className = "setting-name";
-    heading.htmlFor = input.id;
-    heading.textContent = title;
-
-    const switchLabel = document.createElement("label");
-    switchLabel.className = "setting-switch";
-    switchLabel.htmlFor = input.id;
-    switchLabel.append(input);
-    sourceLabel.remove();
-
-    return createRow(heading, switchLabel, description, row);
-  };
-
-  const structureNestedRow = (row) => {
-    const children = Array.from(row.children);
-    const heading = children.find((child) => child.matches("h2"));
-    const description = children.find((child) => child.matches(".example"));
-    const control = children.find((child) => child !== heading && child !== description);
-    if (!control) return;
-    if (control.matches(".boolean-label")) {
-      heading?.remove();
-      createBooleanRow(control, description, row);
-    } else {
-      createRow(heading, control, description, row);
-    }
-  };
-
-  const children = Array.from(container.children);
-  for (let index = 0; index < children.length;) {
-    const element = children[index];
-    if (element.matches("header")) {
-      element.classList.add("settings-section-heading");
-      index++;
-      continue;
-    }
-    if (element.matches(".spacer")) {
-      element.remove();
-      index++;
-      continue;
-    }
-    if (
-      ["link-hint-characters-container", "link-hint-numbers-container", "wait-for-enter"].includes(
-        element.id,
-      )
-    ) {
-      structureNestedRow(element);
-      index++;
-      continue;
-    }
-    if (element.matches(".boolean-label")) {
-      const description = children[index + 1]?.matches(".example") ? children[index + 1] : null;
-      const row = document.createElement("div");
-      container.insertBefore(row, element);
-      createBooleanRow(element, description, row);
-      index += description ? 2 : 1;
-      continue;
-    }
-    if (!element.matches("h2")) {
-      index++;
-      continue;
-    }
-
-    const control = children[index + 1];
-    const description = children[index + 2]?.matches(".example") ? children[index + 2] : null;
-    if (!control) break;
-    const row = document.createElement("div");
-    container.insertBefore(row, element);
-    if (control.matches(".boolean-label")) {
-      element.remove();
-      createBooleanRow(control, description, row);
-    } else {
-      createRow(element, control, description, row);
-    }
-    index += description ? 3 : 2;
-  }
 }
 
 export function getOptionEl(optionName) {
@@ -398,11 +304,7 @@ function isCustomAccentThemeSelected() {
 // Keep the control out of the way for themes whose accent is fixed by their palette.
 function maintainAccentView() {
   const visible = isCustomAccentThemeSelected();
-  const heading = document.querySelector("#accent-heading");
-  showElement(heading.closest(".setting-row"), visible);
-  showElement(heading, visible);
-  showElement(document.querySelector("#accent-container"), visible);
-  showElement(document.querySelector("#accent-example"), visible);
+  showElement(document.querySelector("#accent-row"), visible);
 }
 
 // Live-preview both the chosen theme and a valid custom accent.
