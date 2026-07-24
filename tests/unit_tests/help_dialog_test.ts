@@ -14,7 +14,9 @@ context("help dialog", () => {
         const data = {
           "reload": {
             "": ["a"],
-            "hard": ["b"],
+          },
+          "hardReload": {
+            "": ["b"],
           },
         };
         return { commandToOptionsToKeys: data };
@@ -22,19 +24,25 @@ context("help dialog", () => {
     });
   });
 
-  should("getRowsForDialog includes one row per command-options pair", () => {
+  should("list reload and hard reload as separate commands", () => {
     const config = {
       "reload": {
         "": ["a"],
-        "hard": ["b", "c"],
+      },
+      "hardReload": {
+        "": ["b", "c"],
       },
     };
     const result = HelpDialogPage.getRowsForDialog(config);
-    const rows = result["navigation"]
-      .filter((row) => row[0].name == "reload");
+    const rows = result["navigation"].filter((row) =>
+      ["reload", "hardReload"].includes(row[0].name)
+    );
     assert.equal(2, rows.length);
     assert.equal(["reload", "", ["a"]], [rows[0][0].name, rows[0][1], rows[0][2]]);
-    assert.equal(["reload", "hard", ["b", "c"]], [rows[1][0].name, rows[1][1], rows[1][2]]);
+    assert.equal(
+      ["hardReload", "", ["b", "c"]],
+      [rows[1][0].name, rows[1][1], rows[1][2]],
+    );
   });
 
   should("have a section in the help dialog for every group", async () => {

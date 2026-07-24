@@ -529,13 +529,20 @@ const BackgroundCommands = {
     await selectNextRecentTab(tab.id);
   },
 
-  async reload({ count, tab, registryEntry }) {
-    const bypassCache = registryEntry.options.hard != null ? registryEntry.options.hard : false;
-    await forCountTabs(count, tab, async (tab) => {
-      await bgUtils.runTabOperation(() => chrome.tabs.reload(tab.id, { bypassCache }));
-    });
+  async reload(request) {
+    await reloadTabs(request, false);
+  },
+
+  async hardReload(request) {
+    await reloadTabs(request, true);
   },
 };
+
+async function reloadTabs({ count, tab }, bypassCache) {
+  await forCountTabs(count, tab, async (tab) => {
+    await bgUtils.runTabOperation(() => chrome.tabs.reload(tab.id, { bypassCache }));
+  });
+}
 
 async function forCountTabs(count, currentTab, callback) {
   const tabs = await chrome.tabs.query(visibleTabsQueryArgs);

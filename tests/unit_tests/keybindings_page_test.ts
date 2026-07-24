@@ -67,7 +67,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="reload"][data-key="<space>r"]',
     );
     const hard = document.querySelector(
-      '.binding-row[data-command="reload"][data-key="<space>R"]',
+      '.binding-row[data-command="hardReload"][data-key="<space>R"]',
     );
 
     assert.isTrue(soft != null);
@@ -80,6 +80,22 @@ context("keybindings page", () => {
     assert.isTrue(hard.querySelector(".revert-binding").hidden);
     assert.isFalse(soft.querySelector(".command-description").classList.contains("command-custom"));
     assert.isFalse(hard.querySelector(".command-description").classList.contains("command-custom"));
+  });
+
+  should("omit the removed alternate navigation and tab bindings", () => {
+    for (
+      const key of [
+        "zj",
+        "zk",
+        "<c-o>",
+        "<c-i>",
+        "<c-w>h",
+        "<c-w>l",
+        "<c-w>w",
+      ]
+    ) {
+      assert.equal(null, document.querySelector(`.binding-row[data-key="${key}"]`));
+    }
   });
 
   should("list every registered command, including those without a default binding", async () => {
@@ -266,9 +282,6 @@ context("keybindings page", () => {
     assert.equal(
       null,
       document.querySelector('.binding-row[data-command="scrollDown"][data-key="j"]'),
-    );
-    assert.isTrue(
-      document.querySelector('.binding-row[data-command="scrollDown"][data-key="zj"]') != null,
     );
     const removedDefault = document.querySelector(
       '.binding-row[data-command="scrollDown"][data-key=""][data-revert-key="j"]',

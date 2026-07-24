@@ -103,7 +103,7 @@ function formatOptionString(options) {
   }).join(" ");
 }
 
-// helixKeyMappings values may include options, e.g. "reload hard" → command reload + hard flag.
+// Keep option-bearing default mappings compatible with the general mapping parser.
 function parseDefaultBindingSpec(spec) {
   const parsed = KeyMappingsParser.parse(`map __default__ ${spec}`);
   const entry = parsed.keyToRegistryEntry["__default__"];
@@ -125,10 +125,6 @@ function matchesDefaultBinding(key, commandName, optionString) {
 
 function commandTitle(command, optionString) {
   if (!optionString) return command.desc;
-  // Single boolean flag with a documented meaning → use a short distinct title.
-  if (optionString === "hard" && command.name === "reload") {
-    return "Hard reload the page";
-  }
   return `${command.desc} (${optionString})`;
 }
 

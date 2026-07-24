@@ -247,6 +247,15 @@ const Settings = {
     return settings;
   },
 
+  migrateHardReloadCommand(settings) {
+    if (typeof settings.keyMappings !== "string") return settings;
+    settings.keyMappings = settings.keyMappings.replace(
+      /^(\s*map\s+\S+\s+)reload\s+hard\s*$/gm,
+      "$1hardReload",
+    );
+    return settings;
+  },
+
   // Returns a settings object and performs any migrations required if the settings object is from
   // an older version of Suda.
   migrateSettingsIfNecessary(settings) {
@@ -255,6 +264,7 @@ const Settings = {
     settings = this.migratePre2_4_1(settings);
     settings = this.migrateAccentColor(settings);
     settings = this.migrateLegacyKeyBindingMode(settings);
+    settings = this.migrateHardReloadCommand(settings);
     return settings;
   },
 

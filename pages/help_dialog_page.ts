@@ -24,10 +24,8 @@ function ellipsize(s, maxLength) {
 }
 
 // Returns true if the command should be labeled as "advanced" for UI purposes.
-function isAdvancedCommand(command, options) {
-  // Use some bespoke logic to label some command + option combos as advanced.
-  return command.advanced ||
-    (command.name == "reload" && options.includes("hard"));
+function isAdvancedCommand(command) {
+  return command.advanced;
 }
 
 const HelpDialogPage = {
@@ -98,7 +96,7 @@ const HelpDialogPage = {
 
     const rowEl = rowTemplate.cloneNode(true);
     rowEl.querySelector(".help-description").textContent = command.desc;
-    if (isAdvancedCommand(command, options)) {
+    if (isAdvancedCommand(command)) {
       rowEl.querySelector(".row").classList.add("advanced");
     }
     const keysEl = rowEl.querySelector(".key-bindings");

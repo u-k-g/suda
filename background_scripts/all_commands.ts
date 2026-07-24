@@ -112,9 +112,16 @@ const allCommands = [
     desc: "Reload the page",
     group: "navigation",
     background: true,
-    options: {
-      hard: "Perform a hard reload, forcing the browser to bypass its cache.",
-    },
+    noRepeat: true,
+  },
+
+  {
+    name: "hardReload",
+    desc: "Hard reload the page",
+    details: "Reload the page while forcing the browser to bypass its cache.",
+    group: "navigation",
+    background: true,
+    advanced: true,
     noRepeat: true,
   },
 

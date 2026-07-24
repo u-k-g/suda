@@ -422,8 +422,6 @@ const helixKeyMappings = {
   "<c-u>": "scrollPageUp",
   "<c-f>": "scrollFullPageDown",
   "<c-b>": "scrollFullPageUp",
-  "zj": "scrollDown",
-  "zk": "scrollUp",
   "zi": "zoomIn",
   "zo": "zoomOut",
   "z0": "zoomReset",
@@ -440,10 +438,6 @@ const helixKeyMappings = {
   "gU": "goToRoot",
   "[[": "goPrevious",
   "]]": "goNext",
-
-  // Browser history behaves like Helix's jumplist.
-  "<c-o>": "goBack",
-  "<c-i>": "goForward",
 
   // Modes and selection-first actions
   "i": "enterInsertMode",
@@ -475,15 +469,12 @@ const helixKeyMappings = {
   "<space>m": "Marks.activateCreateMode",
   "<space>'": "CommandBar.activateMarks",
   "<space>r": "reload",
-  "<space>R": "reload hard",
+  "<space>R": "hardReload",
   "<space>v": "toggleViewSource",
   "<space>,": "openOptionsPage",
   ":": "CommandBar.activateModeSelection",
 
   // Window mode: tabs are the browser equivalent of editor windows.
-  "<c-w>w": "nextTab",
-  "<c-w>h": "previousTab",
-  "<c-w>l": "nextTab",
   "<c-w>q": "removeTab",
   "<c-w>n": "CommandBar.activateInNewTab",
   "<c-w>d": "duplicateTab",

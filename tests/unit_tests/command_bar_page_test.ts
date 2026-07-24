@@ -498,6 +498,6 @@ context("commandBar page", () => {
     await ui.updateCompletions();
     assert.equal(1, ui.completionList.childNodes.length);
     const keys = Array.from(ui.completionList.querySelectorAll(".key")).map((x) => x.textContent);
-    assert.equal(["gn", "<c-w>w", "<c-w>l"], keys);
+    assert.equal(["gn"], keys);
   });
 });

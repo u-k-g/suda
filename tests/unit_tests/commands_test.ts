@@ -299,6 +299,7 @@ context("Validate commands and options data structures", () => {
   should("bind Helix r to recent-tab cycling while keeping reload under Space", () => {
     assert.equal("cycleRecentTabs", helixKeyMappings["r"]);
     assert.equal("reload", helixKeyMappings["<space>r"]);
+    assert.equal("hardReload", helixKeyMappings["<space>R"]);
   });
 
   should("bind Helix a directly to caret mode", () => {
@@ -326,6 +327,14 @@ context("Validate commands and options data structures", () => {
   should("bind u and U to browser history navigation", () => {
     assert.equal("goBack", helixKeyMappings["u"]);
     assert.equal("goForward", helixKeyMappings["U"]);
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-o>"));
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-i>"));
+  });
+
+  should("omit the redundant scroll and Ctrl-W tab navigation bindings", () => {
+    for (const key of ["zj", "zk", "<c-w>h", "<c-w>l", "<c-w>w"]) {
+      assert.isFalse(Object.hasOwn(helixKeyMappings, key));
+    }
   });
 
   should("leave Ctrl-W o unbound", () => {

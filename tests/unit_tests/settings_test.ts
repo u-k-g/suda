@@ -43,6 +43,26 @@ context("settings", () => {
     });
   });
 
+  context("hard reload command migration", () => {
+    teardown(async () => {
+      await Settings.clear();
+    });
+
+    should("convert the old reload hard option into the hardReload command", async () => {
+      await chrome.storage.sync.set({
+        settingsVersion: "2.4.1",
+        keyMappings: "map <space>x reload hard\nmap y reload",
+      });
+
+      await Settings.load();
+
+      assert.equal(
+        "map <space>x hardReload\nmap y reload",
+        Settings.get("keyMappings"),
+      );
+    });
+  });
+
   context("v2.0 migration", () => {
     setup(async () => {
       // Prior to Suda 2.0.0, the settings values were encoded as JSON strings.

@@ -129,6 +129,7 @@ globalThis.chrome = {
   tabs: {
     create() {},
     get(_id) {},
+    reload(_id, _properties) {},
     remove() {},
     onCreated: {
       addListener() {

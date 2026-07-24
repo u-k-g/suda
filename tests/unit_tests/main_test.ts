@@ -197,6 +197,23 @@ context("openKeybindingsPage command", () => {
   });
 });
 
+context("reload commands", () => {
+  should("keep normal and hard reload as distinct browser actions", async () => {
+    const reloads = [];
+    const tab = { id: 42, index: 0, windowId: 7 };
+    stub(chrome.tabs, "query", async () => [tab]);
+    stub(chrome.tabs, "reload", async (tabId, options) => reloads.push({ tabId, options }));
+
+    await BackgroundCommands.reload({ count: 1, tab });
+    await BackgroundCommands.hardReload({ count: 1, tab });
+
+    assert.equal([
+      { tabId: 42, options: { bypassCache: false } },
+      { tabId: 42, options: { bypassCache: true } },
+    ], reloads);
+  });
+});
+
 context("selectSpecificTab", () => {
   should("ignore a tab which closed after its command-bar suggestion was rendered", async () => {
     stub(chrome.tabs, "get", async () => {

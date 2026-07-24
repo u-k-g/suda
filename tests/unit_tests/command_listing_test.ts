@@ -15,7 +15,9 @@ context("command listing", () => {
         const data = {
           "reload": {
             "": ["a"],
-            "hard": ["b"],
+          },
+          "hardReload": {
+            "": ["b"],
           },
         };
         return { commandToOptionsToKeys: data };
@@ -48,7 +50,8 @@ context("command listing", () => {
       return keys;
     };
     await commandListing.populatePage();
-    assert.equal(["a", "b"], getKeys("reload"));
+    assert.equal(["a"], getKeys("reload"));
+    assert.equal(["b"], getKeys("hardReload"));
     // This command isn't bound in our stubbed test environment:
     assert.equal([], getKeys("scrollDown"));
   });
