@@ -48,7 +48,7 @@ context("keybindings page", () => {
     const scrollDown = document.querySelector('[data-command="scrollDown"]');
     assert.isTrue(scrollDown != null);
     assert.isTrue(
-      Array.from(scrollDown.querySelectorAll("kbd")).some((key) => key.textContent === "J"),
+      Array.from(scrollDown.querySelectorAll("kbd")).some((key) => key.textContent === "j"),
     );
 
     const options = document.querySelector('[data-command="openOptionsPage"]');
@@ -146,7 +146,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="qq"]',
     );
     assert.equal(
-      ["Q", "Q"],
+      ["q", "q"],
       Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
     );
   });
@@ -161,7 +161,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="<c-d>"]',
     );
     assert.equal(
-      ["Ctrl", "D"],
+      ["Ctrl", "d"],
       Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
     );
     assert.equal("+", rebound.querySelector(".key-chord-joiner").textContent);
@@ -178,7 +178,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="<c-w>l"]',
     );
     assert.equal(
-      ["Ctrl", "W", "L"],
+      ["Ctrl", "w", "l"],
       Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
     );
     assert.equal("+", rebound.querySelector(".key-chord-joiner").textContent);
@@ -196,7 +196,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="<space>t"]',
     );
     assert.equal(
-      ["Space", "T"],
+      ["Space", "t"],
       Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
     );
     assert.equal("›", rebound.querySelector(".key-sequence-separator").textContent);
@@ -212,11 +212,34 @@ context("keybindings page", () => {
     assert.isTrue(
       document.querySelector('.binding-row[data-command="scrollDown"][data-key="k"]') != null,
     );
+
+    // The command that lost its default key should still get a restore control.
+    const displaced = document.querySelector(
+      '.binding-row[data-command="scrollUp"][data-key=""][data-revert-key="k"]',
+    );
+    assert.isTrue(displaced != null);
+    assert.isFalse(displaced.querySelector(".revert-binding").hidden);
+    assert.isTrue(displaced.classList.contains("is-custom"));
   });
 
-  should("remove a binding with its clear control", async () => {
+  should("remove a binding with Escape while capturing", async () => {
     const row = document.querySelector('.binding-row[data-command="scrollDown"][data-key="j"]');
-    row.querySelector(".clear-binding").click();
+    const editor = row.querySelector(".binding-editor");
+    assert.equal(null, row.querySelector(".clear-binding"));
+    assert.equal(
+      editor,
+      row.querySelector(".revert-binding")?.nextElementSibling ??
+        row.querySelector(".binding-editor"),
+    );
+
+    editor.click();
+    editor.dispatchEvent(
+      new window.KeyboardEvent("keydown", {
+        bubbles: true,
+        code: "Escape",
+        key: "Escape",
+      }),
+    );
     await waitForBindingSave();
 
     assert.isTrue(Settings.get("keyMappings").includes("unmap j"));
@@ -232,6 +255,11 @@ context("keybindings page", () => {
     );
     assert.isTrue(removedDefault.classList.contains("is-custom"));
     assert.isFalse(removedDefault.querySelector(".revert-binding").hidden);
+    // Revert control stays immediately left of the keybinding editor.
+    assert.equal(
+      removedDefault.querySelector(".binding-editor"),
+      removedDefault.querySelector(".revert-binding").nextElementSibling,
+    );
   });
 
   should("revert a changed binding to its default", async () => {
@@ -241,6 +269,10 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="x"]',
     );
     assert.isFalse(changed.querySelector(".revert-binding").hidden);
+    assert.equal(
+      changed.querySelector(".binding-editor"),
+      changed.querySelector(".revert-binding").nextElementSibling,
+    );
     changed.querySelector(".revert-binding").click();
     await waitForBindingSave();
 
@@ -260,7 +292,15 @@ context("keybindings page", () => {
     const original = document.querySelector(
       '.binding-row[data-command="scrollDown"][data-key="j"]',
     );
-    original.querySelector(".clear-binding").click();
+    const editor = original.querySelector(".binding-editor");
+    editor.click();
+    editor.dispatchEvent(
+      new window.KeyboardEvent("keydown", {
+        bubbles: true,
+        code: "Escape",
+        key: "Escape",
+      }),
+    );
     await waitForBindingSave();
 
     const removedDefault = document.querySelector(

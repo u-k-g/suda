@@ -16,8 +16,10 @@ const captureCommitDelay = 1000;
 let activeCapture = null;
 
 function formatKeyTokenParts(token) {
+  // Preserve letter case as stored in the mapping (e.g. "j" stays "j"). Only named keys
+  // like Space / Enter get title-case labels.
   if (!token.startsWith("<")) {
-    return [/^[a-z]$/.test(token) ? token.toUpperCase() : token];
+    return [token];
   }
   const parts = token.slice(1, -1).split("-");
   const modifierNames = {
@@ -45,8 +47,7 @@ function formatKeyTokenParts(token) {
     tab: "Tab",
     up: "Up",
   };
-  const displayKey = namedKeys[keyName] ??
-    (modifiers.length > 0 && /^[a-z]$/.test(keyName) ? keyName.toUpperCase() : keyName);
+  const displayKey = namedKeys[keyName] ?? keyName;
   return [...modifiers, displayKey];
 }
 
@@ -177,12 +178,17 @@ function buildBindingRows(customMappings) {
       });
     }
 
-    // Keep a visible, revertible row when a default binding was removed without a replacement.
+    // Lost defaults for this command: show a revertible empty row unless an active row for
+    // *this* command already reverts that key (e.g. j→x still restores j from the x row).
+    // Keys stolen by another command stay claimed above but still need a victim row here.
     const removedDefaults = [...missingDefaultKeys].filter((key) => {
-      return defaultKeyToCommand[key] === command.name && !claimedDefaultKeys.has(key);
+      if (defaultKeyToCommand[key] !== command.name) return false;
+      const coveredByActiveRow = bindings.some((binding) =>
+        (revertKeysByActiveKey[binding.key] ?? []).includes(key)
+      );
+      return !coveredByActiveRow;
     });
     for (const revertKey of removedDefaults) {
-      claimedDefaultKeys.add(revertKey);
       rows.push({
         ...command,
         key: "",
@@ -265,16 +271,13 @@ function renderBindings() {
       renderBindingValue(keysContainer, row.key);
       editor.setAttribute(
         "aria-label",
-        `${row.desc}: ${row.key ? `currently ${row.key}` : "currently unbound"}. Edit keybinding`,
+        `${row.desc}: ${
+          row.key ? `currently ${row.key}` : "currently unbound"
+        }. Edit keybinding. Press Escape while capturing to remove the binding.`,
       );
       editor.addEventListener("click", () => beginShortcutCapture(editor, row));
       editor.addEventListener("keydown", onCaptureKeydown);
       editor.addEventListener("blur", () => finishCaptureOnBlur(editor));
-
-      const clearButton = rowNode.querySelector(".clear-binding");
-      clearButton.hidden = !row.key;
-      clearButton.setAttribute("aria-label", `Remove ${row.key} from ${row.desc}`);
-      clearButton.addEventListener("click", () => void updateBinding(row, ""));
 
       const revertButton = rowNode.querySelector(".revert-binding");
       revertButton.hidden = !row.isCustom;
@@ -343,14 +346,18 @@ function showCaptureValue(capture) {
   }
 }
 
+function endCaptureUi(editor) {
+  editor.classList.remove("is-recording");
+  editor.querySelector(".binding-edit-label").textContent = "Edit";
+  editor.removeAttribute("aria-live");
+}
+
 function cancelShortcutCapture() {
   if (activeCapture == null) return;
   clearTimeout(activeCapture.timer);
   const { editor, row } = activeCapture;
   activeCapture = null;
-  editor.classList.remove("is-recording");
-  editor.querySelector(".binding-edit-label").textContent = "Edit";
-  editor.removeAttribute("aria-live");
+  endCaptureUi(editor);
   renderBindingValue(editor.querySelector(".binding-keys"), row.key);
 }
 
@@ -359,7 +366,7 @@ function beginShortcutCapture(editor, row) {
   cancelShortcutCapture();
   activeCapture = { editor, row, tokens: [], timer: null };
   editor.classList.add("is-recording");
-  editor.querySelector(".binding-edit-label").textContent = "Recording";
+  editor.querySelector(".binding-edit-label").textContent = "Edit";
   editor.setAttribute("aria-live", "polite");
   showCaptureValue(activeCapture);
   editor.focus();
@@ -370,7 +377,7 @@ function onCaptureKeydown(event) {
   event.preventDefault();
   event.stopPropagation();
   if (event.key === "Escape") {
-    cancelShortcutCapture();
+    void clearBindingFromCapture();
     return;
   }
   if (event.repeat || KeyboardUtils.isModifier(event)) return;
@@ -394,14 +401,27 @@ function finishCaptureOnBlur(editor) {
   });
 }
 
+async function clearBindingFromCapture() {
+  if (activeCapture == null) return;
+  clearTimeout(activeCapture.timer);
+  const { editor, row } = activeCapture;
+  activeCapture = null;
+  endCaptureUi(editor);
+  if (row.key) {
+    editor.querySelector(".binding-edit-label").textContent = "Saving";
+    await updateBinding(row, "");
+  } else {
+    renderBindingValue(editor.querySelector(".binding-keys"), "");
+  }
+}
+
 async function commitShortcutCapture() {
   if (activeCapture == null || activeCapture.tokens.length === 0) return;
   clearTimeout(activeCapture.timer);
   const { editor, row, tokens } = activeCapture;
   activeCapture = null;
-  editor.classList.remove("is-recording");
+  endCaptureUi(editor);
   editor.querySelector(".binding-edit-label").textContent = "Saving";
-  editor.removeAttribute("aria-live");
   await updateBinding(row, tokens.join(""));
 }
 

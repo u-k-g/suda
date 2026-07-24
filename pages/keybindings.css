@@ -250,38 +250,102 @@ body.keybindings-page .validation-message {
 .binding-control {
   align-items: center;
   display: flex;
-  gap: 6px;
+  gap: 8px;
   justify-content: flex-end;
 }
 
+/* Revert sits to the left of the keybinding cell.
+ * Beat body.options-page button styles (border/padding/min-height) so the glyph isn't crushed. */
+body.options-page .revert-binding,
+body.settings-page .revert-binding,
+.revert-binding {
+  -webkit-appearance: none;
+  appearance: none;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--bindings-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  height: 32px;
+  justify-content: center;
+  margin: 0;
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0;
+  transition: background-color 120ms ease, color 120ms ease;
+  width: 32px;
+}
+
+body.options-page .revert-binding svg,
+body.settings-page .revert-binding svg,
+.revert-binding svg {
+  display: block;
+  fill: currentColor;
+  flex: none;
+  height: 18px;
+  min-height: 18px;
+  min-width: 18px;
+  width: 18px;
+}
+
+body.options-page .revert-binding:hover,
+body.settings-page .revert-binding:hover,
+body.options-page .revert-binding:focus-visible,
+body.settings-page .revert-binding:focus-visible,
+.revert-binding:hover,
+.revert-binding:focus-visible {
+  background: color-mix(in srgb, var(--bindings-row) 80%, transparent);
+  border: 0;
+  box-shadow: none;
+  color: var(--bindings-text);
+}
+
+body.options-page .revert-binding[hidden],
+body.settings-page .revert-binding[hidden],
+.revert-binding[hidden] {
+  display: none;
+}
+
+/* Keys + EDIT badge, similar to a compact inline keybinding chip group. */
 .binding-editor {
   -webkit-appearance: none;
   appearance: none;
   align-items: center;
-  background: color-mix(in srgb, var(--bindings-row) 64%, transparent);
-  border: 1px solid var(--bindings-border);
+  background: transparent;
+  border: 0;
   border-radius: 8px;
+  box-shadow: none;
   color: var(--bindings-text);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   font: inherit;
-  gap: 10px;
-  justify-content: space-between;
-  min-height: 34px;
-  min-width: 180px;
-  padding: 5px 8px;
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  gap: 6px;
+  justify-content: flex-end;
+  margin: 0;
+  min-height: 28px;
+  min-width: 0;
+  padding: 2px 0;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .binding-editor:hover,
-.binding-editor:focus-visible,
-.binding-editor.is-recording {
-  background: var(--bindings-row-hover);
-  border-color: var(--suda-accent-color);
+.binding-editor:focus-visible {
+  background: transparent;
+}
+
+.binding-editor:focus-visible {
+  box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
+  outline: none;
 }
 
 .binding-editor.is-recording {
+  border-radius: 8px;
   box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
+  padding-inline: 6px;
 }
 
 .binding-editor .binding-keys {
@@ -289,76 +353,41 @@ body.keybindings-page .validation-message {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  justify-content: flex-start;
+  justify-content: flex-end;
   min-width: 0;
 }
 
 .binding-edit-label {
+  background: color-mix(in srgb, var(--bindings-row) 88%, transparent);
+  border: 1px solid var(--bindings-border);
+  border-radius: 6px;
   color: var(--bindings-muted);
   flex: none;
   font-size: 9px;
   font-weight: 750;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  line-height: 20px;
+  padding: 0 6px;
   text-transform: uppercase;
 }
 
-.binding-editor.is-recording .binding-edit-label,
-.binding-capture-prompt {
-  color: var(--suda-accent-text-color);
+.binding-editor:hover .binding-edit-label,
+.binding-editor:focus-visible .binding-edit-label,
+.binding-editor.is-recording .binding-edit-label {
+  background: color-mix(in srgb, var(--suda-surface-color) 88%, transparent);
+  border-color: color-mix(in srgb, var(--bindings-border) 70%, var(--suda-accent-color));
+  color: var(--bindings-text);
 }
 
 .binding-capture-prompt {
+  color: var(--bindings-muted);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 550;
   white-space: nowrap;
 }
 
-.clear-binding,
-.revert-binding {
-  -webkit-appearance: none;
-  appearance: none;
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  color: var(--bindings-muted);
-  cursor: pointer;
-  display: inline-flex;
-  flex: none;
-  height: 28px;
-  justify-content: center;
-  opacity: 0;
-  padding: 0;
-  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
-  width: 28px;
-}
-
-.clear-binding svg,
-.revert-binding svg {
-  fill: currentColor;
-  height: 14px;
-  width: 14px;
-}
-
-.binding-row:hover .clear-binding,
-.clear-binding:focus-visible,
-.revert-binding {
-  opacity: 1;
-}
-
-.clear-binding:hover {
-  background: var(--suda-danger-subtle-color);
-  color: var(--suda-danger-color);
-}
-
-.revert-binding:hover {
-  background: var(--suda-accent-subtle-color);
-  color: var(--suda-accent-text-color);
-}
-
-.clear-binding[hidden],
-.revert-binding[hidden] {
-  display: none;
+.binding-editor.is-recording .binding-capture-prompt {
+  color: var(--bindings-text);
 }
 
 .binding-unbound {
@@ -462,6 +491,6 @@ body.keybindings-page kbd {
   }
 
   .binding-editor {
-    min-width: 150px;
+    min-width: 0;
   }
 }
