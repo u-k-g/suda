@@ -13,7 +13,6 @@ const defaultOptions = {
   theme: "arc-dark",
   // Custom accent used by themes which declare that capability.
   accentColor: "#6CED96",
-  keyBindingMode: "helix",
   scrollStepSize: 120,
   fastScrollStepSize: 800,
   smoothScroll: true,
@@ -243,6 +242,11 @@ const Settings = {
     return settings;
   },
 
+  migrateLegacyKeyBindingMode(settings) {
+    delete settings.keyBindingMode;
+    return settings;
+  },
+
   // Returns a settings object and performs any migrations required if the settings object is from
   // an older version of Suda.
   migrateSettingsIfNecessary(settings) {
@@ -250,6 +254,7 @@ const Settings = {
     settings = this.migratePre2_4(settings);
     settings = this.migratePre2_4_1(settings);
     settings = this.migrateAccentColor(settings);
+    settings = this.migrateLegacyKeyBindingMode(settings);
     return settings;
   },
 

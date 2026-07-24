@@ -306,9 +306,8 @@ const Commands = {
     this.keyToRegistryEntry = {};
     this.mapKeyRegistry = {};
 
-    const selectedKeyMappings = getDefaultKeyMappings(Settings.get("keyBindingMode"));
-    const defaultKeyConfig = Object.keys(selectedKeyMappings).map((key) =>
-      `map ${key} ${selectedKeyMappings[key]}`
+    const defaultKeyConfig = Object.keys(helixKeyMappings).map((key) =>
+      `map ${key} ${helixKeyMappings[key]}`
     ).join("\n");
 
     const parsed = KeyMappingsParser.parse(
@@ -408,90 +407,6 @@ const Commands = {
   },
 };
 
-const vimKeyMappings = {
-  // Navigating the current page
-  "j": "scrollDown",
-  "k": "scrollUp",
-  "h": "scrollLeft",
-  "l": "scrollRight",
-  "gg": "scrollToTop",
-  "G": "scrollToBottom",
-  "zH": "scrollToLeft",
-  "zL": "scrollToRight",
-  "<c-e>": "scrollDown",
-  "<c-y>": "scrollUp",
-  "d": "scrollPageDown",
-  "u": "scrollPageUp",
-  "r": "reload",
-  "R": "reload hard",
-  "yy": "copyCurrentUrl",
-  "p": "openCopiedUrlInCurrentTab",
-  "P": "openCopiedUrlInNewTab",
-  "gi": "focusInput",
-  "[[": "goPrevious",
-  "]]": "goNext",
-  "gf": "nextFrame",
-  "gF": "mainFrame",
-  "gu": "goUp",
-  "gU": "goToRoot",
-  "i": "enterInsertMode",
-  "v": "enterVisualMode",
-  "V": "enterVisualLineMode",
-
-  // Link hints
-  "f": "LinkHints.activateMode",
-
-  // Using find
-  "/": "enterFindMode",
-  "n": "performFind",
-  "N": "performBackwardsFind",
-  "*": "findSelected",
-  "#": "findSelectedBackwards",
-
-  // CommandBar
-  "o": "CommandBar.activate",
-  "O": "CommandBar.activateInNewTab",
-  "T": "CommandBar.activateTabSelection",
-  "b": "CommandBar.activateBookmarks",
-  "B": "CommandBar.activateBookmarksInNewTab",
-  ":": "CommandBar.activateCommandSelection",
-  "ge": "CommandBar.activateEditUrl",
-  "gE": "CommandBar.activateEditUrlInNewTab",
-
-  // Navigating history
-  "H": "goBack",
-  "L": "goForward",
-
-  // Manipulating tabs
-  "K": "nextTab",
-  "J": "previousTab",
-  "gt": "nextTab",
-  "gT": "previousTab",
-  "^": "visitPreviousTab",
-  "<<": "moveTabLeft",
-  ">>": "moveTabRight",
-  "g0": "firstTab",
-  "g$": "lastTab",
-  "W": "moveTabToNewWindow",
-  "t": "createTab",
-  "yt": "duplicateTab",
-  "x": "removeTab",
-  "X": "restoreTab",
-  "<a-p>": "togglePinTab",
-  "<a-m>": "toggleMuteTab",
-  "zi": "zoomIn",
-  "zo": "zoomOut",
-  "z0": "zoomReset",
-
-  // Marks
-  "m": "Marks.activateCreateMode",
-  "`": "Marks.activateGotoMode",
-
-  // Misc
-  "?": "showHelp",
-  "gs": "toggleViewSource",
-};
-
 // Helix treats normal mode as selection-oriented navigation. Browser pages do not expose an
 // editor cursor, so h/j/k/l move the viewport; commands which select a browser object live in
 // Helix-like picker, goto, and window prefixes.
@@ -580,20 +495,10 @@ const helixKeyMappings = {
   "<c-w>m": "toggleMuteTab",
 };
 
-function getDefaultKeyMappings(mode) {
-  return mode === "helix" ? helixKeyMappings : vimKeyMappings;
-}
-
-// Keep the historical export for integrations which import Suda's default mapping directly.
-const defaultKeyMappings = vimKeyMappings;
-
 export {
   Commands,
   // Exported for unit tests.
-  defaultKeyMappings,
-  getDefaultKeyMappings,
   helixKeyMappings,
   KeyMappingsParser,
   parseLines,
-  vimKeyMappings,
 };

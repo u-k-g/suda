@@ -166,13 +166,6 @@ const allCommands = [
   },
 
   {
-    name: "enterVisualMode",
-    desc: "Enter visual mode",
-    group: "navigation",
-    noRepeat: true,
-  },
-
-  {
     name: "enterSelectMode",
     desc: "Enter Helix-style select mode",
     group: "navigation",
@@ -183,14 +176,6 @@ const allCommands = [
     name: "enterCaretMode",
     desc: "Enter Helix-style caret mode",
     group: "navigation",
-    noRepeat: true,
-  },
-
-  {
-    name: "enterVisualLineMode",
-    desc: "Enter visual line mode",
-    group: "navigation",
-    advanced: true,
     noRepeat: true,
   },
 

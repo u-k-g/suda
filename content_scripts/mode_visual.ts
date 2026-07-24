@@ -235,14 +235,12 @@ class VisualMode extends KeyHandlerMode {
     }
     this.movement = new Movement(options.alterMethod != null ? options.alterMethod : "extend");
     this.selection = this.movement.selection;
-    this.isHelixMode = Settings.get("keyBindingMode") === "helix";
-    const movements = this.isHelixMode ? this.helixMovements : this.movements;
 
     // Build the key mapping structure required by KeyHandlerMode. This only handles one- and
     // two-key mappings.
     const keyMapping = {};
-    for (const keys of Object.keys(movements || {})) {
-      movement = movements[keys];
+    for (const keys of Object.keys(this.movements || {})) {
+      movement = this.movements[keys];
       if ("function" === typeof movement) {
         movement = movement.bind(this);
       }
@@ -261,50 +259,32 @@ class VisualMode extends KeyHandlerMode {
       "B": keyMapping.b,
       "W": keyMapping.w,
     });
-    Object.assign(
-      keyMapping,
-      this.isHelixMode
-        ? {
-          "<c-d>": {
-            command(count) {
-              return Scroller.scrollBy("y", "viewSize", count / 2);
-            },
-          },
-          "<c-u>": {
-            command(count) {
-              return Scroller.scrollBy("y", "viewSize", -count / 2);
-            },
-          },
-          "<c-f>": {
-            command(count) {
-              return Scroller.scrollBy("y", "viewSize", count);
-            },
-          },
-          "<c-b>": {
-            command(count) {
-              return Scroller.scrollBy("y", "viewSize", -count);
-            },
-          },
-        }
-        : {
-          "<c-e>": {
-            command(count) {
-              return Scroller.scrollBy("y", count * Settings.get("scrollStepSize"), 1, false);
-            },
-          },
-          "<c-y>": {
-            command(count) {
-              return Scroller.scrollBy("y", -count * Settings.get("scrollStepSize"), 1, false);
-            },
-          },
+    Object.assign(keyMapping, {
+      "<c-d>": {
+        command(count) {
+          return Scroller.scrollBy("y", "viewSize", count / 2);
         },
-    );
+      },
+      "<c-u>": {
+        command(count) {
+          return Scroller.scrollBy("y", "viewSize", -count / 2);
+        },
+      },
+      "<c-f>": {
+        command(count) {
+          return Scroller.scrollBy("y", "viewSize", count);
+        },
+      },
+      "<c-b>": {
+        command(count) {
+          return Scroller.scrollBy("y", "viewSize", -count);
+        },
+      },
+    });
 
     super.init(Object.assign(options, {
       name: options.name != null ? options.name : "visual",
-      indicator: options.indicator != null
-        ? options.indicator
-        : (this.isHelixMode ? "Select mode" : "Visual mode"),
+      indicator: options.indicator != null ? options.indicator : "Select mode",
       // Visual mode, visual-line mode and caret mode each displace each other.
       singleton: "visual-mode-group",
       exitOnEscape: true,
@@ -456,79 +436,8 @@ class VisualMode extends KeyHandlerMode {
   }
 }
 
-// A movement can be either a string or a function.
-VisualMode.prototype.movements = {
-  "l": "forward character",
-  "h": "backward character",
-  "j": "forward line",
-  "k": "backward line",
-  "e": "forward word",
-  "b": "backward word",
-  "w": "forward vimword",
-  ")": "forward sentence",
-  "(": "backward sentence",
-  "}": "forward paragraph",
-  "{": "backward paragraph",
-  "0": "backward lineboundary",
-  "$": "forward lineboundary",
-  "G": "forward documentboundary",
-  "gg": "backward documentboundary",
-
-  "aw"(count) {
-    return this.movement.selectLexicalEntity(word, count);
-  },
-  "as"(count) {
-    return this.movement.selectLexicalEntity(sentence, count);
-  },
-
-  "n"(count) {
-    return this.find(count, false);
-  },
-  "N"(count) {
-    return this.find(count, true);
-  },
-  "/"() {
-    this.exit();
-    return new FindMode({ returnToViewport: true }).onExit(() => new VisualMode().init());
-  },
-
-  "y"() {
-    return this.yank();
-  },
-  "Y"(count) {
-    this.movement.selectLine(count);
-    return this.yank();
-  },
-  "p"() {
-    return chrome.runtime.sendMessage({ handler: "openUrlInCurrentTab", url: this.yank() });
-  },
-  "P"() {
-    return chrome.runtime.sendMessage({ handler: "openUrlInNewTab", url: this.yank() });
-  },
-  "v"() {
-    return new VisualMode().init();
-  },
-  "V"() {
-    return new VisualLineMode().init();
-  },
-  "c"() {
-    // If we're already in caret mode, or if the selection looks the same as it would in caret mode,
-    // then callapse to anchor (so that the caret-mode selection will seem unchanged). Otherwise,
-    // we're in visual mode and the user has moved the focus, so collapse to that.
-    if ((this.name === "caret") || (this.selection.toString().length <= 1)) {
-      this.movement.collapseSelectionToAnchor();
-    } else {
-      this.movement.collapseSelectionToFocus();
-    }
-    return new CaretMode().init();
-  },
-  "o"() {
-    return this.movement.reverseSelection();
-  },
-};
-
 // Select mode mirrors Helix's normal-mode movements, extending the current browser selection.
-VisualMode.prototype.helixMovements = {
+VisualMode.prototype.movements = {
   "l": "forward character",
   "h": "backward character",
   "j": "forward line",
@@ -582,10 +491,7 @@ class VisualLineMode extends VisualMode {
     if (options == null) {
       options = {};
     }
-    const indicator = Settings.get("keyBindingMode") === "helix"
-      ? "Select mode (line)"
-      : "Visual mode (line)";
-    super.init(Object.assign(options, { name: "visual/line", indicator }));
+    super.init(Object.assign(options, { name: "visual/line", indicator: "Select mode (line)" }));
     return this.extendSelection();
   }
 

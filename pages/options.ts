@@ -467,7 +467,7 @@ function setFormFromSettings(settings) {
 }
 
 function getSettingsFromForm() {
-  // Preserve settings which live on dedicated pages, such as keyBindingMode and keyMappings.
+  // Preserve settings which live on dedicated pages, such as keyMappings.
   const settings = Settings.getSettings();
   for (const [optionName, optionType] of Object.entries(options)) {
     const el = getOptionEl(optionName);

@@ -233,14 +233,10 @@ const NormalModeCommands = {
     return new InsertMode({ global: true, exitOnFocus: true });
   },
 
-  enterVisualMode() {
+  enterSelectMode() {
     const mode = new VisualMode();
     mode.init({ userLaunchedMode: true });
     return mode;
-  },
-
-  enterSelectMode() {
-    return NormalModeCommands.enterVisualMode();
   },
 
   enterCaretMode() {
@@ -249,14 +245,10 @@ const NormalModeCommands = {
     return mode;
   },
 
-  enterVisualLineMode() {
+  selectLine() {
     const mode = new VisualLineMode();
     mode.init({ userLaunchedMode: true });
     return mode;
-  },
-
-  selectLine() {
-    return NormalModeCommands.enterVisualLineMode();
   },
 
   enterFindMode() {

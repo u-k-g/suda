@@ -1,7 +1,7 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 import "./settings_page_dependencies.js";
 import { allCommands } from "../background_scripts/all_commands.js";
-import { getDefaultKeyMappings, KeyMappingsParser } from "../background_scripts/commands.js";
+import { helixKeyMappings, KeyMappingsParser } from "../background_scripts/commands.js";
 
 const groupMetadata = {
   navigation: { label: "Navigation", order: 0 },
@@ -62,18 +62,16 @@ function formatOptionString(options) {
   ).join(" ");
 }
 
-function parseActiveMappings(profile, customMappings) {
-  const defaults = getDefaultKeyMappings(profile);
-  const defaultConfig = Object.entries(defaults)
+function parseActiveMappings(customMappings) {
+  const defaultConfig = Object.entries(helixKeyMappings)
     .map(([key, command]) => `map ${key} ${command}`)
     .join("\n");
   return KeyMappingsParser.parse(`${defaultConfig}\n${customMappings}`);
 }
 
-function buildBindingRows(profile, customMappings) {
-  const defaults = getDefaultKeyMappings(profile);
-  const parsed = parseActiveMappings(profile, customMappings);
-  const defaultKeyToCommand = { ...defaults };
+function buildBindingRows(customMappings) {
+  const parsed = parseActiveMappings(customMappings);
+  const defaultKeyToCommand = { ...helixKeyMappings };
   const bindingsByCommand = {};
 
   for (const [key, registryEntry] of Object.entries(parsed.keyToRegistryEntry)) {
@@ -114,16 +112,12 @@ function buildBindingRows(profile, customMappings) {
   return { rows, validationErrors: parsed.validationErrors };
 }
 
-function currentProfile() {
-  return document.querySelector('input[name="keyBindingMode"]:checked').value;
-}
-
 function currentCustomMappings() {
   return document.querySelector('textarea[name="keyMappings"]').value;
 }
 
 function renderBindings() {
-  const { rows } = buildBindingRows(currentProfile(), currentCustomMappings());
+  const { rows } = buildBindingRows(currentCustomMappings());
   const groupsContainer = document.querySelector("#binding-groups");
   const groupTemplate = document.querySelector("#binding-group-template").content;
   const rowTemplate = document.querySelector("#binding-row-template").content;
@@ -222,8 +216,6 @@ function markDirty() {
 }
 
 function resetFormFromSettings() {
-  const profile = Settings.get("keyBindingMode");
-  document.querySelector(`input[name="keyBindingMode"][value="${profile}"]`).checked = true;
   document.querySelector('textarea[name="keyMappings"]').value = Settings.get("keyMappings");
   const saveButton = document.querySelector("#save-mappings");
   saveButton.disabled = true;
@@ -243,7 +235,6 @@ async function saveMappings() {
   }
 
   const settings = Settings.getSettings();
-  settings.keyBindingMode = currentProfile();
   settings.keyMappings = customMappings;
   await Settings.setSettings(settings);
   validation.hidden = true;
@@ -272,12 +263,6 @@ async function init() {
   resetFormFromSettings();
 
   document.querySelector("#binding-search input").addEventListener("input", filterBindings);
-  for (const input of document.querySelectorAll('input[name="keyBindingMode"]')) {
-    input.addEventListener("input", () => {
-      setEditorOpen(true);
-      markDirty();
-    });
-  }
   document.querySelector('textarea[name="keyMappings"]').addEventListener("input", markDirty);
   document.querySelector("#toggle-editor").addEventListener(
     "click",

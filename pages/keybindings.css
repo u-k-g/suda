@@ -36,66 +36,8 @@ body.keybindings-page *::after {
 }
 
 /* ------------------------------------------------------------------ */
-/* Toolbar / profile / search                                         */
+/* Search                                                             */
 /* ------------------------------------------------------------------ */
-
-#keybindings-toolbar {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  min-height: 40px;
-}
-
-#profile-selector {
-  background: var(--bindings-row);
-  border: 1px solid var(--bindings-border);
-  border-radius: 9px;
-  display: flex;
-  margin: 0;
-  padding: 3px;
-}
-
-#profile-selector legend {
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  width: 1px;
-}
-
-#profile-selector label {
-  cursor: pointer;
-  display: block;
-}
-
-#profile-selector input {
-  height: 1px;
-  opacity: 0;
-  position: absolute;
-  width: 1px;
-}
-
-#profile-selector span {
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: var(--bindings-muted);
-  display: block;
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 28px;
-  padding: 0 12px;
-}
-
-#profile-selector input:checked + span {
-  background: var(--suda-accent-selected-color);
-  border-color: color-mix(in srgb, var(--suda-accent-selected-color) 82%, white);
-  color: var(--suda-accent-selected-text-color);
-}
-
-#profile-selector input:focus-visible + span {
-  box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
-}
 
 #binding-count {
   color: var(--bindings-muted);
