@@ -35,6 +35,7 @@ const options = {
 export async function init() {
   await Settings.onLoaded();
   structureSettingsLayout();
+  enhanceSettingsControls();
 
   const themeSelect = getOptionEl("theme");
   if (globalThis.ThemeManager) {
@@ -117,6 +118,76 @@ export async function init() {
 
   const settings = Settings.getSettings();
   setFormFromSettings(settings);
+}
+
+function enhanceSettingsControls() {
+  const enhanceRadioGroup = (container, label) => {
+    const radios = Array.from(container.querySelectorAll(':scope > input[type="radio"]'));
+    const select = document.createElement("select");
+    select.className = "setting-enum-select";
+    select.setAttribute("aria-label", label);
+    for (const radio of radios) {
+      const radioLabel = container.querySelector(`label[for="${radio.id}"]`);
+      radio.classList.add("enhanced-radio-input");
+      radioLabel?.classList.add("enhanced-radio-label");
+      const option = document.createElement("option");
+      option.value = radio.value;
+      option.textContent = radioLabel?.textContent.trim() ?? radio.value;
+      select.append(option);
+    }
+    select.addEventListener("input", () => {
+      const selected = radios.find((radio) => radio.value === select.value);
+      if (selected) selected.checked = true;
+    });
+    container.classList.add("enhanced-radio-group");
+    container.prepend(select);
+  };
+
+  enhanceRadioGroup(document.querySelector("#new-tab-url-container"), "New tab destination");
+  enhanceRadioGroup(
+    document.querySelector("#commandBarCenterWindow").parentElement,
+    "Command bar centering",
+  );
+
+  const createEditorDisclosure = (target, label) => {
+    const row = target.closest(".setting-row");
+    const control = row.querySelector(".setting-control");
+    const panel = document.createElement("div");
+    const toggle = document.createElement("button");
+    const panelId = `setting-editor-${target.id || target.name}`;
+    panel.className = "setting-editor-panel";
+    panel.id = panelId;
+    panel.hidden = true;
+    toggle.className = "setting-editor-toggle";
+    toggle.type = "button";
+    toggle.textContent = label;
+    toggle.setAttribute("aria-controls", panelId);
+    toggle.setAttribute("aria-expanded", "false");
+
+    const editor = target.parentElement === control ? target : target.parentElement;
+    panel.append(editor);
+    control.append(toggle);
+    row.append(panel);
+
+    toggle.addEventListener("click", () => {
+      const open = panel.hidden;
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", String(open));
+      if (open) panel.querySelector("input, textarea")?.focus();
+    });
+  };
+
+  createEditorDisclosure(document.querySelector("#exclusion-scroll-box"), "Edit exclusions");
+  createEditorDisclosure(getOptionEl("searchEngines"), "Edit search engines");
+  createEditorDisclosure(getOptionEl("userDefinedLinkHintCss"), "Edit interface CSS");
+}
+
+function syncEnhancedControls() {
+  for (const select of document.querySelectorAll(".setting-enum-select")) {
+    const group = select.closest(".enhanced-radio-group");
+    const checked = group.querySelector(':scope > input[type="radio"]:checked');
+    if (checked) select.value = checked.value;
+  }
 }
 
 function structureSettingsLayout() {
@@ -274,6 +345,7 @@ function setFormFromSettings(settings) {
   applyThemePreview();
   maintainLinkHintsView();
   maintainNewTabUrlView();
+  syncEnhancedControls();
 }
 
 function getSettingsFromForm() {
@@ -407,6 +479,14 @@ function showValidationErrors() {
   for (const [optionName, message] of Object.entries(errors)) {
     const el = getOptionEl(optionName);
     addValidationMessage(el, message);
+    const panel = el.closest(".setting-editor-panel");
+    if (panel) {
+      panel.hidden = false;
+      document.querySelector(`[aria-controls="${panel.id}"]`)?.setAttribute(
+        "aria-expanded",
+        "true",
+      );
+    }
   }
   // Some options can be hidden in the UI. If they have validation errors, force them to be shown.
   if (errors["linkHintCharacters"]) {

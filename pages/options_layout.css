@@ -71,7 +71,6 @@ body.options-page #settings-grid-container {
 
 body.options-page #settings-grid-container > .settings-section-heading {
   border: 0;
-  border-top: 1px solid var(--options-hairline);
   color: var(--options-text);
   font-size: 20px;
   font-weight: 720;
@@ -89,13 +88,14 @@ body.options-page #settings-grid-container > .settings-section-heading:first-chi
 
 body.options-page #settings-grid-container > .setting-row {
   align-items: center;
-  border: 0;
+  border-bottom: 0 !important;
+  column-gap: 72px;
   display: grid;
-  gap: 56px;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+  grid-template-columns: minmax(0, 1fr) 240px;
   margin: 0;
   min-height: 94px;
   padding: 18px 0;
+  row-gap: 12px;
 }
 
 body.options-page #settings-grid-container .setting-copy {
@@ -137,7 +137,7 @@ body.options-page #settings-grid-container .setting-control > textarea,
 body.options-page #settings-grid-container .setting-control > a,
 body.options-page #settings-grid-container .setting-control > input[type="file"] {
   margin: 0;
-  max-width: 320px;
+  max-width: 240px;
   padding: 0;
   width: 100%;
 }
@@ -159,6 +159,11 @@ body.options-page select {
 
 body.options-page #settings-grid-container .setting-control > textarea {
   min-height: 150px;
+}
+
+body.options-page .setting-enum-select,
+body.options-page #settings-grid-container .setting-control > select {
+  max-width: 240px;
 }
 
 body.options-page #accent-container {
@@ -189,13 +194,37 @@ body.options-page .option-checklist {
   padding: 12px;
 }
 
+body.options-page #settings-grid-container .enhanced-radio-group {
+  background: transparent;
+  border: 0;
+  display: block;
+  padding: 0;
+}
+
+body.options-page .enhanced-radio-input,
+body.options-page .enhanced-radio-label,
+body.options-page .enhanced-radio-group > br {
+  display: none;
+}
+
+body.options-page .enhanced-radio-group #openCommandBarContainer,
+body.options-page .enhanced-radio-group input[name="newTabCustomUrl"] {
+  margin-top: 10px;
+}
+
+body.options-page .enhanced-radio-group input[name="newTabCustomUrl"] {
+  width: 100%;
+}
+
 body.options-page .option-checklist {
   grid-template-columns: 1fr;
 }
 
 body.options-page #exclusion-scroll-box {
-  max-height: 210px;
-  padding: 7px;
+  background: transparent;
+  border: 0;
+  max-height: 240px;
+  padding: 0;
 }
 
 body.options-page #exclusion-add-button {
@@ -268,24 +297,60 @@ body.options-page .validation-message {
   width: 100%;
 }
 
-/* Larger editors keep their copy and editing surface readable without stretching every control. */
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="searchEngines"]),
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="userDefinedLinkHintCss"]),
-body.options-page #settings-grid-container > .setting-row:has(#exclusion-scroll-box),
-body.options-page #settings-grid-container > .setting-row:has(#new-tab-url-container) {
-  align-items: start;
+body.options-page #settings-grid-container .setting-editor-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--options-border);
+  border-radius: 9px;
+  display: flex;
+  justify-content: space-between;
+  min-height: 38px;
+  padding: 7px 12px;
+  text-align: left;
+  width: 240px;
 }
 
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="searchEngines"]),
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="userDefinedLinkHintCss"]) {
-  padding-block: 26px;
+body.options-page #settings-grid-container .setting-editor-toggle::after {
+  color: var(--options-muted);
+  content: "›";
+  font-size: 18px;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform 140ms ease;
 }
 
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="searchEngines"]) .setting-control,
-body.options-page #settings-grid-container > .setting-row:has(textarea[name="userDefinedLinkHintCss"]) .setting-control,
-body.options-page #settings-grid-container > .setting-row:has(#exclusion-scroll-box) .setting-control,
-body.options-page #settings-grid-container > .setting-row:has(#new-tab-url-container) .setting-control {
-  padding-top: 2px;
+body.options-page #settings-grid-container .setting-editor-toggle[aria-expanded="true"]::after {
+  transform: rotate(-90deg);
+}
+
+body.options-page #settings-grid-container .setting-editor-panel {
+  background: color-mix(in srgb, var(--options-row) 56%, transparent);
+  border: 1px solid var(--options-border);
+  border-radius: 10px;
+  grid-column: 1 / -1;
+  margin: 4px 0 12px;
+  padding: 14px;
+}
+
+body.options-page #settings-grid-container .setting-editor-panel[hidden] {
+  display: none;
+}
+
+body.options-page #settings-grid-container .setting-editor-panel > textarea,
+body.options-page #settings-grid-container .setting-editor-panel > div {
+  margin: 0;
+  max-width: none;
+  width: 100%;
+}
+
+body.options-page #settings-grid-container .setting-editor-panel textarea {
+  min-height: 210px;
+  width: 100%;
+}
+
+body.options-page #settings-grid-container > .setting-row:has(.setting-editor-panel) {
+  align-items: center;
+  padding-block: 18px;
 }
 
 body.options-page #settings-grid-container .setting-copy pre {

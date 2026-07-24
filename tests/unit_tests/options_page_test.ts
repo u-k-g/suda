@@ -47,6 +47,35 @@ context("options page", () => {
     );
   });
 
+  should("keep complex editors collapsed until requested", () => {
+    const searchEngines = optionsPage.getOptionEl("searchEngines");
+    const panel = searchEngines.closest(".setting-editor-panel");
+    const toggle = document.querySelector('[aria-controls="setting-editor-searchEngines"]');
+
+    assert.isTrue(panel.hidden);
+    assert.equal("false", toggle.getAttribute("aria-expanded"));
+
+    toggle.click();
+    assert.isFalse(panel.hidden);
+    assert.equal("true", toggle.getAttribute("aria-expanded"));
+  });
+
+  should(
+    "present radio settings as compact selects without changing their storage format",
+    async () => {
+      const newTabSelect = document.querySelector(
+        '#new-tab-url-container > select[aria-label="New tab destination"]',
+      );
+      assert.equal("browserNewTabPage", newTabSelect.value);
+
+      newTabSelect.value = "customUrl";
+      newTabSelect.dispatchEvent(new window.Event("input"));
+      await optionsPage.saveOptions();
+
+      assert.equal("customUrl", Settings.get("newTabDestination"));
+    },
+  );
+
   should("preserve keybinding settings when saving options", async () => {
     await Settings.set("keyBindingMode", "vim");
     await Settings.set("keyMappings", "map q scrollUp");
