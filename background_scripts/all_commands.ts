@@ -167,14 +167,14 @@ const allCommands = [
 
   {
     name: "enterSelectMode",
-    desc: "Enter Helix-style select mode",
+    desc: "Enter select mode",
     group: "navigation",
     noRepeat: true,
   },
 
   {
     name: "enterCaretMode",
-    desc: "Enter Helix-style caret mode",
+    desc: "Enter caret mode",
     group: "navigation",
     noRepeat: true,
   },

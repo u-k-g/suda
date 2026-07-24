@@ -103,6 +103,35 @@ function formatOptionString(options) {
   }).join(" ");
 }
 
+// helixKeyMappings values may include options, e.g. "reload hard" → command reload + hard flag.
+function parseDefaultBindingSpec(spec) {
+  const parsed = KeyMappingsParser.parse(`map __default__ ${spec}`);
+  const entry = parsed.keyToRegistryEntry["__default__"];
+  if (!entry) return { command: spec, options: "" };
+  return {
+    command: entry.command,
+    options: formatOptionString(entry.options),
+  };
+}
+
+const defaultBindingsByKey = Object.fromEntries(
+  Object.entries(helixKeyMappings).map(([key, spec]) => [key, parseDefaultBindingSpec(spec)]),
+);
+
+function matchesDefaultBinding(key, commandName, optionString) {
+  const def = defaultBindingsByKey[key];
+  return def != null && def.command === commandName && def.options === optionString;
+}
+
+function commandTitle(command, optionString) {
+  if (!optionString) return command.desc;
+  // Single boolean flag with a documented meaning → use a short distinct title.
+  if (optionString === "hard" && command.name === "reload") {
+    return "Hard reload the page";
+  }
+  return `${command.desc} (${optionString})`;
+}
+
 function parseActiveMappings(customMappings) {
   const defaultConfig = Object.entries(helixKeyMappings)
     .map(([key, command]) => `map ${key} ${command}`)
@@ -112,7 +141,6 @@ function parseActiveMappings(customMappings) {
 
 function buildBindingRows(customMappings) {
   const parsed = parseActiveMappings(customMappings);
-  const defaultKeyToCommand = { ...helixKeyMappings };
   const activeBindings = Object.entries(parsed.keyToRegistryEntry).map(([key, registryEntry]) => ({
     command: registryEntry.command,
     key,
@@ -120,23 +148,23 @@ function buildBindingRows(customMappings) {
   }));
   const bindingsByCommand = Object.groupBy(activeBindings, (binding) => binding.command);
   const missingDefaultKeys = new Set(
-    Object.entries(defaultKeyToCommand)
-      .filter(([key, command]) => {
-        return parsed.keyToRegistryEntry[key]?.command !== command ||
-          Object.keys(parsed.keyToRegistryEntry[key]?.options ?? {}).length > 0;
+    Object.entries(defaultBindingsByKey)
+      .filter(([key, def]) => {
+        const active = parsed.keyToRegistryEntry[key];
+        if (active == null) return true;
+        return active.command !== def.command ||
+          formatOptionString(active.options) !== def.options;
       })
       .map(([key]) => key),
   );
   const revertKeysByActiveKey = {};
   const claimedDefaultKeys = new Set();
 
-  // A default key assigned to another command reverts to that key's original command.
+  // A default key assigned to another command/options set can restore that default mapping.
   for (const binding of activeBindings) {
-    const defaultCommand = defaultKeyToCommand[binding.key];
-    if (
-      defaultCommand &&
-      (defaultCommand !== binding.command || binding.options !== "")
-    ) {
+    const def = defaultBindingsByKey[binding.key];
+    if (!def) continue;
+    if (def.command !== binding.command || def.options !== binding.options) {
       revertKeysByActiveKey[binding.key] = [binding.key];
       claimedDefaultKeys.add(binding.key);
     }
@@ -146,9 +174,12 @@ function buildBindingRows(customMappings) {
   // from "j" to "x" restore "j", while an additional custom shortcut simply removes itself.
   for (const binding of activeBindings) {
     const replacedDefault = [...missingDefaultKeys].find((key) => {
-      return !claimedDefaultKeys.has(key) && defaultKeyToCommand[key] === binding.command;
+      return !claimedDefaultKeys.has(key) && defaultBindingsByKey[key]?.command === binding.command;
     });
-    if (replacedDefault != null && defaultKeyToCommand[binding.key] !== binding.command) {
+    const defForActive = defaultBindingsByKey[binding.key];
+    const activeIsForeignDefault = defForActive != null &&
+      (defForActive.command !== binding.command || defForActive.options !== binding.options);
+    if (replacedDefault != null && (defForActive == null || activeIsForeignDefault)) {
       revertKeysByActiveKey[binding.key] ||= [];
       revertKeysByActiveKey[binding.key].push(replacedDefault);
       claimedDefaultKeys.add(replacedDefault);
@@ -161,14 +192,14 @@ function buildBindingRows(customMappings) {
     const bindings = (bindingsByCommand[command.name] ?? [])
       .sort((a, b) => a.key.localeCompare(b.key));
     for (const binding of bindings) {
-      const isDefault = defaultKeyToCommand[binding.key] === command.name &&
-        binding.options === "";
+      const isDefault = matchesDefaultBinding(binding.key, command.name, binding.options);
       const revertKeys = revertKeysByActiveKey[binding.key] ?? [];
       const revertKey = revertKeys.find((key) => {
-        return defaultKeyToCommand[key] === command.name;
+        return defaultBindingsByKey[key]?.command === command.name;
       }) ?? revertKeys[0] ?? "";
       rows.push({
         ...command,
+        desc: commandTitle(command, binding.options),
         key: binding.key,
         options: binding.options,
         isCustom: !isDefault,
@@ -182,17 +213,19 @@ function buildBindingRows(customMappings) {
     // *this* command already reverts that key (e.g. j→x still restores j from the x row).
     // Keys stolen by another command stay claimed above but still need a victim row here.
     const removedDefaults = [...missingDefaultKeys].filter((key) => {
-      if (defaultKeyToCommand[key] !== command.name) return false;
+      if (defaultBindingsByKey[key]?.command !== command.name) return false;
       const coveredByActiveRow = bindings.some((binding) =>
         (revertKeysByActiveKey[binding.key] ?? []).includes(key)
       );
       return !coveredByActiveRow;
     });
     for (const revertKey of removedDefaults) {
+      const def = defaultBindingsByKey[revertKey];
       rows.push({
         ...command,
+        desc: commandTitle(command, def.options),
         key: "",
-        options: "",
+        options: def.options,
         isCustom: true,
         isUnbound: true,
         revertKey,
@@ -273,7 +306,7 @@ function renderBindings() {
         "aria-label",
         `${row.desc}: ${
           row.key ? `currently ${row.key}` : "currently unbound"
-        }. Edit keybinding. Press Escape while capturing to remove the binding.`,
+        }. Click to change keybinding. Escape while capturing removes the binding.`,
       );
       editor.addEventListener("click", () => beginShortcutCapture(editor, row));
       editor.addEventListener("keydown", onCaptureKeydown);
@@ -348,7 +381,6 @@ function showCaptureValue(capture) {
 
 function endCaptureUi(editor) {
   editor.classList.remove("is-recording");
-  editor.querySelector(".binding-edit-label").textContent = "Edit";
   editor.removeAttribute("aria-live");
 }
 
@@ -366,7 +398,6 @@ function beginShortcutCapture(editor, row) {
   cancelShortcutCapture();
   activeCapture = { editor, row, tokens: [], timer: null };
   editor.classList.add("is-recording");
-  editor.querySelector(".binding-edit-label").textContent = "Edit";
   editor.setAttribute("aria-live", "polite");
   showCaptureValue(activeCapture);
   editor.focus();
@@ -408,7 +439,6 @@ async function clearBindingFromCapture() {
   activeCapture = null;
   endCaptureUi(editor);
   if (row.key) {
-    editor.querySelector(".binding-edit-label").textContent = "Saving";
     await updateBinding(row, "");
   } else {
     renderBindingValue(editor.querySelector(".binding-keys"), "");
@@ -421,7 +451,6 @@ async function commitShortcutCapture() {
   const { editor, row, tokens } = activeCapture;
   activeCapture = null;
   endCaptureUi(editor);
-  editor.querySelector(".binding-edit-label").textContent = "Saving";
   await updateBinding(row, tokens.join(""));
 }
 

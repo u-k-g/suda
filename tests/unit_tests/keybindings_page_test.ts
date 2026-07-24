@@ -62,6 +62,26 @@ context("keybindings page", () => {
     assert.isTrue(document.querySelector(".binding-editor") != null);
   });
 
+  should("distinguish reload and hard-reload defaults without marking them custom", () => {
+    const soft = document.querySelector(
+      '.binding-row[data-command="reload"][data-key="<space>r"]',
+    );
+    const hard = document.querySelector(
+      '.binding-row[data-command="reload"][data-key="<space>R"]',
+    );
+
+    assert.isTrue(soft != null);
+    assert.isTrue(hard != null);
+    assert.equal("Reload the page", soft.querySelector(".command-description").textContent);
+    assert.equal("Hard reload the page", hard.querySelector(".command-description").textContent);
+    assert.isFalse(soft.classList.contains("is-custom"));
+    assert.isFalse(hard.classList.contains("is-custom"));
+    assert.isTrue(soft.querySelector(".revert-binding").hidden);
+    assert.isTrue(hard.querySelector(".revert-binding").hidden);
+    assert.isFalse(soft.querySelector(".command-description").classList.contains("command-custom"));
+    assert.isFalse(hard.querySelector(".command-description").classList.contains("command-custom"));
+  });
+
   should("list every registered command, including those without a default binding", async () => {
     const { allCommands } = await import("../../background_scripts/all_commands.js");
     const commandNames = new Set(

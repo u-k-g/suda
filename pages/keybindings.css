@@ -251,7 +251,7 @@ body.keybindings-page .validation-message {
   align-items: center;
   display: flex;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 /* Revert sits to the left of the keybinding cell.
@@ -310,42 +310,56 @@ body.settings-page .revert-binding[hidden],
   display: none;
 }
 
-/* Keys + EDIT badge, similar to a compact inline keybinding chip group. */
+/* Resting: plain keys only (no chrome). Hover/focus/recording: button surface + Edit. */
+body.options-page .binding-editor,
+body.settings-page .binding-editor,
 .binding-editor {
   -webkit-appearance: none;
   appearance: none;
   align-items: center;
   background: transparent;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 8px;
   box-shadow: none;
   color: var(--bindings-text);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
   gap: 6px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: 0;
   min-height: 28px;
   min-width: 0;
-  padding: 2px 0;
-  transition: background-color 120ms ease, box-shadow 120ms ease;
+  padding: 4px 6px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
+body.options-page .binding-editor:hover,
+body.settings-page .binding-editor:hover,
+body.options-page .binding-editor:focus-visible,
+body.settings-page .binding-editor:focus-visible,
+body.options-page .binding-editor.is-recording,
+body.settings-page .binding-editor.is-recording,
 .binding-editor:hover,
-.binding-editor:focus-visible {
-  background: transparent;
+.binding-editor:focus-visible,
+.binding-editor.is-recording {
+  background: color-mix(in srgb, var(--bindings-row) 80%, transparent);
+  border-color: var(--bindings-border);
+  box-shadow: none;
+  color: var(--bindings-text);
 }
 
-.binding-editor:focus-visible {
+body.options-page .binding-editor:focus-visible,
+body.settings-page .binding-editor:focus-visible,
+.binding-editor:focus-visible,
+.binding-editor.is-recording {
   box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
   outline: none;
-}
-
-.binding-editor.is-recording {
-  border-radius: 8px;
-  box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
-  padding-inline: 6px;
 }
 
 .binding-editor .binding-keys {
@@ -353,15 +367,16 @@ body.settings-page .revert-binding[hidden],
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   min-width: 0;
 }
 
 .binding-edit-label {
-  background: color-mix(in srgb, var(--bindings-row) 88%, transparent);
+  background: color-mix(in srgb, var(--suda-surface-color) 72%, transparent);
   border: 1px solid var(--bindings-border);
   border-radius: 6px;
   color: var(--bindings-muted);
+  display: none;
   flex: none;
   font-size: 9px;
   font-weight: 750;
@@ -374,9 +389,7 @@ body.settings-page .revert-binding[hidden],
 .binding-editor:hover .binding-edit-label,
 .binding-editor:focus-visible .binding-edit-label,
 .binding-editor.is-recording .binding-edit-label {
-  background: color-mix(in srgb, var(--suda-surface-color) 88%, transparent);
-  border-color: color-mix(in srgb, var(--bindings-border) 70%, var(--suda-accent-color));
-  color: var(--bindings-text);
+  display: inline-block;
 }
 
 .binding-capture-prompt {
@@ -486,7 +499,7 @@ body.keybindings-page kbd {
 
   .binding-control {
     grid-column: 2;
-    justify-content: flex-end;
+    justify-content: flex-start;
     padding: 0;
   }
 
