@@ -271,6 +271,7 @@ const Settings = {
     const removedKeys = Object.keys(settings).filter((key) => !resultKeys.includes(key));
     await chrome.storage.sync.remove(removedKeys);
     await chrome.storage.sync.remove("arcAccentColor");
+    await chrome.storage.sync.remove("keyBindingMode");
     await chrome.storage.sync.set(result);
     await this.load();
   },

@@ -15,7 +15,7 @@ context("options page", () => {
 
   should("fold keybindings into the unified settings shell", () => {
     assert.isTrue(optionsPage.getOptionEl("keyMappings") != null);
-    assert.isTrue(document.querySelector('input[name="keyBindingMode"]') != null);
+    assert.equal(null, document.querySelector('input[name="keyBindingMode"]'));
     assert.isTrue(document.querySelector("#settings-shell") != null);
     assert.isTrue(document.querySelector("#panel-keybindings") != null);
     assert.isTrue(document.querySelector("#settings-section-button") != null);
@@ -103,13 +103,11 @@ context("options page", () => {
     },
   );
 
-  should("preserve keybinding settings when saving options", async () => {
-    await Settings.set("keyBindingMode", "vim");
+  should("preserve custom keybindings when saving options", async () => {
     await Settings.set("keyMappings", "map q scrollUp");
 
     await optionsPage.saveOptions();
 
-    assert.equal("vim", Settings.get("keyBindingMode"));
     assert.equal("map q scrollUp", Settings.get("keyMappings"));
   });
 

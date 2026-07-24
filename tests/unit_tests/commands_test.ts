@@ -5,12 +5,9 @@ import "../../lib/keyboard_utils.js";
 import { allCommands } from "../../background_scripts/all_commands.js";
 import {
   Commands,
-  defaultKeyMappings,
-  getDefaultKeyMappings,
   helixKeyMappings,
   KeyMappingsParser,
   parseLines,
-  vimKeyMappings,
 } from "../../background_scripts/commands.js";
 import "../../content_scripts/mode.js";
 import "../../content_scripts/mode_key_handler.js";
@@ -238,22 +235,18 @@ context("Validate commands and options data structures", () => {
 
   should("have valid commands for each default key mapping", () => {
     const commandsByName = Utils.keyBy(allCommands, "name");
-    for (const mappings of [vimKeyMappings, helixKeyMappings]) {
-      for (const [key, commandString] of Object.entries(mappings)) {
-        // The command string might be command name + an option string. Ignore the options.
-        const name = commandString.split(" ")[0];
-        if (commandsByName[name] == null) {
-          assert.fail(`The default mapping for ${key} is bound to non-existent command ${name}.`);
-        }
+    for (const [key, commandString] of Object.entries(helixKeyMappings)) {
+      // The command string might be command name + an option string. Ignore the options.
+      const name = commandString.split(" ")[0];
+      if (commandsByName[name] == null) {
+        assert.fail(`The default mapping for ${key} is bound to non-existent command ${name}.`);
       }
     }
   });
 
-  should("default to Helix while retaining the Suda classic profile", () => {
-    assert.equal("helix", Settings.defaultOptions.keyBindingMode);
-    assert.equal(helixKeyMappings, getDefaultKeyMappings("helix"));
-    assert.equal(vimKeyMappings, getDefaultKeyMappings("vim"));
-    assert.equal(vimKeyMappings, defaultKeyMappings);
+  should("use Helix as the only built-in key mapping", () => {
+    assert.isFalse(Object.hasOwn(Settings.defaultOptions, "keyBindingMode"));
+    assert.isTrue(Object.keys(helixKeyMappings).length > 0);
   });
 
   should("route Helix picker keys through the unified command bar", () => {
@@ -339,11 +332,10 @@ context("Validate commands and options data structures", () => {
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-w>o"));
   });
 
-  should("parse every default keybinding profile without validation errors", () => {
-    for (const mappings of [vimKeyMappings, helixKeyMappings]) {
-      const config = Object.entries(mappings).map(([key, command]) => `map ${key} ${command}`)
-        .join("\n");
-      assert.equal([], KeyMappingsParser.parse(config).validationErrors);
-    }
+  should("parse the default keybindings without validation errors", () => {
+    const config = Object.entries(helixKeyMappings)
+      .map(([key, command]) => `map ${key} ${command}`)
+      .join("\n");
+    assert.equal([], KeyMappingsParser.parse(config).validationErrors);
   });
 });

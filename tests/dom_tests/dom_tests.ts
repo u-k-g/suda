@@ -704,7 +704,7 @@ context("Filtered link hints", () => {
   });
 });
 
-context("Helix normal-mode command aliases", () => {
+context("Helix normal-mode commands", () => {
   should("enter caret mode directly", () => {
     let initOptions = null;
     stub(CaretMode.prototype, "init", (options) => initOptions = options);
@@ -716,23 +716,25 @@ context("Helix normal-mode command aliases", () => {
   });
 
   should("enter select mode when invoked without a receiver", () => {
-    let calls = 0;
-    stub(NormalModeCommands, "enterVisualMode", () => calls += 1);
+    let initOptions = null;
+    stub(VisualMode.prototype, "init", (options) => initOptions = options);
 
     const command = NormalModeCommands.enterSelectMode;
-    command();
+    const mode = command();
 
-    assert.equal(1, calls);
+    assert.isTrue(mode instanceof VisualMode);
+    assert.equal({ userLaunchedMode: true }, initOptions);
   });
 
   should("select a line when invoked without a receiver", () => {
-    let calls = 0;
-    stub(NormalModeCommands, "enterVisualLineMode", () => calls += 1);
+    let initOptions = null;
+    stub(VisualLineMode.prototype, "init", (options) => initOptions = options);
 
     const command = NormalModeCommands.selectLine;
-    command();
+    const mode = command();
 
-    assert.equal(1, calls);
+    assert.isTrue(mode instanceof VisualLineMode);
+    assert.equal({ userLaunchedMode: true }, initOptions);
   });
 });
 

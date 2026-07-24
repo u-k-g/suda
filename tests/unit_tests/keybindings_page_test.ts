@@ -16,9 +16,9 @@ context("keybindings page", () => {
     await Settings.clear();
   });
 
-  should("show the Helix profile and its active bindings by default", () => {
-    assert.isTrue(document.querySelector('input[value="helix"]').checked);
-    assert.isFalse(document.querySelector('input[value="vim"]').checked);
+  should("show the active Helix bindings without a profile selector", () => {
+    assert.equal(null, document.querySelector("#profile-selector"));
+    assert.equal(null, document.querySelector('input[name="keyBindingMode"]'));
 
     const scrollDown = document.querySelector('[data-command="scrollDown"]');
     assert.isTrue(scrollDown != null);
@@ -103,11 +103,8 @@ context("keybindings page", () => {
     );
   });
 
-  should("preview and save a different profile with custom mappings", async () => {
-    const classic = document.querySelector('input[value="vim"]');
-    classic.checked = true;
-    classic.dispatchEvent(new window.Event("input"));
-
+  should("preview and save custom mappings", async () => {
+    document.querySelector("#toggle-editor").click();
     const customMappings = document.querySelector('textarea[name="keyMappings"]');
     customMappings.value = "map q scrollUp";
     customMappings.dispatchEvent(new window.Event("input"));
@@ -115,7 +112,6 @@ context("keybindings page", () => {
     assert.isFalse(document.querySelector("#custom-mappings-editor").hidden);
     assert.isFalse(document.querySelector("#save-mappings").disabled);
     assert.isTrue(await keybindingsPage.saveMappings());
-    assert.equal("vim", Settings.get("keyBindingMode"));
     assert.equal("map q scrollUp", Settings.get("keyMappings"));
   });
 

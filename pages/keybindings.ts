@@ -81,7 +81,7 @@ function buildBindingRows(customMappings) {
     bindingsByCommand[registryEntry.command][options].push(key);
   }
 
-  // Include every registered command, even when the active profile leaves it unbound.
+  // Include every registered command, even when the Helix defaults leave it unbound.
   const rows = [];
   for (const command of allCommands) {
     const optionSets = bindingsByCommand[command.name];

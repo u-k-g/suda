@@ -23,6 +23,26 @@ context("settings", () => {
     });
   });
 
+  context("removed keybinding profile migration", () => {
+    teardown(async () => {
+      await Settings.clear();
+    });
+
+    should("discard the obsolete profile setting", async () => {
+      await chrome.storage.sync.set({
+        settingsVersion: "2.4.1",
+        keyBindingMode: "vim",
+      });
+
+      await Settings.load();
+      assert.isFalse(Object.hasOwn(Settings.getSettings(), "keyBindingMode"));
+
+      await Settings.setSettings(Settings.getSettings());
+      const stored = await chrome.storage.sync.get(null);
+      assert.isFalse(Object.hasOwn(stored, "keyBindingMode"));
+    });
+  });
+
   context("v2.0 migration", () => {
     setup(async () => {
       // Prior to Suda 2.0.0, the settings values were encoded as JSON strings.

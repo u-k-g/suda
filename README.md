@@ -61,10 +61,10 @@
 <details>
 <summary><strong>configuration</strong></summary>
 
-open Suda's keybindings page to switch binding profiles and define custom key mappings. use the
-options page for themes, search engines, exclusions, link hints and optional new-tab behavior.
+open Suda's keybindings page to customize the default Helix key mappings. use the options page for
+themes, search engines, exclusions, link hints and optional new-tab behavior.
 
-custom mappings are layered over the selected profile. each line accepts `map key command`,
+custom mappings are layered over the Helix defaults. each line accepts `map key command`,
 `unmap key` or `unmapAll`.
 
 </details>
