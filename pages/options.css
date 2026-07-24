@@ -724,11 +724,9 @@ body.options-page input[type="number"] {
   width: 90px;
 }
 
+/* Select sizing for the structured settings layout lives in options_layout.css. */
 body.options-page select {
   align-self: center;
-  margin: 4px 14px;
-  min-height: 36px;
-  width: calc(100% - 28px);
 }
 
 body.options-page #settings-grid-container > a {

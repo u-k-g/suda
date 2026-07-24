@@ -176,14 +176,14 @@ context("openOptionsPage command", () => {
     await BackgroundCommands.openOptionsPage({ tab: { index: 3 } });
 
     assert.equal({
-      url: "chrome-extension://suda/pages/options.html",
+      url: "chrome-extension://suda/pages/options.html#general",
       index: 4,
     }, tabCreated);
   });
 });
 
 context("openKeybindingsPage command", () => {
-  should("open Suda's keybindings page in the next tab", async () => {
+  should("open the keybindings section of the unified settings page", async () => {
     let tabCreated;
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
     stub(chrome.tabs, "create", (properties) => tabCreated = properties);
@@ -191,7 +191,7 @@ context("openKeybindingsPage command", () => {
     await BackgroundCommands.openKeybindingsPage({ tab: { index: 3 } });
 
     assert.equal({
-      url: "chrome-extension://suda/pages/keybindings.html",
+      url: "chrome-extension://suda/pages/options.html#keybindings",
       index: 4,
     }, tabCreated);
   });

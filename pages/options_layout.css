@@ -4,7 +4,8 @@
  */
 
 :root {
-  --settings-control-width: 240px;
+  --settings-control-width: 220px;
+  --settings-control-height: 32px;
   --settings-content-width: 1040px;
   --settings-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
@@ -198,35 +199,154 @@ body.options-page #settings-grid-container .setting-control > input[type="number
 
 body.options-page input[type="text"],
 body.options-page input[type="number"],
-body.options-page textarea,
-body.options-page select {
+body.options-page textarea {
   background: var(--options-row);
   border: 1px solid var(--options-border);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--options-text);
-  min-height: 38px;
+  min-height: var(--settings-control-height);
 }
 
-body.options-page select,
-body.options-page .setting-enum-select {
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: var(--options-row);
-  background-image: var(--settings-select-chevron);
-  background-position: right 12px center;
-  background-repeat: no-repeat;
-  background-size: 12px;
-  cursor: pointer;
-  max-width: var(--settings-control-width);
-  padding: 0 34px 0 12px;
-  width: 100%;
+/* Native select is hidden; the custom dropdown is the visible control. */
+body.options-page select.setting-dropdown-native,
+body.options-page #settings-grid-container select.setting-dropdown-native {
+  height: 1px;
+  margin: 0 !important;
+  max-width: none;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 1px;
 }
 
-body.options-page #settings-grid-container .setting-control > select,
-body.options-page #settings-grid-container .setting-control .setting-enum-select {
+body.options-page #settings-grid-container .setting-control > .setting-dropdown,
+body.options-page .setting-dropdown {
   margin: 0;
   max-width: var(--settings-control-width);
+  position: relative;
   width: 100%;
+}
+
+body.options-page .setting-dropdown-trigger,
+body.settings-page .setting-dropdown-trigger {
+  -webkit-appearance: none;
+  appearance: none;
+  align-items: center;
+  background: var(--options-row);
+  border: 1px solid var(--options-border);
+  border-radius: 8px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--options-text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+  height: var(--settings-control-height);
+  justify-content: space-between;
+  margin: 0;
+  min-height: 0;
+  padding: 0 10px 0 11px;
+  text-align: left;
+  width: 100%;
+}
+
+body.options-page .setting-dropdown-trigger:hover,
+body.settings-page .setting-dropdown-trigger:hover,
+body.options-page .setting-dropdown-trigger[aria-expanded="true"],
+body.settings-page .setting-dropdown-trigger[aria-expanded="true"] {
+  background: var(--options-row-hover, var(--options-row));
+  border-color: var(--options-border);
+  color: var(--options-text);
+}
+
+body.options-page .setting-dropdown-label,
+body.settings-page .setting-dropdown-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.options-page .setting-dropdown-chevron,
+body.settings-page .setting-dropdown-chevron {
+  background: currentColor;
+  flex: none;
+  height: 12px;
+  mask: var(--settings-select-chevron) center / 12px no-repeat;
+  -webkit-mask: var(--settings-select-chevron) center / 12px no-repeat;
+  opacity: 0.7;
+  width: 12px;
+}
+
+body.options-page .setting-dropdown-trigger[aria-expanded="true"] .setting-dropdown-chevron,
+body.settings-page .setting-dropdown-trigger[aria-expanded="true"] .setting-dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+body.options-page .setting-dropdown-menu,
+body.settings-page .setting-dropdown-menu {
+  background: var(--suda-canvas-color, #141414);
+  border: 1px solid color-mix(in srgb, var(--options-border) 80%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgb(0 0 0 / 36%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  left: 0;
+  max-height: min(320px, 60vh);
+  min-width: 100%;
+  overflow: auto;
+  padding: 8px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+}
+
+body.options-page .setting-dropdown-menu[hidden],
+body.settings-page .setting-dropdown-menu[hidden] {
+  display: none;
+}
+
+body.options-page .setting-dropdown-option,
+body.settings-page .setting-dropdown-option {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--options-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 36px;
+  padding: 0 12px;
+  text-align: left;
+  width: 100%;
+}
+
+body.options-page .setting-dropdown-option:hover,
+body.settings-page .setting-dropdown-option:hover,
+body.options-page .setting-dropdown-option[aria-selected="true"],
+body.settings-page .setting-dropdown-option[aria-selected="true"] {
+  background: color-mix(in srgb, var(--suda-surface-color) 88%, transparent);
+  border: 0;
+  box-shadow: none;
+  color: var(--options-text);
+}
+
+body.options-page .setting-dropdown-option:disabled,
+body.settings-page .setting-dropdown-option:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
 
 body.options-page #settings-grid-container .setting-control > textarea {
@@ -243,7 +363,11 @@ body.options-page #accent-container {
 }
 
 body.options-page #accent-container input {
+  box-sizing: border-box;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  height: var(--settings-control-height);
+  min-height: 0;
+  padding: 0 10px;
   text-transform: uppercase;
   width: 126px;
 }
@@ -420,16 +544,18 @@ body.options-page #settings-grid-container .setting-editor-toggle {
   align-items: center;
   background: var(--options-row);
   border: 1px solid var(--options-border);
-  border-radius: 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
   color: var(--options-text);
   cursor: pointer;
   display: flex;
   font: inherit;
   font-size: 13px;
   font-weight: 550;
+  height: var(--settings-control-height);
   justify-content: space-between;
-  min-height: 38px;
-  padding: 7px 12px;
+  min-height: 0;
+  padding: 0 11px;
   text-align: left;
   width: var(--settings-control-width);
 }
@@ -505,12 +631,15 @@ body.options-page #exclusion-rules .remove {
 }
 
 body.options-page #download-backup {
-  display: inline-flex;
   align-items: center;
+  border-radius: 8px;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: var(--settings-control-height);
   justify-content: center;
   margin: 0;
   max-width: var(--settings-control-width);
-  min-height: 38px;
+  min-height: 0;
   text-align: center;
   width: 100%;
 }
@@ -568,8 +697,7 @@ body.options-page #footer-content {
   body.options-page #settings-grid-container .setting-control > a,
   body.options-page #settings-grid-container .setting-control > input[type="file"],
   body.options-page #settings-grid-container .setting-editor-toggle,
-  body.options-page select,
-  body.options-page .setting-enum-select {
+  body.options-page .setting-dropdown {
     max-width: none;
     width: 100%;
   }

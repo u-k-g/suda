@@ -1,0 +1,276 @@
+/*
+ * Unified settings shell: top section switcher + full-width content.
+ */
+
+body.settings-page,
+body.options-page {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body.settings-page {
+  background: var(--suda-canvas-color);
+  color: var(--options-text, var(--suda-text-color));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#settings-shell {
+  min-height: 100vh;
+}
+
+#settings-main {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 1040px;
+  min-height: 100vh;
+  min-width: 0;
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Top bar + section switcher                                         */
+/* ------------------------------------------------------------------ */
+
+#settings-topbar {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 18px 28px 0;
+  position: relative;
+  z-index: 5;
+}
+
+.settings-section-switcher {
+  position: relative;
+}
+
+#settings-section-button {
+  -webkit-appearance: none;
+  appearance: none;
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--options-muted, var(--suda-muted-color));
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  gap: 6px;
+  line-height: 1;
+  margin: 0;
+  min-height: 28px;
+  padding: 4px 8px 4px 6px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+#settings-section-button:hover,
+#settings-section-button[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--suda-surface-color) 72%, transparent);
+  color: var(--options-text, var(--suda-text-color));
+}
+
+#settings-section-button:focus-visible {
+  box-shadow: 0 0 0 3px var(--suda-accent-subtle-color);
+  outline: none;
+}
+
+#settings-section-button svg {
+  flex: none;
+  height: 11px;
+  opacity: 0.75;
+  width: 11px;
+}
+
+#settings-section-button[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.settings-section-menu {
+  background: var(--suda-canvas-color, #141414);
+  border: 1px solid color-mix(in srgb, var(--options-border, var(--suda-border-color)) 80%,
+    transparent);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgb(0 0 0 / 36%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  left: 0;
+  min-width: 176px;
+  padding: 8px;
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 20;
+}
+
+.settings-section-menu[hidden] {
+  display: none;
+}
+
+/* Flat list: no accent fill, only a subtle neutral highlight. Beat options.css buttons. */
+body.settings-page .settings-section-option,
+body.options-page .settings-section-option {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  box-shadow: none;
+  color: var(--options-text, var(--suda-text-color));
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 36px;
+  padding: 0 12px;
+  text-align: left;
+  width: 100%;
+}
+
+body.settings-page .settings-section-option:hover,
+body.options-page .settings-section-option:hover,
+body.settings-page .settings-section-option[aria-selected="true"],
+body.options-page .settings-section-option[aria-selected="true"] {
+  background: color-mix(in srgb, var(--suda-surface-color) 88%, transparent);
+  border: 0;
+  box-shadow: none;
+  color: var(--options-text, var(--suda-text-color));
+}
+
+#settings-topbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+#options-shortcut {
+  align-items: center;
+  color: var(--options-muted, var(--suda-muted-color));
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+}
+
+#options-shortcut kbd {
+  background: var(--suda-surface-color);
+  border: 1px solid var(--suda-border-color);
+  border-bottom-color: var(--suda-muted-color);
+  border-radius: 6px;
+  color: var(--options-text, var(--suda-text-color));
+  display: inline-block;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 11px;
+  line-height: 20px;
+  min-width: 22px;
+  padding: 0 5px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Panels                                                             */
+/* ------------------------------------------------------------------ */
+
+.settings-panel {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 28px 120px;
+}
+
+.settings-panel[hidden] {
+  display: none !important;
+}
+
+.settings-panel-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin: 8px 0 16px;
+  min-height: 32px;
+}
+
+.settings-panel-header-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+/* General panel keeps existing options layout, unconstrained within the shell. */
+#panel-general #wrapper,
+body.settings-page #wrapper {
+  margin: 0;
+  max-width: none;
+  padding: 0;
+}
+
+body.settings-page #options-title {
+  display: none;
+}
+
+body.settings-page #settings-grid-container {
+  margin-top: 12px;
+  max-width: none;
+}
+
+body.settings-page footer {
+  left: 0;
+  width: 100%;
+}
+
+body.settings-page #footer-content {
+  margin: 0 auto;
+  max-width: 1040px;
+  padding-inline: 28px;
+}
+
+body.settings-page[data-active-section="keybindings"] footer {
+  display: none;
+}
+
+body.settings-page[data-active-section="keybindings"] #options-shortcut {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Keybindings panel                                                  */
+/* ------------------------------------------------------------------ */
+
+#panel-keybindings {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding-bottom: 40px;
+}
+
+#panel-keybindings[hidden] {
+  display: none !important;
+}
+
+#keybindings-workspace {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  overflow: visible;
+}
+
+@media (max-width: 640px) {
+  #settings-topbar,
+  .settings-panel {
+    padding-inline: 16px;
+  }
+
+  body.settings-page #footer-content {
+    padding-inline: 16px;
+  }
+
+  #options-shortcut span {
+    display: none;
+  }
+}

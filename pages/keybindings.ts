@@ -71,7 +71,9 @@ function parseActiveMappings(profile, customMappings) {
 }
 
 function buildBindingRows(profile, customMappings) {
+  const defaults = getDefaultKeyMappings(profile);
   const parsed = parseActiveMappings(profile, customMappings);
+  const defaultKeyToCommand = { ...defaults };
   const bindingsByCommand = {};
 
   for (const [key, registryEntry] of Object.entries(parsed.keyToRegistryEntry)) {
@@ -81,13 +83,33 @@ function buildBindingRows(profile, customMappings) {
     bindingsByCommand[registryEntry.command][options].push(key);
   }
 
-  const rows = allCommands
-    .filter((command) => bindingsByCommand[command.name] != null)
-    .map((command) => ({
-      ...command,
-      bindingSets: Object.entries(bindingsByCommand[command.name])
-        .map(([options, keys]) => ({ options, keys: keys.sort((a, b) => a.localeCompare(b)) })),
-    }));
+  // Include every registered command, even when the active profile leaves it unbound.
+  const rows = [];
+  for (const command of allCommands) {
+    const optionSets = bindingsByCommand[command.name];
+    if (optionSets == null) {
+      rows.push({
+        ...command,
+        key: "",
+        options: "",
+        isCustom: false,
+        isUnbound: true,
+      });
+      continue;
+    }
+    for (const [options, keys] of Object.entries(optionSets)) {
+      for (const key of keys.sort((a, b) => a.localeCompare(b))) {
+        const isDefault = defaultKeyToCommand[key] === command.name && options === "";
+        rows.push({
+          ...command,
+          key,
+          options,
+          isCustom: !isDefault,
+          isUnbound: false,
+        });
+      }
+    }
+  }
 
   return { rows, validationErrors: parsed.validationErrors };
 }
@@ -105,7 +127,6 @@ function renderBindings() {
   const groupsContainer = document.querySelector("#binding-groups");
   const groupTemplate = document.querySelector("#binding-group-template").content;
   const rowTemplate = document.querySelector("#binding-row-template").content;
-  const bindingSetTemplate = document.querySelector("#binding-set-template").content;
   groupsContainer.textContent = "";
 
   const rowsByGroup = Object.groupBy(rows, (row) => row.group);
@@ -117,7 +138,8 @@ function renderBindings() {
     const groupNode = groupTemplate.cloneNode(true);
     const groupElement = groupNode.querySelector(".binding-group");
     groupElement.dataset.group = group;
-    groupNode.querySelector(".group-name").textContent = groupMetadata[group].label;
+    const groupLabel = groupMetadata[group]?.label ?? group;
+    groupNode.querySelector(".group-name").textContent = groupLabel;
     groupNode.querySelector(".group-count").textContent = `${groupRows.length} commands`;
 
     const rowsContainer = groupNode.querySelector(".group-rows");
@@ -129,24 +151,28 @@ function renderBindings() {
         row.name,
         row.desc,
         row.details,
-        groupMetadata[group].label,
-        ...row.bindingSets.flatMap(({ keys, options }) => [...keys, options]),
+        groupLabel,
+        row.key,
+        row.options,
+        row.isUnbound ? "unbound" : "",
       ].filter(Boolean).join(" ").toLowerCase();
-      rowNode.querySelector(".command-description").textContent = row.desc;
+      const description = rowNode.querySelector(".command-description");
+      description.textContent = row.desc;
+      description.classList.toggle("command-custom", row.isCustom);
+      if (row.isCustom) {
+        description.title = "Custom or remapped binding";
+        rowElement.classList.add("is-custom");
+      }
+      if (row.isUnbound) rowElement.classList.add("is-unbound");
       rowNode.querySelector(".command-name").textContent = row.name;
-
-      const bindingSets = rowNode.querySelector(".binding-sets");
-      for (const { keys, options } of row.bindingSets) {
-        const bindingSetNode = bindingSetTemplate.cloneNode(true);
-        const keysContainer = bindingSetNode.querySelector(".binding-keys");
-        for (const key of keys) appendKeySequence(keysContainer, key);
-        const optionsElement = bindingSetNode.querySelector(".binding-options");
-        if (options) {
-          optionsElement.textContent = options;
-        } else {
-          optionsElement.remove();
-        }
-        bindingSets.appendChild(bindingSetNode);
+      const keysContainer = rowNode.querySelector(".binding-keys");
+      if (row.key) {
+        appendKeySequence(keysContainer, row.key);
+      } else {
+        const empty = document.createElement("span");
+        empty.className = "binding-unbound";
+        empty.textContent = "None";
+        keysContainer.appendChild(empty);
       }
       rowsContainer.appendChild(rowNode);
     }
@@ -160,7 +186,6 @@ function filterBindings() {
   const query = document.querySelector("#binding-search input").value.trim().toLowerCase();
   const terms = query.split(/\s+/).filter(Boolean);
   let visibleRows = 0;
-  let visibleBindings = 0;
 
   for (const group of document.querySelectorAll(".binding-group")) {
     let groupVisibleRows = 0;
@@ -170,7 +195,6 @@ function filterBindings() {
       if (visible) {
         groupVisibleRows++;
         visibleRows++;
-        visibleBindings += row.querySelectorAll(".key-sequence").length;
       }
     }
     group.hidden = groupVisibleRows === 0;
@@ -178,8 +202,7 @@ function filterBindings() {
   }
 
   const suffix = visibleRows === 1 ? "command" : "commands";
-  document.querySelector("#binding-count").textContent =
-    `${visibleBindings} bindings · ${visibleRows} ${suffix}`;
+  document.querySelector("#binding-count").textContent = `${visibleRows} ${suffix}`;
   document.querySelector("#empty-bindings").hidden = visibleRows !== 0;
 }
 
@@ -232,7 +255,20 @@ async function saveMappings() {
 }
 
 async function init() {
+  const root = document.querySelector("#panel-keybindings") ??
+    document.querySelector("#bindings-table");
+  if (!root) return;
+
   await Settings.onLoaded();
+
+  // Re-init safely when the document is replaced (unit tests), but don't double-bind on the
+  // same DOM when options.init() is called more than once.
+  if (root.dataset.keybindingsReady === "true") {
+    resetFormFromSettings();
+    return;
+  }
+  root.dataset.keybindingsReady = "true";
+
   resetFormFromSettings();
 
   document.querySelector("#binding-search input").addEventListener("input", filterBindings);
@@ -254,13 +290,19 @@ async function init() {
   });
   document.querySelector("#save-mappings").addEventListener("click", saveMappings);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) saveMappings();
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      if (!document.querySelector("#panel-keybindings")?.hidden) {
+        saveMappings();
+      }
+    }
   });
 }
 
 const testEnv = globalThis.window == null ||
   globalThis.window.location.search.includes("dom_tests=true");
-if (!testEnv) {
+const isStandaloneKeybindingsPage = typeof location !== "undefined" &&
+  /keybindings\.html(?:$|\?)/.test(location.pathname + location.search);
+if (!testEnv && isStandaloneKeybindingsPage) {
   document.addEventListener("DOMContentLoaded", async () => {
     await Settings.onLoaded();
     DomUtils.injectUserCss();

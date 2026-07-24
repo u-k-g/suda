@@ -340,14 +340,14 @@ const BackgroundCommands = {
 
   openOptionsPage({ tab }) {
     return chrome.tabs.create({
-      url: chrome.runtime.getURL("pages/options.html"),
+      url: chrome.runtime.getURL("pages/options.html#general"),
       index: tab.index + 1,
     });
   },
 
   openKeybindingsPage({ tab }) {
     return chrome.tabs.create({
-      url: chrome.runtime.getURL("pages/keybindings.html"),
+      url: chrome.runtime.getURL("pages/options.html#keybindings"),
       index: tab.index + 1,
     });
   },

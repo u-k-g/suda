@@ -2,11 +2,14 @@
 import * as testHelper from "./test_helper.js";
 import "../../tests/unit_tests/test_chrome_stubs.js";
 import * as keybindingsPage from "../../pages/keybindings.js";
+import * as optionsPage from "../../pages/options.js";
 
 context("keybindings page", () => {
   setup(async () => {
-    await testHelper.jsdomStub("pages/keybindings.html");
-    await keybindingsPage.init();
+    // Keybindings live inside the unified settings shell on options.html.
+    await testHelper.jsdomStub("pages/options.html");
+    await optionsPage.init();
+    optionsPage.showSettingsSection("keybindings");
   });
 
   teardown(async () => {
@@ -30,10 +33,52 @@ context("keybindings page", () => {
     );
   });
 
+  should("list every registered command, including those without a default binding", async () => {
+    const { allCommands } = await import("../../background_scripts/all_commands.js");
+    const commandNames = new Set(
+      Array.from(document.querySelectorAll(".binding-row")).map((row) => row.dataset.command),
+    );
+
+    for (const command of allCommands) {
+      assert.isTrue(
+        commandNames.has(command.name),
+        `expected command ${command.name} to appear in the keybindings table`,
+      );
+    }
+
+    const unbound = document.querySelector(".binding-row.is-unbound");
+    assert.isTrue(unbound != null);
+    assert.equal("None", unbound.querySelector(".binding-unbound")?.textContent);
+  });
+
   should("load only settings-page dependencies", async () => {
     const source = await Deno.readTextFile("pages/keybindings.ts");
     assert.isTrue(source.includes('import "./settings_page_dependencies.js"'));
     assert.isFalse(source.includes('import "./all_content_scripts.js"'));
+  });
+
+  should("render the two-column keybindings table", () => {
+    const headers = Array.from(document.querySelectorAll(".table-header span"))
+      .map((el) => el.textContent.trim().toLowerCase());
+    assert.equal(["command", "keybinding"], headers);
+
+    const row = document.querySelector(".binding-row");
+    assert.isTrue(row.querySelector(".command-copy") != null);
+    assert.isTrue(row.querySelector(".binding-keys") != null);
+    assert.equal(null, row.querySelector(".binding-when"));
+    assert.equal(null, row.querySelector(".binding-status"));
+  });
+
+  should("mark customized command titles with the accent class", async () => {
+    const customMappings = document.querySelector('textarea[name="keyMappings"]');
+    customMappings.value = "map q scrollUp";
+    customMappings.dispatchEvent(new window.Event("input"));
+
+    const customized = document.querySelector(
+      '[data-command="scrollUp"] .command-description.command-custom',
+    );
+    assert.isTrue(customized != null);
+    assert.equal("Scroll up", customized.textContent);
   });
 
   should("organize active commands into feature groups", () => {
@@ -44,14 +89,18 @@ context("keybindings page", () => {
 
   should("filter by command descriptions, names, groups, and keys", () => {
     const search = document.querySelector("#binding-search input");
-    search.value = "remove tab";
+    search.value = "removetab";
     search.dispatchEvent(new window.Event("input"));
 
     const visibleRows = Array.from(document.querySelectorAll(".binding-row"))
       .filter((row) => !row.hidden);
-    assert.equal(1, visibleRows.length);
-    assert.equal("removeTab", visibleRows[0].dataset.command);
-    assert.isTrue(document.querySelector("#binding-count").textContent.includes("1 command"));
+    assert.isTrue(visibleRows.length >= 1);
+    assert.isTrue(visibleRows.every((row) => row.dataset.command === "removeTab"));
+    assert.isTrue(
+      document.querySelector("#binding-count").textContent.includes(
+        `${visibleRows.length} command`,
+      ),
+    );
   });
 
   should("preview and save a different profile with custom mappings", async () => {

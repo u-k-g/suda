@@ -13,10 +13,15 @@ context("options page", () => {
     await Settings.clear();
   });
 
-  should("move keybinding controls to the dedicated page", () => {
-    assert.equal(null, optionsPage.getOptionEl("keyMappings"));
-    assert.equal(null, optionsPage.getOptionEl("keyBindingMode"));
-    assert.isTrue(document.querySelector('.options-page-link[href="keybindings.html"]') != null);
+  should("fold keybindings into the unified settings shell", () => {
+    assert.isTrue(optionsPage.getOptionEl("keyMappings") != null);
+    assert.isTrue(document.querySelector('input[name="keyBindingMode"]') != null);
+    assert.isTrue(document.querySelector("#settings-shell") != null);
+    assert.isTrue(document.querySelector("#panel-keybindings") != null);
+    assert.isTrue(document.querySelector("#settings-section-button") != null);
+    assert.isTrue(
+      document.querySelector('.settings-section-option[data-section="keybindings"]') != null,
+    );
   });
 
   should("load only settings-page dependencies", async () => {
@@ -24,6 +29,28 @@ context("options page", () => {
     assert.isTrue(source.includes('import "./settings_page_dependencies.js"'));
     assert.isFalse(source.includes('import "./all_content_scripts.js"'));
     assert.isTrue(document.querySelector('link[href="options_layout.css"]') != null);
+    assert.isTrue(document.querySelector('link[href="settings_shell.css"]') != null);
+  });
+
+  should("switch between general and keybindings panels", () => {
+    assert.isFalse(document.querySelector("#panel-general").hidden);
+    assert.isTrue(document.querySelector("#panel-keybindings").hidden);
+    assert.equal("General", document.querySelector("#settings-section-label").textContent);
+
+    optionsPage.showSettingsSection("keybindings");
+    assert.isTrue(document.querySelector("#panel-general").hidden);
+    assert.isFalse(document.querySelector("#panel-keybindings").hidden);
+    assert.equal("Keybindings", document.querySelector("#settings-section-label").textContent);
+    assert.equal(
+      "true",
+      document.querySelector('.settings-section-option[data-section="keybindings"]')
+        .getAttribute("aria-selected"),
+    );
+
+    optionsPage.showSettingsSection("general");
+    assert.isFalse(document.querySelector("#panel-general").hidden);
+    assert.isTrue(document.querySelector("#panel-keybindings").hidden);
+    assert.equal("General", document.querySelector("#settings-section-label").textContent);
   });
 
   should("group each setting's copy and control into one row", () => {
@@ -64,7 +91,7 @@ context("options page", () => {
     "present radio settings as compact selects without changing their storage format",
     async () => {
       const newTabSelect = document.querySelector(
-        '#new-tab-url-container > select[aria-label="New tab destination"]',
+        '#new-tab-url-container select[aria-label="New tab destination"]',
       );
       assert.equal("browserNewTabPage", newTabSelect.value);
 

@@ -3,6 +3,7 @@ import "./settings_page_dependencies.js";
 import { ExclusionRulesEditor } from "./exclusion_rules_editor.js";
 import { Commands } from "../background_scripts/commands.js";
 import * as userSearchEngines from "../background_scripts/user_search_engines.js";
+import * as keybindingsPage from "./keybindings.js";
 
 const options = {
   accentColor: "string",
@@ -32,10 +33,101 @@ const options = {
   waitForEnterForFilteredHints: "boolean",
 };
 
+const settingsSections = ["general", "keybindings"];
+const settingsSectionLabels = {
+  general: "General",
+  keybindings: "Keybindings",
+};
+
+function sectionFromLocation() {
+  try {
+    const hash = String(globalThis.location?.hash || "").replace(/^#/, "").toLowerCase();
+    if (settingsSections.includes(hash)) return hash;
+    const params = new URLSearchParams(String(globalThis.location?.search || ""));
+    const querySection = (params.get("section") || "").toLowerCase();
+    if (settingsSections.includes(querySection)) return querySection;
+  } catch {
+    // jsdom / non-browser hosts may not expose a full Location.
+  }
+  return "general";
+}
+
+function setSectionMenuOpen(open) {
+  const button = document.querySelector("#settings-section-button");
+  const menu = document.querySelector("#settings-section-menu");
+  if (!button || !menu) return;
+  menu.hidden = !open;
+  button.setAttribute("aria-expanded", String(open));
+}
+
+export function showSettingsSection(section) {
+  const next = settingsSections.includes(section) ? section : "general";
+  document.body.dataset.activeSection = next;
+
+  for (const panel of document.querySelectorAll("[data-section-panel]")) {
+    panel.hidden = panel.dataset.sectionPanel !== next;
+  }
+
+  const label = document.querySelector("#settings-section-label");
+  if (label) label.textContent = settingsSectionLabels[next] ?? "General";
+
+  for (const option of document.querySelectorAll(".settings-section-option")) {
+    option.setAttribute("aria-selected", String(option.dataset.section === next));
+  }
+
+  setSectionMenuOpen(false);
+
+  try {
+    const desiredHash = `#${next}`;
+    if (globalThis.location && globalThis.location.hash !== desiredHash) {
+      const path = globalThis.location.pathname || "";
+      const search = globalThis.location.search || "";
+      globalThis.history?.replaceState?.(null, "", `${path}${search}${desiredHash}`);
+    }
+  } catch {
+    // Ignore history updates when Location is incomplete (unit tests).
+  }
+
+  document.title = next === "keybindings" ? "Suda Keybindings" : "Suda Settings";
+}
+
+function initSettingsNavigation() {
+  const button = document.querySelector("#settings-section-button");
+  const menu = document.querySelector("#settings-section-menu");
+  if (!button || !menu) {
+    showSettingsSection(sectionFromLocation());
+    return;
+  }
+
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    setSectionMenuOpen(menu.hidden);
+  });
+
+  for (const option of document.querySelectorAll(".settings-section-option")) {
+    option.addEventListener("click", () => showSettingsSection(option.dataset.section));
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!menu.hidden && !menu.contains(event.target) && !button.contains(event.target)) {
+      setSectionMenuOpen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setSectionMenuOpen(false);
+  });
+
+  globalThis.addEventListener?.("hashchange", () => showSettingsSection(sectionFromLocation()));
+  showSettingsSection(sectionFromLocation());
+}
+
 export async function init() {
   await Settings.onLoaded();
   structureSettingsLayout();
   enhanceSettingsControls();
+  initSettingsNavigation();
+  await keybindingsPage.init();
 
   const themeSelect = getOptionEl("theme");
   if (globalThis.ThemeManager) {
@@ -52,6 +144,8 @@ export async function init() {
     applyThemePreview();
   });
   getOptionEl("accentColor").addEventListener("input", () => applyThemePreview());
+  // Theme options are filled above; wrap every select after its options exist.
+  enhanceSelectDropdowns();
 
   const shortcutLabel = document.querySelector("#shortcut-to-save-all");
   shortcutLabel.textContent = `${KeyboardUtils.primaryModifierLabel}-Enter`;
@@ -108,7 +202,7 @@ export async function init() {
     // Support both Ctrl-Enter and Cmd-Enter for saving options.
     const isCtrlEnter = event.ctrlKey && event.keyCode === 13;
     const isCmdEnter = event.metaKey && event.keyCode === 13;
-    if (isCtrlEnter || isCmdEnter) {
+    if ((isCtrlEnter || isCmdEnter) && document.body.dataset.activeSection !== "keybindings") {
       saveOptions();
     }
   });
@@ -186,11 +280,129 @@ function enhanceSettingsControls() {
   createEditorDisclosure(getOptionEl("userDefinedLinkHintCss"), "Edit interface CSS");
 }
 
+function closeAllSettingDropdowns(except = null) {
+  for (const dropdown of document.querySelectorAll(".setting-dropdown")) {
+    if (dropdown === except) continue;
+    const trigger = dropdown.querySelector(".setting-dropdown-trigger");
+    const menu = dropdown.querySelector(".setting-dropdown-menu");
+    if (!trigger || !menu) continue;
+    menu.hidden = true;
+    trigger.setAttribute("aria-expanded", "false");
+  }
+}
+
+function enhanceSelectDropdown(select) {
+  if (!select || select.dataset.dropdownReady === "true") return;
+  select.dataset.dropdownReady = "true";
+  select.classList.add("setting-dropdown-native");
+
+  const dropdown = document.createElement("div");
+  dropdown.className = "setting-dropdown";
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "setting-dropdown-trigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  if (select.getAttribute("aria-label")) {
+    trigger.setAttribute("aria-label", select.getAttribute("aria-label"));
+  } else if (select.name) {
+    trigger.setAttribute("aria-label", select.name);
+  }
+
+  const label = document.createElement("span");
+  label.className = "setting-dropdown-label";
+  const chevron = document.createElement("span");
+  chevron.className = "setting-dropdown-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  trigger.append(label, chevron);
+
+  const menu = document.createElement("div");
+  menu.className = "setting-dropdown-menu";
+  menu.setAttribute("role", "listbox");
+  menu.hidden = true;
+
+  const setOpen = (open) => {
+    if (open) closeAllSettingDropdowns(dropdown);
+    menu.hidden = !open;
+    trigger.setAttribute("aria-expanded", String(open));
+  };
+
+  const syncFromSelect = () => {
+    const selected = select.selectedOptions[0];
+    label.textContent = selected?.textContent?.trim() || "";
+    for (const item of menu.querySelectorAll(".setting-dropdown-option")) {
+      item.setAttribute("aria-selected", String(item.dataset.value === select.value));
+    }
+  };
+
+  const rebuildOptions = () => {
+    menu.textContent = "";
+    for (const option of select.options) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "setting-dropdown-option";
+      item.setAttribute("role", "option");
+      item.dataset.value = option.value;
+      item.textContent = option.textContent;
+      item.disabled = option.disabled;
+      item.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (select.value !== option.value) {
+          select.value = option.value;
+          select.dispatchEvent(new Event("input", { bubbles: true }));
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        syncFromSelect();
+        setOpen(false);
+      });
+      menu.append(item);
+    }
+    syncFromSelect();
+  };
+
+  trigger.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpen(menu.hidden);
+  });
+
+  select.addEventListener("input", syncFromSelect);
+  select.addEventListener("change", syncFromSelect);
+
+  select.parentNode.insertBefore(dropdown, select);
+  dropdown.append(select, trigger, menu);
+  rebuildOptions();
+
+  select._rebuildDropdown = rebuildOptions;
+  select._syncDropdown = syncFromSelect;
+}
+
+function enhanceSelectDropdowns() {
+  for (const select of document.querySelectorAll("#settings-grid-container select")) {
+    enhanceSelectDropdown(select);
+  }
+
+  if (document.documentElement.dataset.settingDropdownOutsideClose === "true") return;
+  document.documentElement.dataset.settingDropdownOutsideClose = "true";
+  document.addEventListener("click", (event) => {
+    if (event.target.closest(".setting-dropdown")) return;
+    closeAllSettingDropdowns();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeAllSettingDropdowns();
+  });
+}
+
 function syncEnhancedControls() {
   for (const select of document.querySelectorAll(".setting-enum-select")) {
     const group = select.closest(".enhanced-radio-group");
     const checked = group.querySelector(':scope > input[type="radio"]:checked');
     if (checked) select.value = checked.value;
+  }
+  for (const select of document.querySelectorAll("select[data-dropdown-ready='true']")) {
+    select._syncDropdown?.();
   }
 }
 

@@ -1,512 +1,673 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Suda Options</title>
+    <title>Suda Settings</title>
     <meta charset="UTF-8">
     <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" type="text/css" href="options.css">
     <link rel="stylesheet" type="text/css" href="../content_scripts/suda.css" />
     <link rel="stylesheet" type="text/css" href="options_layout.css" />
+    <link rel="stylesheet" type="text/css" href="settings_shell.css" />
+    <link rel="stylesheet" type="text/css" href="keybindings.css" />
     <script src="../lib/theme_catalog.js"></script>
     <script src="../lib/themes.js"></script>
     <script src="options.js" type="module"></script>
   </head>
 
-  <body class="suda-body options-page">
-    <div id="wrapper">
-      <header id="options-title">
-        <span class="settings-page-label">Settings</span>
-        <div id="options-title-actions">
-          <a class="options-page-link" href="keybindings.html">Keybindings</a>
-          <div id="options-shortcut" aria-label="Open options shortcut">
-            <span>Open with</span>
-            <kbd>Space</kbd>
-            <kbd>,</kbd>
+  <body class="suda-body options-page settings-page" data-active-section="general">
+    <div id="settings-shell">
+      <div id="settings-main">
+        <header id="settings-topbar">
+          <div class="settings-section-switcher">
+            <button
+              type="button"
+              id="settings-section-button"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="settings-section-menu"
+            >
+              <span id="settings-section-label">General</span>
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path
+                  d="M2.5 4.5L6 8L9.5 4.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <div
+              id="settings-section-menu"
+              class="settings-section-menu"
+              role="listbox"
+              aria-labelledby="settings-section-button"
+              hidden
+            >
+              <button
+                type="button"
+                class="settings-section-option"
+                role="option"
+                data-section="general"
+                aria-selected="true"
+              >
+                General
+              </button>
+              <button
+                type="button"
+                class="settings-section-option"
+                role="option"
+                data-section="keybindings"
+                aria-selected="false"
+              >
+                Keybindings
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
-      <input type="hidden" name="settingsVersion" />
+          <div id="settings-topbar-actions">
+            <div id="options-shortcut" aria-label="Open options shortcut">
+              <span>Open with</span>
+              <kbd>Space</kbd>
+              <kbd>,</kbd>
+            </div>
+          </div>
+        </header>
 
-      <div id="settings-grid-container">
-        <header class="settings-section-heading">General</header>
-
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Excluded URLs and keys</h2>
-            <div class="example">
+        <section id="panel-general" class="settings-panel" data-section-panel="general">
+          <div id="wrapper">
+            <input type="hidden" name="settingsVersion" />
+            <div id="settings-grid-container">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Excluded URLs and keys</h2>
+                  <div class="example">
               Disable Suda on URLs.
               "Patterns" are URL regular expressions. <code>*</code> will match zero or more
               characters.
               "Keys": Suda will exclude these keys and pass them through to the page.
             </div>
-          </div>
-          <div class="setting-control">
-            <div>
-              <div id="exclusion-scroll-box">
-                <table id="exclusion-rules">
-                  <tr>
-                    <td><span class="exclusion-header-text">Patterns</span></td>
-                    <td><span class="exclusion-header-text">Keys to exclude</span></td>
-                  </tr>
-                </table>
+                </div>
+                <div class="setting-control">
+                  <div>
+                    <div id="exclusion-scroll-box">
+                      <table id="exclusion-rules">
+                        <tr>
+                          <td><span class="exclusion-header-text">Patterns</span></td>
+                          <td><span class="exclusion-header-text">Keys to exclude</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <button id="exclusion-add-button">Add rule</button>
+                  </div>
+                </div>
               </div>
-              <button id="exclusion-add-button">Add rule</button>
-            </div>
-          </div>
-        </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Theme</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Theme</h2>
+                  <div class="example">
               Choose a Suda interface theme.
             </div>
-          </div>
-          <div class="setting-control">
-            <select name="theme">
-              <option value="arc-dark">Arc Dark</option>
-            </select>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <select name="theme">
+                    <option value="arc-dark">Arc Dark</option>
+                  </select>
+                </div>
+              </div>
 
-        <div class="setting-row" id="accent-row">
-          <div class="setting-copy">
-            <h2 id="accent-heading">Accent color</h2>
-            <div class="example" id="accent-example">
+              <div class="setting-row" id="accent-row">
+                <div class="setting-copy">
+                  <h2 id="accent-heading">Accent color</h2>
+                  <div class="example" id="accent-example">
               Accent color for themes which support customization, as a hex code.
             </div>
-          </div>
-          <div class="setting-control">
-            <div id="accent-container" aria-labelledby="accent-heading">
-              <span id="accent-swatch" aria-hidden="true"></span>
-              <input
-                type="text"
-                name="accentColor"
-                aria-label="Custom theme accent hex color"
-                autocomplete="off"
-                maxlength="7"
-                placeholder="#6CED96"
-                spellcheck="false"
-              />
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div id="accent-container" aria-labelledby="accent-heading">
+                    <span id="accent-swatch" aria-hidden="true"></span>
+                    <input
+                      type="text"
+                      name="accentColor"
+                      aria-label="Custom theme accent hex color"
+                      autocomplete="off"
+                      maxlength="7"
+                      placeholder="#6CED96"
+                      spellcheck="false"
+                    />
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Custom search engines</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Custom search engines</h2>
+                  <div class="example">
               Add Command Bar shortcuts using <code>keyword: URL description</code>. The
               <code>%s</code> placeholder is replaced with the search terms.
               For search completion, see
               <a href="doc_search_completion.html" target="_blank">here</a>.
             </div>
-          </div>
-          <div class="setting-control">
-            <textarea name="searchEngines" spellcheck="false"></textarea>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <textarea name="searchEngines" spellcheck="false"></textarea>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>New tab URL</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>New tab URL</h2>
+                  <div class="example">
               The page to open for Chrome's Ctrl-T/Cmd-T shortcut, the new-tab button, and Suda's
               "create new tab" command. The browser's default page is protected, so Suda commands do
               not run there.
             </div>
-          </div>
-          <div class="setting-control">
-            <div id="new-tab-url-container">
-              <input
-                id="sudaNewTabPage"
-                type="radio"
-                name="newTabDestination"
-                value="sudaNewTabPage"
-              />
-              <label for="sudaNewTabPage">Suda blank new tab page</label>
-              <div id="openCommandBarContainer">
-                <input
-                  id="openCommandBarOnNewTabPage"
-                  type="checkbox"
-                  name="openCommandBarOnNewTabPage"
-                >
-                <label for="openCommandBarOnNewTabPage">
+                </div>
+                <div class="setting-control">
+                  <div id="new-tab-url-container">
+                    <input
+                      id="sudaNewTabPage"
+                      type="radio"
+                      name="newTabDestination"
+                      value="sudaNewTabPage"
+                    />
+                    <label for="sudaNewTabPage">Suda blank new tab page</label>
+                    <div id="openCommandBarContainer">
+                      <input
+                        id="openCommandBarOnNewTabPage"
+                        type="checkbox"
+                        name="openCommandBarOnNewTabPage"
+                      >
+                      <label for="openCommandBarOnNewTabPage">
                   Open the CommandBar when the page loads
                 </label>
+                    </div>
+                    <input
+                      id="browserNewTabPage"
+                      type="radio"
+                      name="newTabDestination"
+                      value="browserNewTabPage"
+                    />
+                    <label for="browserNewTabPage">Browser's default new tab page</label>
+                    <input id="customUrl" type="radio" name="newTabDestination" value="customUrl" />
+                    <label for="customUrl">Custom URL</label>
+                    <input type="text" name="newTabCustomUrl" style="display: none" />
+                  </div>
+                </div>
               </div>
-              <input
-                id="browserNewTabPage"
-                type="radio"
-                name="newTabDestination"
-                value="browserNewTabPage"
-              />
-              <label for="browserNewTabPage">Browser's default new tab page</label>
-              <input id="customUrl" type="radio" name="newTabDestination" value="customUrl" />
-              <label for="customUrl">Custom URL</label>
-              <input type="text" name="newTabCustomUrl" style="display: none" />
-            </div>
-          </div>
-        </div>
 
-        <header class="settings-section-heading">Command Bar</header>
+              <header class="settings-section-heading">Command Bar</header>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Center command bar on</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Center command bar on</h2>
+                  <div class="example">
               Horizontally center relative to the full browser window or only the current page
               viewport. Vertical placement always uses the browser window.
             </div>
-          </div>
-          <div class="setting-control">
-            <div id="command-bar-center-container">
-              <input
-                id="commandBarCenterWindow"
-                type="radio"
-                name="commandBarCenter"
-                value="window"
-                checked
-              />
-              <label for="commandBarCenterWindow">Browser window</label>
-              <br>
-              <input
-                id="commandBarCenterTab"
-                type="radio"
-                name="commandBarCenter"
-                value="tab"
-              />
-              <label for="commandBarCenterTab">Current tab</label>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div id="command-bar-center-container">
+                    <input
+                      id="commandBarCenterWindow"
+                      type="radio"
+                      name="commandBarCenter"
+                      value="window"
+                      checked
+                    />
+                    <label for="commandBarCenterWindow">Browser window</label>
+                    <br>
+                    <input
+                      id="commandBarCenterTab"
+                      type="radio"
+                      name="commandBarCenter"
+                      value="tab"
+                    />
+                    <label for="commandBarCenterTab">Current tab</label>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row setting-row-tall">
-          <div class="setting-copy">
-            <h2>Modes shown in the mode selector</h2>
-            <div class="example">
+              <div class="setting-row setting-row-tall">
+                <div class="setting-copy">
+                  <h2>Modes shown in the mode selector</h2>
+                  <div class="example">
               Unchecked modes are hidden from the <tt>modes</tt> list. Their direct keyboard
               shortcuts continue to work.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="option-checklist">
-              <label><input type="checkbox" name="disabledCommandBarModes" value="find">Find</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="search">Search</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="history">History</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="tabs">Tabs</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="bookmarks">Bookmarks</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="url">URL</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="commands">Commands</label>
-              <label><input type="checkbox" name="disabledCommandBarModes" value="marks">Marks</label>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="option-checklist">
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="find">Find</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="search">Search</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="history">History</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="tabs">Tabs</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="bookmarks">Bookmarks</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="url">URL</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="commands">Commands</label>
+                    <label><input type="checkbox" name="disabledCommandBarModes" value="marks">Marks</label>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row setting-row-tall">
-          <div class="setting-copy">
-            <h2>Default command-bar sources</h2>
-            <div class="example">
+              <div class="setting-row setting-row-tall">
+                <div class="setting-copy">
+                  <h2>Default command-bar sources</h2>
+                  <div class="example">
               Choose which existing suggestion sources are combined when the command bar has no
               active mode. Dedicated modes are unaffected.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="option-checklist">
-              <label><input type="checkbox" name="disabledModelessCommandBarSources" value="search">Search and URLs</label>
-              <label><input type="checkbox" name="disabledModelessCommandBarSources" value="tabs">Open tabs</label>
-              <label><input type="checkbox" name="disabledModelessCommandBarSources" value="history">History</label>
-              <label><input type="checkbox" name="disabledModelessCommandBarSources" value="bookmarks">Bookmarks</label>
-              <label><input type="checkbox" name="disabledModelessCommandBarSources" value="commands">Commands</label>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="option-checklist">
+                    <label><input type="checkbox" name="disabledModelessCommandBarSources" value="search">Search and URLs</label>
+                    <label><input type="checkbox" name="disabledModelessCommandBarSources" value="tabs">Open tabs</label>
+                    <label><input type="checkbox" name="disabledModelessCommandBarSources" value="history">History</label>
+                    <label><input type="checkbox" name="disabledModelessCommandBarSources" value="bookmarks">Bookmarks</label>
+                    <label><input type="checkbox" name="disabledModelessCommandBarSources" value="commands">Commands</label>
+                  </div>
+                </div>
+              </div>
 
-        <header class="settings-section-heading">Advanced Options</header>
+              <header class="settings-section-heading">Advanced Options</header>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Scroll step size</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Scroll step size</h2>
+                  <div class="example">
               The size for basic movements (usually j/k/h/l).
             </div>
-          </div>
-          <div class="setting-control">
-            <span class="setting-number-field">
-              <input name="scrollStepSize" type="number" />
-              <span class="setting-unit">px</span>
-            </span>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <span class="setting-number-field">
+                    <input name="scrollStepSize" type="number" />
+                    <span class="setting-unit">px</span>
+                  </span>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Fast scroll step size</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Fast scroll step size</h2>
+                  <div class="example">
               The size for fast vertical movements (J/K in the Helix profile).
             </div>
-          </div>
-          <div class="setting-control">
-            <span class="setting-number-field">
-              <input name="fastScrollStepSize" type="number" min="1" />
-              <span class="setting-unit">px</span>
-            </span>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <span class="setting-number-field">
+                    <input name="fastScrollStepSize" type="number" min="1" />
+                    <span class="setting-unit">px</span>
+                  </span>
+                </div>
+              </div>
 
-        <div class="setting-row" id="link-hint-characters-container">
-          <div class="setting-copy">
-            <h2>Characters used for link hints</h2>
-            <div class="example">
+              <div class="setting-row" id="link-hint-characters-container">
+                <div class="setting-copy">
+                  <h2>Characters used for link hints</h2>
+                  <div class="example">
               The characters placed next to each link after typing "f" to enter link-hint mode.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="link-hint-characters-field">
-              <input name="linkHintCharacters" type="text" />
-              <div class="example reset-link"><a href="#">Reset</a></div>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="link-hint-characters-field">
+                    <input name="linkHintCharacters" type="text" />
+                    <div class="example reset-link"><a href="#">Reset</a></div>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row" id="link-hint-numbers-container">
-          <div class="setting-copy">
-            <h2>Numbers used for link hints</h2>
-            <div class="example">
+              <div class="setting-row" id="link-hint-numbers-container">
+                <div class="setting-copy">
+                  <h2>Numbers used for link hints</h2>
+                  <div class="example">
               The characters placed next to each link after typing "f" to enter link-hint mode.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="link-hint-characters-field">
-              <input name="linkHintNumbers" type="text" />
-              <div class="example reset-link"><a href="#">Reset</a></div>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="link-hint-characters-field">
+                    <input name="linkHintNumbers" type="text" />
+                    <div class="example reset-link"><a href="#">Reset</a></div>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name" for="setting-smoothScroll">Use smooth scrolling</label>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-smoothScroll">
-              <input id="setting-smoothScroll" name="smoothScroll" type="checkbox" />
-            </label>
-          </div>
-        </div>
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-smoothScroll">Use smooth scrolling</label>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-smoothScroll">
+                    <input id="setting-smoothScroll" name="smoothScroll" type="checkbox" />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-showCommandBarModeDescriptions">Show descriptions in the command-bar mode selector</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-showCommandBarModeDescriptions">Show descriptions in the command-bar mode selector</label>
+                  <div class="example">
               Display explanatory subtext below mode names such as <tt>find</tt>, <tt>tabs</tt>, and
               <tt>url</tt>.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-showCommandBarModeDescriptions">
-              <input
-                id="setting-showCommandBarModeDescriptions"
-                name="showCommandBarModeDescriptions"
-                type="checkbox"
-              />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-showCommandBarModeDescriptions">
+                    <input
+                      id="setting-showCommandBarModeDescriptions"
+                      name="showCommandBarModeDescriptions"
+                      type="checkbox"
+                    />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-filterLinkHints">Use the link's name and characters for link-hint filtering</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-filterLinkHints">Use the link's name and characters for link-hint filtering</label>
+                  <div class="example">
               In link-hint mode, this option lets you select a link by typing its text.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-filterLinkHints">
-              <input id="setting-filterLinkHints" name="filterLinkHints" type="checkbox" />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-filterLinkHints">
+                    <input id="setting-filterLinkHints" name="filterLinkHints" type="checkbox" />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row" id="wait-for-enter">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-waitForEnterForFilteredHints">Require <tt>Enter</tt> when filtering hints</label>
-            <div class="example">
+              <div class="setting-row" id="wait-for-enter">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-waitForEnterForFilteredHints">Require <tt>Enter</tt> when filtering hints</label>
+                  <div class="example">
               You activate the link with <tt>Enter</tt>, <em>always</em>; so you never accidentally
               type Suda commands.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-waitForEnterForFilteredHints">
-              <input
-                id="setting-waitForEnterForFilteredHints"
-                name="waitForEnterForFilteredHints"
-                type="checkbox"
-              />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-waitForEnterForFilteredHints">
+                    <input
+                      id="setting-waitForEnterForFilteredHints"
+                      name="waitForEnterForFilteredHints"
+                      type="checkbox"
+                    />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-grabBackFocus">Don't let pages steal the focus on load</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-grabBackFocus">Don't let pages steal the focus on load</label>
+                  <div class="example">
               Prevent pages from focusing an input on load (e.g. Google, Bing, etc.).
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-grabBackFocus">
-              <input id="setting-grabBackFocus" name="grabBackFocus" type="checkbox" />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-grabBackFocus">
+                    <input id="setting-grabBackFocus" name="grabBackFocus" type="checkbox" />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-hideHud">Hide the Heads Up Display (HUD) in insert mode</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-hideHud">Hide the Heads Up Display (HUD) in insert mode</label>
+                  <div class="example">
               When enabled, the HUD will not be displayed in insert mode.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-hideHud">
-              <input id="setting-hideHud" name="hideHud" type="checkbox" />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-hideHud">
+                    <input id="setting-hideHud" name="hideHud" type="checkbox" />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-regexFindMode">Treat find queries as JavaScript regular expressions</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-regexFindMode">Treat find queries as JavaScript regular expressions</label>
+                  <div class="example">
               Switch back to plain find mode by using the <code>\R</code> escape sequence.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-regexFindMode">
-              <input id="setting-regexFindMode" name="regexFindMode" type="checkbox" />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-regexFindMode">
+                    <input id="setting-regexFindMode" name="regexFindMode" type="checkbox" />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <label class="setting-name"
-              for="setting-ignoreKeyboardLayout">Ignore keyboard layout</label>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name"
+                    for="setting-ignoreKeyboardLayout">Ignore keyboard layout</label>
+                  <div class="example">
               This forces the use of <code>en-US</code> QWERTY layout and can be helpful for
               non-Latin keyboards.
             </div>
-          </div>
-          <div class="setting-control">
-            <label class="setting-switch" for="setting-ignoreKeyboardLayout">
-              <input
-                id="setting-ignoreKeyboardLayout"
-                name="ignoreKeyboardLayout"
-                type="checkbox"
-              />
-            </label>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-ignoreKeyboardLayout">
+                    <input
+                      id="setting-ignoreKeyboardLayout"
+                      name="ignoreKeyboardLayout"
+                      type="checkbox"
+                    />
+                  </label>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Previous patterns</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Previous patterns</h2>
+                  <div class="example">
               The "navigate to previous page" command uses these patterns to find the link to
               follow.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="link-hint-characters-field">
-              <input name="previousPatterns" type="text" />
-              <div class="example reset-link"><a href="#">Reset</a></div>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="link-hint-characters-field">
+                    <input name="previousPatterns" type="text" />
+                    <div class="example reset-link"><a href="#">Reset</a></div>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Next patterns</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Next patterns</h2>
+                  <div class="example">
               The "navigate to next page" command uses these patterns to find the link to follow.
             </div>
-          </div>
-          <div class="setting-control">
-            <div class="link-hint-characters-field">
-              <input name="nextPatterns" type="text" />
-              <div class="example reset-link"><a href="#">Reset</a></div>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div class="link-hint-characters-field">
+                    <input name="nextPatterns" type="text" />
+                    <div class="example reset-link"><a href="#">Reset</a></div>
+                  </div>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>CSS for Suda UI</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>CSS for Suda UI</h2>
+                  <div class="example">
               These styles are applied to link hints, the CommandBar, the help dialog, the exclusions
               pop-up and the HUD.<br>
               By default, this CSS is used to style the characters next to each link hint.<br>
               <br>
               These styles are used in addition to and take precedence over Suda's default styles.
             </div>
-          </div>
-          <div class="setting-control">
-            <div>
-              <textarea
-                name="userDefinedLinkHintCss"
-                class="code"
-                type="text"
-                spellcheck="false"
-              ></textarea>
-              <div class="example reset-link"><a href="#">Reset</a></div>
-            </div>
-          </div>
-        </div>
+                </div>
+                <div class="setting-control">
+                  <div>
+                    <textarea
+                      name="userDefinedLinkHintCss"
+                      class="code"
+                      type="text"
+                      spellcheck="false"
+                    ></textarea>
+                    <div class="example reset-link"><a href="#">Reset</a></div>
+                  </div>
+                </div>
+              </div>
 
-        <header class="settings-section-heading">Backup and Restore</header>
+              <header class="settings-section-heading">Backup and Restore</header>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Backup</h2>
-            <div class="example">Download a backup of your settings.</div>
-          </div>
-          <div class="setting-control">
-            <a id="download-backup" download="suda-options.json" href="#">Download backup</a>
-          </div>
-        </div>
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Backup</h2>
+                  <div class="example">Download a backup of your settings.</div>
+                </div>
+                <div class="setting-control">
+                  <a id="download-backup" download="suda-options.json" href="#">Download backup</a>
+                </div>
+              </div>
 
-        <div class="setting-row">
-          <div class="setting-copy">
-            <h2>Restore</h2>
-            <div class="example">
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Restore</h2>
+                  <div class="example">
               Choose a backup file to restore.
             </div>
+                </div>
+                <div class="setting-control">
+                  <input id="upload-backup" type="file" accept=".json" />
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="setting-control">
-            <input id="upload-backup" type="file" accept=".json" />
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <footer>
-        <div id="footer-content">
-          <div id="footer-help-text">
-            Type <strong>?</strong> to show the help dialog.
-            <br>
-            Type <strong id="shortcut-to-save-all"></strong> to save all options.
+        <section id="panel-keybindings" class="settings-panel" data-section-panel="keybindings"
+          hidden>
+          <div class="settings-panel-header">
+            <div class="settings-panel-header-actions">
+              <span id="binding-count" aria-live="polite"></span>
+              <label id="binding-search">
+                <svg viewBox="0 0 256 256" aria-hidden="true">
+                  <path
+                    d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path>
+                </svg>
+                <input type="search" placeholder="Search keybindings"
+                  aria-label="Search keybindings">
+              </label>
+              <button
+                id="toggle-editor"
+                type="button"
+                aria-expanded="false"
+                aria-controls="custom-mappings-editor"
+                title="Edit custom mappings"
+              >
+                <svg viewBox="0 0 256 256" aria-hidden="true">
+                  <path
+                    d="M216,120H136V40a8,8,0,0,0-16,0v80H40a8,8,0,0,0,0,16h80v80a8,8,0,0,0,16,0V136h80a8,8,0,0,0,0-16Z"></path>
+                </svg>
+                <span>Edit</span>
+              </button>
+            </div>
           </div>
-          <div id="footer-save-options">
-            <button id="save" disabled="disabled">No changes</button>
+
+          <div id="keybindings-workspace">
+            <section id="keybindings-toolbar" aria-label="Keybinding controls">
+              <fieldset id="profile-selector">
+                <legend>Binding profile</legend>
+                <label>
+                  <input type="radio" name="keyBindingMode" value="helix" checked>
+                  <span>Helix</span>
+                </label>
+                <label>
+                  <input type="radio" name="keyBindingMode" value="vim">
+                  <span>Suda classic</span>
+                </label>
+              </fieldset>
+            </section>
+
+            <section id="custom-mappings-editor" aria-label="Custom mappings editor" hidden>
+              <div class="editor-heading">
+                <div>
+                  <span class="section-label">Custom mappings</span>
+                  <h2>Layer your shortcuts over the selected profile</h2>
+                  <p>
+                    Use <code>map</code>, <code>unmap</code>, <code>unmapAll</code>, and
+                    <code>mapkey</code>. Custom mappings override the profile below.
+                  </p>
+                </div>
+                <button id="close-editor" class="icon-button" type="button"
+                  aria-label="Close editor">
+                  <svg viewBox="0 0 256 256" aria-hidden="true">
+                    <path
+                      d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+                  </svg>
+                </button>
+              </div>
+              <textarea
+                name="keyMappings"
+                spellcheck="false"
+                aria-label="Custom key mappings"
+                placeholder="map &lt;space&gt;x removeTab"
+              ></textarea>
+              <div
+                id="mapping-validation"
+                class="validation-message"
+                role="alert"
+                aria-live="polite"
+                hidden
+              ></div>
+              <div class="editor-footer">
+                <div class="syntax-example">
+                  <code>map &lt;space&gt;x removeTab</code>
+                  <code>unmap x</code>
+                </div>
+                <div class="editor-actions">
+                  <button id="discard-mappings" type="button">Discard</button>
+                  <button
+                    id="save-mappings"
+                    class="primary-button"
+                    type="button"
+                    aria-live="polite"
+                    disabled
+                  >
+                    No changes
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section id="bindings-table" aria-label="Active keybindings">
+              <div class="table-header" aria-hidden="true">
+                <span>Command</span>
+                <span>Keybinding</span>
+              </div>
+              <div id="binding-groups"></div>
+              <div id="empty-bindings" hidden>
+                <strong>No matching keybindings</strong>
+                <span>Try another command, feature, or key sequence.</span>
+              </div>
+            </section>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        <footer>
+          <div id="footer-content">
+            <div id="footer-help-text">
+              Type <strong>?</strong> to show the help dialog.
+              <br>
+              Type <strong id="shortcut-to-save-all"></strong> to save all options.
+            </div>
+            <div id="footer-save-options">
+              <button id="save" disabled="disabled">No changes</button>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
 
     <template id="exclusion-rule-template">
@@ -521,6 +682,26 @@
           <input type="button" class="remove" value="&#x2716;" />
         </td>
       </tr>
+    </template>
+
+    <template id="binding-group-template">
+      <section class="binding-group">
+        <header class="group-heading">
+          <span class="group-name"></span>
+          <span class="group-count"></span>
+        </header>
+        <div class="group-rows"></div>
+      </section>
+    </template>
+
+    <template id="binding-row-template">
+      <article class="binding-row">
+        <div class="command-copy">
+          <strong class="command-description"></strong>
+          <span class="command-name"></span>
+        </div>
+        <div class="binding-keys"></div>
+      </article>
     </template>
   </body>
 </html>
