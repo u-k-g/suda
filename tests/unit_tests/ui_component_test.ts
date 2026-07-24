@@ -26,7 +26,7 @@ context("UIComponent", () => {
   teardown(() => {
     // MessageChannel ports must be closed, or our test process will never terminate. See
     // https://github.com/facebook/react/issues/26608
-    for (const port of c?.messageChannelPorts) {
+    for (const port of c?.messageChannelPorts ?? []) {
       port.close();
     }
   });
@@ -56,4 +56,46 @@ context("UIComponent", () => {
     assert.equal("none", c.iframeElement.style.display);
     assert.isTrue(c.iframeElement.classList.contains("suda-ui-component-hidden"));
   });
+
+  should("queue messages immediately while load is still fetching its stylesheet", async () => {
+    let resolveCss;
+    const originalGet = chrome.storage.session.get.bind(chrome.storage.session);
+    stub(chrome.storage.session, "get", (key) => {
+      if (key === "sudaCSSInChromeStorage") {
+        return new Promise((resolve) => resolveCss = resolve);
+      }
+      return originalGet(key);
+    });
+
+    c = new UIComponent();
+    const loading = c.load("example.html?dom_tests=true", "example-class");
+    const messaging = c.postMessage({ name: "queued" });
+
+    // load() has reached its first await, but postMessage() must already have a readiness promise
+    // to wait on.
+    assert.isTrue(c.iframePort instanceof Promise);
+    resolveCss({});
+    await loading;
+
+    stubPostMessage(c.iframeElement, function () {});
+    c.iframeElement.dispatchEvent(new window.Event("load"));
+    c.messageChannelPorts[0].onmessage({ data: { name: "uiComponentIsReady" } });
+    assert.isTrue(await messaging);
+  });
+
+  should(
+    "silently abandons messages from a content script with an invalidated context",
+    async () => {
+      stub(chrome.storage.session, "get", () => {
+        throw new Error("Extension context invalidated.");
+      });
+
+      c = new UIComponent();
+      await c.load("example.html", "example-class");
+
+      assert.isFalse(await c.postMessage({ name: "ignored" }));
+      await c.show({ name: "ignored" });
+      assert.isFalse(c.showing);
+    },
+  );
 });

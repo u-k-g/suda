@@ -41,7 +41,7 @@ const HUD = {
     if (this.hudUI == null) {
       const queryString = globalThis.sudaDomTestsAreRunning ? "?dom_tests=true" : "";
       this.hudUI = new UIComponent();
-      this.hudUI.load(
+      await this.hudUI.load(
         `pages/hud_page.html${queryString}`,
         "suda-hud-frame",
         this.handleUIComponentMessage.bind(this),

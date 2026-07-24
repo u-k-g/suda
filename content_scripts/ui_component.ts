@@ -12,7 +12,7 @@ type UIFocusOptions = { focus?: boolean; sourceFrameId?: number };
 
 class UIComponent {
   iframeElement!: HTMLIFrameElement;
-  iframePort!: Promise<MessagePort>;
+  iframePort!: Promise<MessagePort | null>;
   showing = false;
   hiding = false;
   visibilityRequestId = 0;
@@ -36,6 +36,18 @@ class UIComponent {
     const isDomTests = iframeUrl.includes("?dom_tests=true");
     this.iframeElement = DomUtils.createElement("iframe");
 
+    // Create this promise before the first await in load(). Callers intentionally do not have to
+    // wait for load() before queueing a message.
+    let resolveIframePort;
+    this.iframePort = new Promise((resolve) => {
+      resolveIframePort = resolve;
+    });
+    const abandonLoad = () => {
+      for (const port of this.messageChannelPorts ?? []) port.close();
+      resolveIframePort(null);
+      return;
+    };
+
     // Allow Suda's iframes to have clipboard access. This is needed when triggering commands like
     // link hints or copyCurrentUrl from within the help dialog. This
     // permission has to be set before we append the iframe to the DOM, or Chrome will log the
@@ -53,7 +65,7 @@ class UIComponent {
     const cssItems = await Utils.withExtensionContext(() =>
       chrome.storage.session.get("sudaCSSInChromeStorage")
     );
-    if (!cssItems) return;
+    if (!cssItems) return abandonLoad();
     if (cssItems.sudaCSSInChromeStorage) {
       styleSheet.innerHTML = cssItems.sudaCSSInChromeStorage;
     }
@@ -69,31 +81,59 @@ class UIComponent {
     DomUtils.injectUserCss(this.shadowDOM);
     this.shadowDOM.appendChild(this.iframeElement);
 
-    // Load the iframe and pass it a port via window.postMessage so we can communicate privately
-    // with the iframe. Use a promise here so that requests to message this iframe's port will
-    // block until it's ready. See #1679.
-    let resolveFn;
-    this.iframePort = new Promise((resolve, _reject) => {
-      resolveFn = resolve;
-    });
-
     this.setIframeVisible(false);
     const resolvedIframeUrl = await Utils.withExtensionContext(() =>
       Promise.resolve(chrome.runtime.getURL(iframeUrl))
     );
-    if (resolvedIframeUrl == null) return;
-    this.iframeElement.src = resolvedIframeUrl;
-    await DomUtils.documentReady();
-    this.handlePageColorFilter();
-    document.documentElement.appendChild(shadowWrapper);
+    if (resolvedIframeUrl == null) return abandonLoad();
 
+    // The background worker initializes the per-session secret during startup. Waiting for the
+    // document also preserves the startup ordering this component has historically relied on.
+    await DomUtils.documentReady();
     const secretItems = await Utils.withExtensionContext(() =>
       chrome.storage.session.get("sudaSecret")
     );
-    if (!secretItems) return;
+    if (!secretItems) return abandonLoad();
     const secret = secretItems.sudaSecret;
     const { port1, port2 } = new MessageChannel();
     this.messageChannelPorts = [port1, port2];
+
+    port1.onmessage = (event) => {
+      let eventName = null;
+      // TODO(philc): Why are we using both data and data.name as the name? Pick one.
+      if (event) {
+        eventName = (event.data ? event.data.name : undefined) || event.data;
+      }
+
+      switch (eventName) {
+        case "uiComponentIsReady":
+          // If this frame receives the focus, then hide the UI component.
+          globalThis.addEventListener(
+            "focus",
+            forTrusted((event) => {
+              if ((event.target === window) && this.focusOptions.focus) {
+                this.hide(false);
+              }
+              // Continue propagating the event.
+              return true;
+            }),
+            true,
+          );
+          // Set the iframe's port, thereby rendering the UI component ready.
+          resolveIframePort(port1);
+          break;
+        case "setIframeFrameId":
+          this.iframeFrameId = event.data.iframeFrameId;
+          break;
+        case "hide":
+          return this.hide();
+        default:
+          this.messageHandler?.(event);
+      }
+    };
+
+    // Install the load listener before setting src or attaching the iframe. A cached extension page
+    // can otherwise finish loading before the private message channel is ready.
     this.iframeElement.addEventListener("load", () => {
       // Get sudaSecret so the iframe can determine that our message isn't the page
       // impersonating us.
@@ -102,44 +142,19 @@ class UIComponent {
       try {
         targetOrigin = isDomTests ? "*" : chrome.runtime.getURL("");
       } catch (error) {
-        if (Utils.extensionContextWasInvalidated(error)) return;
+        if (Utils.extensionContextWasInvalidated(error)) {
+          return abandonLoad();
+        }
         throw error;
       }
-      this.iframeElement.contentWindow.postMessage(secret, targetOrigin, [port2]);
-      port1.onmessage = (event) => {
-        let eventName = null;
-        // TODO(philc): Why are we using both data and data.name as the name? Pick one.
-        if (event) {
-          eventName = (event.data ? event.data.name : undefined) || event.data;
-        }
-
-        switch (eventName) {
-          case "uiComponentIsReady":
-            // If this frame receives the focus, then hide the UI component.
-            globalThis.addEventListener(
-              "focus",
-              forTrusted((event) => {
-                if ((event.target === window) && this.focusOptions.focus) {
-                  this.hide(false);
-                }
-                // Continue propagating the event.
-                return true;
-              }),
-              true,
-            );
-            // Set the iframe's port, thereby rendering the UI component ready.
-            resolveFn(port1);
-            break;
-          case "setIframeFrameId":
-            this.iframeFrameId = event.data.iframeFrameId;
-            break;
-          case "hide":
-            return this.hide();
-          default:
-            this.messageHandler?.(event);
-        }
-      };
+      const contentWindow = this.iframeElement.contentWindow;
+      if (!contentWindow) return abandonLoad();
+      contentWindow.postMessage(secret, targetOrigin, [port2]);
     });
+
+    this.iframeElement.src = resolvedIframeUrl;
+    this.handlePageColorFilter();
+    document.documentElement.appendChild(shadowWrapper);
   }
 
   // Page-wide color filters also affect extension iframes. Reverse any such filter so Suda can
@@ -186,7 +201,10 @@ class UIComponent {
   // Send a message to this UIComponent's iframe's page.
   // - data: an object with at least a `name` field.
   async postMessage(data) {
-    (await this.iframePort).postMessage(data);
+    const port = await this.iframePort;
+    if (!port) return false;
+    port.postMessage(data);
+    return true;
   }
 
   // Show the UIComponent.
@@ -203,7 +221,10 @@ class UIComponent {
     this.focusOptions = focusOptions;
     this.showing = true;
     this.hiding = false;
-    await this.postMessage(messageData);
+    if (!(await this.postMessage(messageData))) {
+      this.showing = false;
+      return;
+    }
     if (visibilityRequestId !== this.visibilityRequestId || !this.showing) return;
     this.setIframeVisible(true);
     if (this.focusOptions.focus) {
@@ -245,6 +266,10 @@ class UIComponent {
 
     const port = await this.iframePort;
     if (visibilityRequestId !== this.visibilityRequestId || this.showing) return;
+    if (!port) {
+      this.hiding = false;
+      return;
+    }
     port.postMessage({ name: "hidden" }); // Inform the UI component that it is hidden.
     this.hiding = false;
   }

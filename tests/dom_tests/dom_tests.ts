@@ -1476,6 +1476,76 @@ context("PostFindMode", () => {
   });
 });
 
+context("FindMode", () => {
+  const find = (query) => {
+    FindMode.updateQuery(query);
+    const matchText = FindMode.getQueryFromRegexMatches();
+    return FindMode.execute(matchText, { colorSelection: false });
+  };
+
+  setup(() => {
+    initializeModeState();
+    stubSettings("regexFindMode", false);
+    document.getElementById("test-div").innerHTML = "";
+    getSelection().removeAllRanges();
+  });
+
+  teardown(() => {
+    document.getElementById("test-div").innerHTML = "";
+    getSelection().removeAllRanges();
+    FindMode.query = null;
+  });
+
+  should("find text which crosses inline element boundaries", () => {
+    document.getElementById("test-div").innerHTML =
+      "A phrase <strong>split across</strong> several <span>elements</span>.";
+
+    assert.isTrue(find("phrase split across several elements"));
+    assert.equal(1, FindMode.query.matchCount);
+    assert.equal("phrase split across several elements", getSelection().toString());
+  });
+
+  should("treat visible line breaks as whitespace in plain find", () => {
+    document.getElementById("test-div").innerHTML = "first line<br>second line";
+
+    assert.isTrue(find("first line second line"));
+    assert.equal("first line\nsecond line", getSelection().toString());
+  });
+
+  should("cycle through matches in both directions", () => {
+    document.getElementById("test-div").innerHTML =
+      "<span>first target</span><span> second target</span>";
+
+    assert.isTrue(find("target"));
+    assert.equal("first target", getSelection().anchorNode.parentElement.textContent);
+
+    FindMode.execute(FindMode.getNextQueryFromRegexMatches(false), { colorSelection: false });
+    assert.equal(" second target", getSelection().anchorNode.parentElement.textContent);
+
+    FindMode.execute(FindMode.getNextQueryFromRegexMatches(true), { colorSelection: false });
+    assert.equal("first target", getSelection().anchorNode.parentElement.textContent);
+  });
+
+  should("highlight the full text matched by a regular expression", () => {
+    stubSettings("regexFindMode", true);
+    document.getElementById("test-div").textContent = "begin aaaaa end";
+
+    assert.isTrue(find("a+"));
+    assert.equal("aaaaa", getSelection().toString());
+  });
+
+  should("clear stale results when a regular expression is invalid", () => {
+    stubSettings("regexFindMode", true);
+    document.getElementById("test-div").textContent = "valid";
+    assert.isTrue(find("valid"));
+
+    FindMode.updateQuery("[");
+
+    assert.equal(0, FindMode.query.matchCount);
+    assert.equal("", FindMode.getQueryFromRegexMatches());
+  });
+});
+
 context("WaitForEnter", () => {
   let isSuccess, waitForEnter;
 

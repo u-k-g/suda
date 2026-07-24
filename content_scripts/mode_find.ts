@@ -147,11 +147,11 @@ class FindMode extends Mode {
     // If requested, restore the scroll position (so that failed searches leave the scroll position
     // unchanged).
     this.checkReturnToViewPort();
-    FindMode.updateQuery(query);
     // Restore the selection. That way, we're always searching forward from the same place, so we
     // find the right match as the user adds matching characters, or removes previously-matched
     // characters. See #1434.
     this.restoreSelection();
+    FindMode.updateQuery(query);
     query = FindMode.query.isRegex
       ? FindMode.getQueryFromRegexMatches()
       : FindMode.query.parsedQuery;
@@ -190,90 +190,91 @@ class FindMode extends Mode {
     // Implement smartcase.
     this.query.ignoreCase = !Utils.hasUpperCase(this.query.parsedQuery);
 
+    // Plain find treats a run of whitespace like the browser's native finder does. Besides being
+    // more forgiving, this lets a query cross a <br> or a block boundary.
     const regexPattern = this.query.isRegex
       ? this.query.parsedQuery
-      : Utils.escapeRegexSpecialCharacters(this.query.parsedQuery);
+      : Utils.escapeRegexSpecialCharacters(this.query.parsedQuery).replace(/\s+/g, "\\s+");
 
-    // Grep for all matches in every text node,
-    // so we can show a the number of results.
+    // Grep the page as one text stream. Searching each text node separately makes ordinary phrases
+    // fail whenever a page wraps part of the phrase in an inline element.
     try {
       pattern = new RegExp(regexPattern, `g${this.query.ignoreCase ? "i" : ""}`);
     } catch {
       // If we catch a SyntaxError, assume the user is not done typing yet and return quietly.
-      return;
+      return this.clearMatches();
     }
 
-    const textNodes = getAllTextNodes();
-    const matchedNodes = textNodes.filter((node) => {
-      return node.textContent.match(pattern);
-    });
-    const regexMatches = matchedNodes.map((node) => node.textContent.match(pattern));
-    this.query.regexMatches = regexMatches;
+    if (!this.query.parsedQuery) {
+      return this.clearMatches(pattern);
+    }
+
+    const searchableText = getSearchableText();
+    const matches = getSearchMatches(searchableText, pattern);
+    this.query.matches = matches;
+    // Keep these fields populated for callers which inspect FindMode.query.
+    this.query.regexMatches = matches.map((match) => [match.text]);
     this.query.regexPattern = pattern;
-    this.query.regexMatchedNodes = matchedNodes;
+    this.query.regexMatchedNodes = matches.map((match) => match.startNode);
     this.updateActiveRegexIndices();
 
-    return this.query.matchCount = regexMatches != null ? regexMatches.flat().length : null;
+    return this.query.matchCount = matches.length;
   }
 
-  // set activeRegexIndices near the latest selection
+  static clearMatches(pattern = null) {
+    this.query.matches = [];
+    this.query.regexMatches = [];
+    this.query.regexPattern = pattern;
+    this.query.regexMatchedNodes = [];
+    this.query.activeMatchIndex = 0;
+    this.query.activeRegexIndices = [0, 0];
+    return this.query.matchCount = 0;
+  }
+
+  // Set the active match near the latest selection.
   static updateActiveRegexIndices() {
-    let activeNodeIndex = -1;
-    const matchedNodes = this.query.regexMatchedNodes;
+    let activeMatchIndex = -1;
+    const matches = this.query.matches;
     const selection = globalThis.getSelection();
-    if (selection.rangeCount > 0) {
-      activeNodeIndex = matchedNodes.indexOf(selection.anchorNode);
+    if (selection.rangeCount > 0 && matches.length > 0) {
+      const selectionRange = selection.getRangeAt(0);
+      activeMatchIndex = matches.findIndex((match) => {
+        if (
+          selectionRange.startContainer === match.startNode &&
+          selectionRange.startOffset >= match.startOffset &&
+          (match.startNode !== match.endNode || selectionRange.startOffset < match.endOffset)
+        ) {
+          return true;
+        }
 
-      if (activeNodeIndex === -1) {
-        activeNodeIndex = this.query.regexMatchedNodes.findIndex((node) => {
-          const range = selection.getRangeAt(0);
-
-          if (range) {
-            let sourceRange = document.createRange();
-            sourceRange.setStart(node, 0);
-            return range.compareBoundaryPoints(Range.START_TO_START, sourceRange) <= 0;
-          } else {
-            return false;
-          }
-        });
-      }
+        const matchRange = document.createRange();
+        matchRange.setStart(match.startNode, match.startOffset);
+        return selectionRange.compareBoundaryPoints(Range.START_TO_START, matchRange) <= 0;
+      });
     }
-    this.query.activeRegexIndices = [Math.max(activeNodeIndex, 0), 0];
+    this.query.activeMatchIndex = Math.max(activeMatchIndex, 0);
+    this.query.activeRegexIndices = [this.query.activeMatchIndex, 0];
   }
 
   static getQueryFromRegexMatches() {
     // find()ing an empty query always returns false
-    if (!this.query.regexMatches?.length) {
+    if (!this.query.matches?.length) {
       return "";
     }
-    let [row, col] = this.query.activeRegexIndices;
-    return this.query.regexMatches[row][col];
+    return this.query.matches[this.query.activeMatchIndex].text;
   }
 
   static getNextQueryFromRegexMatches(backwards) {
     // find()ing an empty query always returns false
-    if (!this.query.regexMatches?.length) {
+    if (!this.query.matches?.length) {
       return "";
     }
     const stepSize = backwards ? -1 : 1;
-
-    let [row, col] = this.query.activeRegexIndices;
-    let numRows = this.query.regexMatches.length;
-    col += stepSize;
-    while (col < 0 || col >= this.query.regexMatches[row].length) {
-      if (col < 0) {
-        row += numRows - 1;
-        row %= numRows;
-        col += this.query.regexMatches[row].length;
-      } else {
-        col -= this.query.regexMatches[row].length;
-        row += 1;
-        row %= numRows;
-      }
-    }
-    this.query.activeRegexIndices = [row, col];
-
-    return this.query.regexMatches[row][col];
+    const matchCount = this.query.matches.length;
+    this.query.activeMatchIndex = (this.query.activeMatchIndex + stepSize + matchCount) %
+      matchCount;
+    this.query.activeRegexIndices = [this.query.activeMatchIndex, 0];
+    return this.query.matches[this.query.activeMatchIndex].text;
   }
 
   // Returns null if no search has been performed yet.
@@ -310,15 +311,8 @@ class FindMode extends Mode {
       document.removeEventListener("selectionchange", this.restoreDefaultSelectionHighlight, true);
     }
 
-    if (this.query.regexMatches?.length) {
-      const [row, col] = this.query.activeRegexIndices;
-      const node = this.query.regexMatchedNodes[row];
-      const text = node.textContent;
-      const matchIndices = getRegexMatchIndices(text, this.query.regexPattern);
-      if (matchIndices.length > 0) {
-        const startIndex = matchIndices[col];
-        result = highlight(node, startIndex, query.length);
-      }
+    if (query && this.query.matches?.length) {
+      result = highlight(this.query.matches[this.query.activeMatchIndex]);
     }
 
     // window.find focuses the |window| that it is called on. This gives us an opportunity to
@@ -456,30 +450,12 @@ const selectFoundInputElement = function () {
   }
 };
 
-// Retrieve the starting indices of all matches of the queried pattern within the given text.
-const getRegexMatchIndices = (text, regex) => {
-  const indices = [];
-  let match;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (!match[0]) {
-      break;
-    }
-    indices.push(match.index);
-  }
-
-  return indices;
-};
-
-// Highlights text starting from the given startIndex with the specified length.
-const highlight = (textNode, startIndex, length) => {
-  if (startIndex === -1) {
-    return false;
-  }
+// Highlights a match, including matches which cross inline-element boundaries.
+const highlight = (match) => {
   const selection = globalThis.getSelection();
   const range = document.createRange();
-  range.setStart(textNode, startIndex);
-  range.setEnd(textNode, startIndex + length);
+  range.setStart(match.startNode, match.startOffset);
+  range.setEnd(match.endNode, match.endOffset);
   selection.removeAllRanges();
   selection.addRange(range);
 
@@ -497,25 +473,132 @@ const highlight = (textNode, startIndex, length) => {
   return true;
 };
 
-const getAllTextNodes = () => {
-  const textNodes = [];
+const blockElements = new Set([
+  "ADDRESS",
+  "ARTICLE",
+  "ASIDE",
+  "BLOCKQUOTE",
+  "DD",
+  "DIV",
+  "DL",
+  "DT",
+  "FIELDSET",
+  "FIGCAPTION",
+  "FIGURE",
+  "FOOTER",
+  "FORM",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "HEADER",
+  "HR",
+  "LI",
+  "MAIN",
+  "NAV",
+  "OL",
+  "P",
+  "PRE",
+  "SECTION",
+  "TABLE",
+  "TBODY",
+  "TD",
+  "TFOOT",
+  "TH",
+  "THEAD",
+  "TR",
+  "UL",
+]);
+const ignoredFindElements = new Set(["NOSCRIPT", "SCRIPT", "STYLE", "TEMPLATE"]);
 
-  function getAllTextNodes(node) {
+// Flatten visible page text while retaining each text node's position in the combined stream.
+const getSearchableText = () => {
+  const chunks = [];
+  const segments = [];
+  let length = 0;
+
+  const appendBoundary = () => {
+    const lastChunk = chunks.at(-1);
+    if (lastChunk && !/\s$/.test(lastChunk)) {
+      chunks.push("\n");
+      length++;
+    }
+  };
+
+  function visit(node) {
     if (node.nodeType === Node.TEXT_NODE) {
-      textNodes.push(node);
+      if (node.textContent.length > 0) {
+        const start = length;
+        chunks.push(node.textContent);
+        length += node.textContent.length;
+        segments.push({ node, start, end: length });
+      }
     } else if (
       node.nodeType === Node.ELEMENT_NODE &&
+      !ignoredFindElements.has(node.tagName) &&
       (node.checkVisibility() || node.style.display === "contents")
     ) {
-      const children = node.childNodes;
-      for (const child of children) {
-        getAllTextNodes(child, textNodes);
-      }
+      if (node.tagName === "BR") return appendBoundary();
+      const isBlock = blockElements.has(node.tagName);
+      if (isBlock) appendBoundary();
+      for (const child of node.childNodes) visit(child);
+      if (isBlock) appendBoundary();
     }
   }
 
-  getAllTextNodes(document.body);
-  return textNodes;
+  visit(document.body);
+  return { text: chunks.join(""), segments };
+};
+
+const getSearchMatches = ({ text, segments }, pattern) => {
+  const matches = [];
+  let result;
+  pattern.lastIndex = 0;
+
+  const firstSegmentAfter = (offset) => {
+    let low = 0;
+    let high = segments.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (segments[middle].end <= offset) low = middle + 1;
+      else high = middle;
+    }
+    return segments[low];
+  };
+
+  const lastSegmentBefore = (offset) => {
+    let low = 0;
+    let high = segments.length;
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+      if (segments[middle].start < offset) low = middle + 1;
+      else high = middle;
+    }
+    return segments[low - 1];
+  };
+
+  while ((result = pattern.exec(text)) !== null) {
+    // Empty regular-expression matches cannot be highlighted or advanced through safely.
+    if (!result[0]) break;
+
+    const start = result.index;
+    const end = start + result[0].length;
+    const first = firstSegmentAfter(start);
+    const last = lastSegmentBefore(end);
+    if (!first || !last || first.start >= end || last.end <= start) continue;
+
+    matches.push({
+      text: result[0],
+      startNode: first.node,
+      startOffset: Math.max(start, first.start) - first.start,
+      endNode: last.node,
+      endOffset: Math.min(end, last.end) - last.start,
+    });
+  }
+
+  return matches;
 };
 
 globalThis.PostFindMode = PostFindMode;

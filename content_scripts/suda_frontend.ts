@@ -504,7 +504,7 @@ const HelpDialog = {
     if (this.helpUI == null) {
       await DomUtils.documentComplete();
       this.helpUI = new UIComponent();
-      this.helpUI.load("pages/help_dialog_page.html", "suda-help-dialog-frame");
+      await this.helpUI.load("pages/help_dialog_page.html", "suda-help-dialog-frame");
     }
     if (this.isShowing()) {
       this.helpUI.hide();
