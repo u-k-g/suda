@@ -368,20 +368,93 @@ context("commandBar page", () => {
     assert.equal("omni", ui.completerName);
   });
 
-  should("scroll the selected completion into view", () => {
+  should("scroll the selected completion into view with list padding", () => {
     ui.renderCompletions([
       { kind: "verbatim", title: "first", titleMatches: [] },
       { kind: "verbatim", title: "second", titleMatches: [] },
     ]);
-    let scrollOptions = null;
-    ui.completionList.children[1].scrollIntoView = (options) => scrollOptions = options;
     ui.completions = [{}, {}];
     ui.selection = 1;
 
+    const list = ui.completionList;
+    const selected = list.children[1];
+    list.scrollTop = 0;
+    // List viewport: top 100, height 100, padding 6/8. Selected row sits below the padded region.
+    stub(list, "getBoundingClientRect", () => ({
+      top: 100,
+      bottom: 200,
+      left: 0,
+      right: 100,
+      width: 100,
+      height: 100,
+    }));
+    stub(list.ownerDocument.defaultView, "getComputedStyle", (element) => {
+      if (element === list) {
+        return { paddingTop: "6px", paddingBottom: "8px" };
+      }
+      if (element === selected) {
+        return { marginTop: "2px", marginBottom: "2px" };
+      }
+      return { paddingTop: "0px", paddingBottom: "0px", marginTop: "0px", marginBottom: "0px" };
+    });
+    selected.getBoundingClientRect = () => ({
+      top: 190,
+      bottom: 236,
+      left: 0,
+      right: 100,
+      width: 100,
+      height: 46,
+    });
+
     ui.updateSelection();
 
-    assert.equal("selected", ui.completionList.children[1].className);
-    assert.equal({ block: "nearest", inline: "nearest" }, scrollOptions);
+    assert.equal("selected", selected.className);
+    // visibleBottom = 200 - 8 = 192; itemBottom with margin = 236 + 2 = 238; delta = 46
+    assert.equal(46, list.scrollTop);
+  });
+
+  should("scroll the selected completion up while preserving top padding", () => {
+    ui.renderCompletions([
+      { kind: "verbatim", title: "first", titleMatches: [] },
+      { kind: "verbatim", title: "second", titleMatches: [] },
+    ]);
+    ui.completions = [{}, {}];
+    ui.selection = 0;
+
+    const list = ui.completionList;
+    const selected = list.children[0];
+    list.scrollTop = 40;
+    stub(list, "getBoundingClientRect", () => ({
+      top: 100,
+      bottom: 200,
+      left: 0,
+      right: 100,
+      width: 100,
+      height: 100,
+    }));
+    stub(list.ownerDocument.defaultView, "getComputedStyle", (element) => {
+      if (element === list) {
+        return { paddingTop: "6px", paddingBottom: "8px" };
+      }
+      if (element === selected) {
+        return { marginTop: "2px", marginBottom: "2px" };
+      }
+      return { paddingTop: "0px", paddingBottom: "0px", marginTop: "0px", marginBottom: "0px" };
+    });
+    // Row is above the padded visible region (visibleTop = 106).
+    selected.getBoundingClientRect = () => ({
+      top: 90,
+      bottom: 136,
+      left: 0,
+      right: 100,
+      width: 100,
+      height: 46,
+    });
+
+    ui.updateSelection();
+
+    // itemTop with margin = 90 - 2 = 88; visibleTop = 106; scrollTop -= 18
+    assert.equal(22, list.scrollTop);
   });
 
   should("edit a completion's URL when ctrl-enter is pressed", async () => {

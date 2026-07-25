@@ -151,9 +151,12 @@ ul {
 
 #commandBar ul {
   background: var(--command-bar-panel);
-  max-height: min(272px, calc(100vh - 88px));
+  /* Cap at 5 completion rows: padding 6+8, five × 46px min-height, and vertical margins. */
+  max-height: min(256px, calc(100vh - 88px));
   overflow: hidden auto;
   padding: 6px 9px 8px;
+  /* Keep scroll-into-view / snap aligned with the same breathing room as the list padding. */
+  scroll-padding: 6px 9px 8px;
   scrollbar-color: var(--command-bar-border) transparent;
   scrollbar-width: thin;
 }
@@ -169,6 +172,8 @@ ul {
   min-height: 46px;
   padding: 7px 10px;
   position: relative;
+  /* Include row margins in the optimal viewing region so selection isn't flush to the pad edge. */
+  scroll-margin-block: 2px;
 }
 
 #commandBar li.selected {

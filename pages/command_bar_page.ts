@@ -569,10 +569,41 @@ class CommandBarUI {
       el.className = i === this.selection ? "selected" : "";
     }
 
-    // Keep keyboard navigation anchored to something visible. The completion list is its own
-    // scroll container, so "nearest" moves it only when the selected row crosses an edge.
-    const selectedElement = this.completionList.children[this.selection];
-    selectedElement?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    this.scrollSelectedCompletionIntoView();
+  }
+
+  // Scroll the completion list just enough to keep the selected row fully visible inside the
+  // list's padded content area (matching the visual breathing room of the first/last rows at rest).
+  // Only adjusts this list's scrollTop so ancestors (iframe, page) are left alone.
+  scrollSelectedCompletionIntoView() {
+    const list = this.completionList;
+    const selected = list?.children[this.selection];
+    if (!(selected instanceof HTMLElement) || !list) return;
+
+    // Prefer the document's view (works in the extension iframe and jsdom); fall back gracefully
+    // when computed styles are unavailable so selection still updates in unit tests.
+    const view = list.ownerDocument?.defaultView;
+    const getStyle = view?.getComputedStyle?.bind(view) ?? globalThis.getComputedStyle;
+    const listStyle = getStyle?.(list);
+    const itemStyle = getStyle?.(selected);
+    const padTop = parseFloat(listStyle?.paddingTop ?? "0") || 0;
+    const padBottom = parseFloat(listStyle?.paddingBottom ?? "0") || 0;
+    const marginTop = parseFloat(itemStyle?.marginTop ?? "0") || 0;
+    const marginBottom = parseFloat(itemStyle?.marginBottom ?? "0") || 0;
+
+    const listRect = list.getBoundingClientRect();
+    const itemRect = selected.getBoundingClientRect();
+    // Target region: list padding box inset by padding, with the row's own margins kept inside.
+    const visibleTop = listRect.top + padTop;
+    const visibleBottom = listRect.bottom - padBottom;
+    const itemTop = itemRect.top - marginTop;
+    const itemBottom = itemRect.bottom + marginBottom;
+
+    if (itemTop < visibleTop) {
+      list.scrollTop -= visibleTop - itemTop;
+    } else if (itemBottom > visibleBottom) {
+      list.scrollTop += itemBottom - visibleBottom;
+    }
   }
 
   // Returns the user's action ("up", "down", "tab", etc, or null) based on their keypress. We
