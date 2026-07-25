@@ -25,12 +25,12 @@
 <details open>
 <summary><strong>installation</strong></summary>
 
-1. install [deno](https://deno.com/) and [just](https://just.systems/)
-2. run `just build`
+1. download `suda.zip` from the [latest release](https://github.com/u-k-g/suda/releases/latest)
+2. unzip it
 3. open `chrome://extensions`
 4. enable **developer mode**
 5. select **load unpacked**
-6. choose `dist/suda`
+6. choose the extracted `suda` directory
 
 </details>
 
@@ -49,6 +49,7 @@ stay direct and predictable.
 <details>
 <summary><strong>development</strong></summary>
 
+- install [Deno](https://deno.com/) and [just](https://just.systems/)
 - `just build` builds the unpacked extension in `dist/suda`
 - `just test` runs the unit and dom test suites
 - `just check` type-checks the source

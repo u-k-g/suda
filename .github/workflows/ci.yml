@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
+      - name: Check formatting
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Type-check
+        run: >-
+          deno check --unstable-sloppy-imports
+          types/*.d.ts
+          build_scripts/*.ts
+          background_scripts/*.ts
+          background_scripts/completion/*.ts
+          content_scripts/*.ts
+          lib/*.ts
+          pages/*.ts
+          test_harnesses/*.ts
+          tests/dom_tests/*.ts
+          tests/unit_tests/*.ts
+          tests/unit_tests/completion/*.ts
+          tests/vendor/*.ts
+
+      - name: Run unit tests
+        run: ./build_scripts/run_unit_tests.ts
+
+      - name: Run DOM tests
+        run: ./build_scripts/run_dom_tests.ts
+
+      - name: Build unpacked extension
+        run: ./build_scripts/build.ts
+
+      - name: Package unpacked extension
+        working-directory: dist
+        run: zip -qr suda.zip suda
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: suda-${{ github.sha }}
+          path: dist/suda.zip
+          if-no-files-found: error
+          retention-days: 14

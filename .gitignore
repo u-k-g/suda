@@ -33,6 +33,7 @@
 !manifest.json
 !.github/ISSUE_TEMPLATE/bug_report.md
 !.github/pull_request_template.md
+!.github/workflows/*.yml
 !resources/iTerm2-Color-Schemes.LICENSE
 !resources/phosphor-icons.LICENSE
 !resources/tlds.txt

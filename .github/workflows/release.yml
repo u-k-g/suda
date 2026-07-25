@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+      - "[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the tagged revision
+        uses: actions/checkout@v7
+
+      - name: Read version from tag
+        id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ ! "$tag" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Expected a stable semantic version tag such as v2.5.0; got $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+          IFS=. read -r major minor patch <<< "$tag"
+          if (( major > 65535 || minor > 65535 || patch > 65535 )); then
+            echo "Chrome manifest version components must not exceed 65535: $tag" >&2
+            exit 1
+          fi
+          echo "number=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
+      - name: Build unpacked extension
+        env:
+          SUDA_VERSION: ${{ steps.version.outputs.number }}
+        run: ./build_scripts/build.ts
+
+      - name: Verify packaged manifest version
+        env:
+          SUDA_VERSION: ${{ steps.version.outputs.number }}
+        run: |
+          built_version="$(deno eval "console.log(JSON.parse(Deno.readTextFileSync('dist/suda/manifest.json')).version)")"
+          test "$built_version" = "$SUDA_VERSION"
+
+      - name: Package release
+        working-directory: dist
+        run: |
+          zip -qr suda.zip suda
+          unzip -t suda.zip
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SUDA_VERSION: ${{ steps.version.outputs.number }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          dist/suda.zip
+          --verify-tag
+          --generate-notes
+          --title "Suda $SUDA_VERSION"

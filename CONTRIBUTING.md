@@ -106,6 +106,18 @@ The formatting, linting, and checking recipes pass arguments through to Deno. Fo
 run one test suite. A suite can be followed by an optional test-name filter, such as
 `just test unit "Browser new-tab redirects"`.
 
+### Publishing a release
+
+Run `just tag patch`, `just tag minor`, or `just tag major`. The command requires a clean working
+tree, updates local `main` from `origin/main`, finds the latest stable semantic version tag, and
+pushes the next `vMAJOR.MINOR.PATCH` tag. Minor and major bumps reset the lower version components
+to zero. If the repository has no version tags yet, the version in `manifest.json` is the starting
+point.
+
+Pushing the tag starts GitHub Actions, which builds the extension with that version, creates
+`suda.zip`, and attaches it to a GitHub Release. The archive contains the compiled `suda` directory
+that users can select with Chrome's **Load unpacked** button; users do not need Deno or just.
+
 ### Coding Style
 
 - Run `just fmt` at the root of the Suda project to format your code.

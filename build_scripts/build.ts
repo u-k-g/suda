@@ -52,9 +52,20 @@ export async function buildExtension() {
 
   // Chrome accepts comments in a development manifest, but emitting plain JSON keeps the build
   // identical to what is validated and placed in store archives.
+  const manifest = await parseManifestFile();
+  const buildVersion = Deno.env.get("SUDA_VERSION");
+  if (buildVersion != null) {
+    if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(buildVersion)) {
+      throw new Error(`SUDA_VERSION must be a stable semantic version: ${buildVersion}`);
+    }
+    if (buildVersion.split(".").some((part) => Number(part) > 65535)) {
+      throw new Error(`SUDA_VERSION components must not exceed 65535: ${buildVersion}`);
+    }
+    manifest.version = buildVersion;
+  }
   await Deno.writeTextFile(
     path.join(outputDirectory, "manifest.json"),
-    JSON.stringify(await parseManifestFile(), null, 2),
+    JSON.stringify(manifest, null, 2),
   );
   console.log(`Built unpacked extension in ${outputDirectory}`);
 }
