@@ -4,51 +4,61 @@ import "../../lib/themes.js";
 
 context("themes", () => {
   should("include the complete imported catalog and curated themes", () => {
-    assert.equal(50, ThemeManager.themes.length);
+    assert.equal(29, ThemeManager.themes.length);
     const names = new Set(ThemeManager.themes.map((theme) => theme.name));
     for (
       const name of [
-        "Gruvbox Dark",
-        "Gruvbox Light",
-        "Everforest Dark",
-        "Everforest Light",
-        "Iceberg Light",
+        "Gruvbox",
+        "Everforest",
+        "Iceberg",
         "Catppuccin Mocha",
         "Rose Pine Dawn",
         "Nord",
-        "Black Metal (Mayhem)",
-        "Ayu Light",
-        "Absolutely Dark",
+        "Black Metal",
+        "Ayu",
         "Vesper",
         "Matte Black",
-        "*Zen Dark",
-        "*Zen Light",
-        "Oscura Dusk",
+        "*Zen",
         "Oscura Midnight",
-        "TokyoNight Night",
-        "Linear Dark",
+        "TokyoNight",
+        "Linear",
         "True Black",
+        "Solarized",
       ]
     ) {
       assert.isTrue(names.has(name), `Missing theme: ${name}`);
     }
     for (
       const name of [
-        "Everforest Dark Hard",
-        "Everforest Dark Med",
-        "Everforest Dark Soft",
-        "Everforest Light Hard",
-        "Everforest Light Med",
-        "Everforest Light Soft",
-        "Gruvbox Dark Hard",
-        "Gruvbox Dark Soft",
-        "Gruvbox Light Hard",
-        "Gruvbox Light Soft",
-        "Gruvbox Material",
+        "Absolutely Night",
+        "Absolutely Day",
+        "Ayu Mirage",
+        "Ayu Night",
+        "Ayu Day",
+        "Black Metal (Bathory)",
+        "Black Metal (Mayhem)",
+        "Black Metal (Venom)",
+        "Everforest Night",
+        "Everforest Day",
+        "Gruvbox Night",
+        "Gruvbox Day",
         "Material",
         "Material Dark",
-        "Material Ocean",
-        "Oceanic Material",
+        "Nord Night",
+        "Nord Day",
+        "Nord Wave",
+        "Oscura Dusk",
+        "Rose Pine Moon",
+        "Solarized Night",
+        "Solarized Day",
+        "TokyoNight Night",
+        "TokyoNight Day",
+        "TokyoNight Moon",
+        "TokyoNight Storm",
+        "*Zen Night",
+        "*Zen Day",
+        "*Zen Dark",
+        "*Zen Light",
       ]
     ) {
       assert.isFalse(names.has(name), `Unexpected theme: ${name}`);
@@ -57,8 +67,8 @@ context("themes", () => {
 
   should("list starred themes first, then the rest alphabetically by name", () => {
     const names = ThemeManager.themes.map((theme) => theme.name);
-    assert.equal("*Zen Dark", names[0]);
-    assert.equal("*Zen Light", names[1]);
+    assert.equal("*Zen", names[0]);
+    assert.equal("*Zen", names[1]);
 
     const firstUnstarred = names.findIndex((name) => !name.startsWith("*"));
     assert.isTrue(firstUnstarred > 0);
@@ -70,6 +80,23 @@ context("themes", () => {
       a.localeCompare(b, undefined, { sensitivity: "base" })
     );
     assert.equal(sortedUnstarred.join("\n"), unstarred.join("\n"));
+  });
+
+  should("filter themes by appearance mode", () => {
+    const dark = ThemeManager.themesForMode("dark");
+    const light = ThemeManager.themesForMode("light");
+    assert.isTrue(dark.length > 0);
+    assert.isTrue(light.length > 0);
+    assert.equal(ThemeManager.themes.length, dark.length + light.length);
+    assert.isTrue(dark.every((theme) => theme.mode === "dark"));
+    assert.isTrue(light.every((theme) => theme.mode === "light"));
+    assert.equal("zen-night", ThemeManager.preferredThemeIdForMode("dark"));
+    assert.equal("zen-day", ThemeManager.preferredThemeIdForMode("light"));
+    assert.equal("*Zen", dark[0].name);
+    assert.equal("*Zen", light[0].name);
+    // Mode filter means the same display name is fine for a night/day pair.
+    assert.equal(1, dark.filter((theme) => theme.name === "Gruvbox").length);
+    assert.equal(1, light.filter((theme) => theme.name === "Gruvbox").length);
   });
 
   should("define every theme with the semantic UI color contract", () => {
@@ -112,12 +139,12 @@ context("themes", () => {
       },
     };
 
-    ThemeManager.apply("zen-light", root);
+    ThemeManager.apply("zen-day", root);
 
-    assert.equal("zen-light", root.dataset.sudaTheme);
+    assert.equal("zen-day", root.dataset.sudaTheme);
     assert.equal("light", root.style.colorScheme);
     assert.equal("#f4f1ed", properties.get("--suda-canvas-color"));
-    assert.equal(ThemeManager.get("zen-light").surface, properties.get("--suda-surface-color"));
+    assert.equal(ThemeManager.get("zen-day").surface, properties.get("--suda-surface-color"));
     assert.equal("#27272a", properties.get("--suda-text-color"));
     assert.equal("#6ced96", properties.get("--suda-accent-color"));
     assert.equal("#e5484d", properties.get("--suda-danger-color"));
@@ -135,14 +162,14 @@ context("themes", () => {
       },
     };
 
-    ThemeManager.apply("zen-dark", root, "12ABef");
+    ThemeManager.apply("zen-night", root, "12ABef");
     assert.equal("#12abef", properties.get("--suda-accent-color"));
     assert.equal("#f5a524", properties.get("--suda-warning-color"));
     assert.isFalse(
       properties.get("--suda-overlay-color") === properties.get("--suda-canvas-color"),
     );
 
-    ThemeManager.apply("gruvbox-dark", root, "#12ABEF");
+    ThemeManager.apply("gruvbox-night", root, "#12ABEF");
     assert.equal("#458588", properties.get("--suda-accent-color"));
     assert.equal("#d79921", properties.get("--suda-warning-color"));
     assert.equal(
@@ -168,19 +195,53 @@ context("themes", () => {
     };
 
     // The default mint accent is light, so text drawn on a solid accent fill must be dark.
-    ThemeManager.apply("zen-dark", root, "#6CED96");
+    ThemeManager.apply("zen-night", root, "#6CED96");
     assert.equal("#1d1d1f", properties.get("--suda-accent-contrast-color"));
     assert.equal("#187c39", properties.get("--suda-accent-selected-color"));
     assert.equal("#ffffff", properties.get("--suda-accent-selected-text-color"));
 
     // A dark accent gets white text on top of it.
-    ThemeManager.apply("zen-dark", root, "#312e81");
+    ThemeManager.apply("zen-night", root, "#312e81");
     assert.equal("#ffffff", properties.get("--suda-accent-contrast-color"));
+  });
+
+  should("use dark ink on light accent fills and not wash pale accents into body text", () => {
+    const properties = new Map();
+    const root = {
+      dataset: {},
+      style: {
+        colorScheme: "",
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+
+    // Oscura's signature pale yellow is closer to white than black.
+    ThemeManager.apply("oscura-midnight", root);
+    assert.equal("#e6e7a3", properties.get("--suda-accent-color"));
+    assert.equal("#e6e7a3", properties.get("--suda-accent-selected-color"));
+    assert.equal("#1d1d1f", properties.get("--suda-accent-selected-text-color"));
+    assert.equal("#1d1d1f", properties.get("--suda-accent-contrast-color"));
+
+    // Match/link accent text must stay distinct from body text so highlights remain visible.
+    const accentText = properties.get("--suda-accent-text-color");
+    const bodyText = properties.get("--suda-text-color");
+    const canvas = properties.get("--suda-canvas-color");
+    assert.isTrue(ThemeManager.isLightColor("#e6e7a3"));
+    assert.isTrue(ThemeManager.contrastRatio(accentText, canvas) >= 4.5);
+    assert.isTrue(
+      ThemeManager.contrastRatio(accentText, bodyText) >= 2.5,
+      `accent text ${accentText} too close to body text ${bodyText}`,
+    );
+    // Old behavior washed pale accents toward white (~#eeefc0); deepened gold must be darker.
+    assert.isTrue(
+      ThemeManager.contrastRatio(accentText, "#ffffff") >
+        ThemeManager.contrastRatio("#eeefc0", "#ffffff"),
+    );
   });
 
   should("source the default palette from the theme catalog", () => {
     const theme = ThemeManager.get(ThemeManager.defaultTheme);
-    assert.equal("zen-dark", theme.id);
+    assert.equal("zen-night", theme.id);
     assert.equal("#19191b", theme.background);
     assert.equal("#6ced96", theme.accent);
   });

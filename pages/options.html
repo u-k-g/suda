@@ -125,14 +125,37 @@
 
               <div class="setting-row">
                 <div class="setting-copy">
-                  <h2>Theme</h2>
+                  <h2>Appearance</h2>
                   <div class="example">
-              Choose a Suda interface theme.
+              Night or day. Only matching themes are listed below.
             </div>
                 </div>
                 <div class="setting-control">
-                  <select name="theme">
-                    <option value="zen-dark">*Zen Dark</option>
+                  <div class="appearance-toggle" id="theme-mode-container">
+                    <span class="appearance-toggle-label" data-side="night">Night</span>
+                    <label class="setting-switch" for="setting-themeModeDay">
+                      <input
+                        id="setting-themeModeDay"
+                        name="themeModeDay"
+                        type="checkbox"
+                        aria-label="Day mode"
+                      />
+                    </label>
+                    <span class="appearance-toggle-label" data-side="day">Day</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <h2>Theme</h2>
+                  <div class="example">
+              Choose a Suda interface theme for the selected appearance.
+            </div>
+                </div>
+                <div class="setting-control">
+                  <select name="theme" aria-label="Theme">
+                    <option value="zen-night">*Zen</option>
                   </select>
                 </div>
               </div>

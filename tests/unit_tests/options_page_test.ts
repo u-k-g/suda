@@ -62,6 +62,19 @@ context("options page", () => {
   });
 
   should("group each setting's copy and control into one row", () => {
+    const appearance = document.querySelector("#theme-mode-container").closest(".setting-row");
+    assert.equal("Appearance", appearance.querySelector(".setting-copy h2").textContent);
+    assert.isTrue(
+      appearance.querySelector(".setting-copy .example").textContent.includes(
+        "Night or day",
+      ),
+    );
+    assert.equal(
+      document.querySelector("#setting-themeModeDay"),
+      appearance.querySelector(".setting-switch input"),
+    );
+    assert.isFalse(document.querySelector("#theme-mode-container .setting-enum-select") != null);
+
     const theme = optionsPage.getOptionEl("theme").closest(".setting-row");
     assert.equal("Theme", theme.querySelector(".setting-copy h2").textContent);
     assert.isTrue(
@@ -80,6 +93,37 @@ context("options page", () => {
       optionsPage.getOptionEl("hideHud"),
       hideHud.querySelector(".setting-switch input"),
     );
+  });
+
+  should("filter themes by appearance mode and switch to a matching theme", () => {
+    const theme = optionsPage.getOptionEl("theme");
+    const dayToggle = document.querySelector("#setting-themeModeDay");
+    assert.equal("dark", optionsPage.getThemeModeFromForm());
+    assert.isFalse(dayToggle.checked);
+    assert.equal("zen-night", theme.value);
+
+    const darkIds = Array.from(theme.options).map((option) => option.value);
+    assert.isTrue(darkIds.includes("zen-night"));
+    assert.isTrue(darkIds.includes("gruvbox-night"));
+    assert.isFalse(darkIds.includes("zen-day"));
+    assert.isFalse(darkIds.includes("gruvbox-day"));
+    for (const id of darkIds) {
+      assert.equal("dark", ThemeManager.get(id).mode);
+    }
+
+    dayToggle.checked = true;
+    dayToggle.dispatchEvent(new window.Event("change", { bubbles: true }));
+
+    assert.equal("light", optionsPage.getThemeModeFromForm());
+    assert.equal("zen-day", theme.value);
+    const lightIds = Array.from(theme.options).map((option) => option.value);
+    assert.isTrue(lightIds.includes("zen-day"));
+    assert.isTrue(lightIds.includes("gruvbox-day"));
+    assert.isFalse(lightIds.includes("zen-night"));
+    assert.isFalse(lightIds.includes("gruvbox-night"));
+    for (const id of lightIds) {
+      assert.equal("light", ThemeManager.get(id).mode);
+    }
   });
 
   should("explain how to replace the new-tab shortcut with the command bar", () => {
@@ -196,16 +240,18 @@ context("options page", () => {
     const accent = optionsPage.getOptionEl("accentColor");
     const row = document.querySelector("#accent-row");
 
-    assert.equal("zen-dark", theme.value);
+    assert.equal("zen-night", theme.value);
     assert.equal("#6CED96", accent.value);
     assert.isFalse(row.style.display === "none");
 
-    theme.value = "gruvbox-dark";
+    theme.value = "gruvbox-night";
     theme.dispatchEvent(new window.Event("input"));
     assert.equal("none", row.style.display);
 
-    theme.value = "zen-light";
-    theme.dispatchEvent(new window.Event("input"));
+    const dayToggle = document.querySelector("#setting-themeModeDay");
+    dayToggle.checked = true;
+    dayToggle.dispatchEvent(new window.Event("change", { bubbles: true }));
+    assert.equal("zen-day", theme.value);
     assert.isFalse(row.style.display === "none");
   });
 

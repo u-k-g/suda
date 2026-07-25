@@ -243,8 +243,10 @@ ul {
 }
 
 #commandBar li.selected .completion-arrow {
-  background: var(--command-bar-bright);
-  border-color: var(--command-bar-bright);
+  /* Use selection contrast ink, not body text — body text is light in dark themes and vanishes
+   * on pale accent selection fills (e.g. Oscura). */
+  background: var(--command-bar-selected-text);
+  border-color: var(--command-bar-selected-text);
   color: var(--command-bar-selected);
 }
 
@@ -325,9 +327,9 @@ ul {
 
 #commandBar li.selected kbd,
 #commandBar li.selected .key {
-  background: var(--command-bar-bright);
-  border-color: var(--command-bar-bright);
-  color: var(--command-bar-panel);
+  background: var(--command-bar-selected-text);
+  border-color: var(--command-bar-selected-text);
+  color: var(--command-bar-selected);
 }
 
 #commandBar li .top-half,
@@ -416,9 +418,10 @@ ul {
 #commandBar li.selected .url,
 #commandBar li.selected .bottom-half,
 #commandBar li.selected .completion-action {
+  /* Bias hard toward selection ink so muted rows stay readable on pale accent fills. */
   color: color-mix(
     in srgb,
-    var(--command-bar-selected-text) 74%,
+    var(--command-bar-selected-text) 82%,
     var(--command-bar-selected)
   );
 }

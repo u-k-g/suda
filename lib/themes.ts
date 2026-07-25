@@ -1,5 +1,5 @@
 const ThemeManager = {
-  defaultTheme: "zen-dark",
+  defaultTheme: "zen-night",
 
   get themeSpecs() {
     return globalThis.SudaThemeCatalog || [];
@@ -19,6 +19,15 @@ const ThemeManager = {
     return this.themeSpecs
       .map((theme) => this.resolveTheme(theme))
       .sort((a, b) => this.compareThemeNames(a, b));
+  },
+
+  // Themes for a single appearance mode ("dark" | "light"), still starred-first then A–Z.
+  themesForMode(mode) {
+    return this.themes.filter((theme) => theme.mode === mode);
+  },
+
+  preferredThemeIdForMode(mode) {
+    return mode === "light" ? "zen-day" : "zen-night";
   },
 
   getSpec(themeId) {
@@ -168,6 +177,32 @@ const ThemeManager = {
     return this.rgbToHex(this.hslToRgb([hue, selectedSaturation, selectedLightness]));
   },
 
+  // True when `hex` is light enough that dark ink reads better on it than white.
+  isLightColor(hex) {
+    return this.contrastColorOn(hex) !== "#ffffff";
+  },
+
+  // Accent-tinted text for matches/links on the canvas. Pale accents must not be washed toward
+  // white in dark mode — that collapses them into body text and kills match contrast.
+  accentTextFor(theme, accent) {
+    if (theme.mode === "dark") {
+      if (this.isLightColor(accent)) {
+        // Deepen light accents so highlights stay distinct from near-white body text.
+        return this.ensureContrast(
+          this.mixHexColors(accent, "#000000", 0.58),
+          theme.background,
+          4.5,
+        );
+      }
+      return this.ensureContrast(this.mixHexColors(accent, "#ffffff", 0.68), theme.background, 4.5);
+    }
+    if (this.isLightColor(accent)) {
+      // Light accents on light canvases need darkening to stay readable as text.
+      return this.ensureContrast(this.mixHexColors(accent, "#000000", 0.42), theme.background, 4.5);
+    }
+    return this.ensureContrast(this.mixHexColors(accent, "#000000", 0.55), theme.background, 4.5);
+  },
+
   apply(themeId, root = globalThis.document?.documentElement, accentColor = null) {
     const theme = this.get(themeId);
     if (!theme || !root) return;
@@ -176,9 +211,7 @@ const ThemeManager = {
     const accentSelection = this.accentSelectionFor(theme, accent);
     const accentContrast = this.contrastColorOn(accent);
     const accentSelectedContrast = this.contrastColorOn(accentSelection);
-    const accentText = theme.mode === "dark"
-      ? this.mixHexColors(accent, "#ffffff", 0.68)
-      : this.mixHexColors(accent, "#000000", 0.55);
+    const accentText = this.accentTextFor(theme, accent);
     const overlay = this.mixHexColors(
       accent,
       theme.background,

@@ -10,7 +10,7 @@ const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
   "chrome-extension://suda/pages/new_tab.html";
 
 const defaultOptions = {
-  theme: "zen-dark",
+  theme: "zen-night",
   // Custom accent used by themes which declare that capability.
   accentColor: "#6CED96",
   scrollStepSize: 120,
@@ -311,6 +311,36 @@ const Settings = {
     return settings;
   },
 
+  // Dark/Light theme ids were renamed to Night/Day. Map legacy ids so saved preferences survive.
+  migrateThemeIds(settings) {
+    const themeIdMigrations = {
+      "absolutely-dark": "zen-night",
+      "absolutely-light": "zen-day",
+      "absolutely-night": "zen-night",
+      "absolutely-day": "zen-day",
+      "ayu": "ayu-night",
+      "ayu-light": "ayu-day",
+      "everforest-dark": "everforest-night",
+      "everforest-light": "everforest-day",
+      "gruvbox-dark": "gruvbox-night",
+      "gruvbox-light": "gruvbox-day",
+      "iceberg-dark": "iceberg-night",
+      "iceberg-light": "iceberg-day",
+      "linear-dark": "linear-night",
+      "linear-light": "linear-day",
+      "nord": "nord-night",
+      "nord-light": "nord-day",
+      "solarized-dark": "solarized-night",
+      "solarized-light": "solarized-day",
+      "tokyonight": "tokyonight-night",
+      "zen-dark": "zen-night",
+      "zen-light": "zen-day",
+    };
+    const nextId = themeIdMigrations[settings.theme];
+    if (nextId) settings.theme = nextId;
+    return settings;
+  },
+
   // Returns a settings object and performs any migrations required if the settings object is from
   // an older version of Suda.
   migrateSettingsIfNecessary(settings) {
@@ -321,6 +351,7 @@ const Settings = {
     settings = this.migrateCommandBarSettings(settings);
     settings = this.migrateHardReloadCommand(settings);
     settings = this.migrateRemovedCommands(settings);
+    settings = this.migrateThemeIds(settings);
     return settings;
   },
 

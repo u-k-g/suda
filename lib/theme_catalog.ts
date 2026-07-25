@@ -1,9 +1,10 @@
 // Base colors sourced from mbadolato/iTerm2-Color-Schemes, plus curated Suda themes. Application
 // surfaces, borders, muted text, and contrast corrections are derived by ThemeManager.
+// Display names use Night/Day; `mode` stays "dark"/"light" for the browser color-scheme API.
 globalThis.SudaThemeCatalog = [
   {
-    "id": "gruvbox-dark",
-    "name": "Gruvbox Dark",
+    "id": "gruvbox-night",
+    "name": "Gruvbox",
     "mode": "dark",
     "background": "#282828",
     "foreground": "#ebdbb2",
@@ -13,30 +14,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#d79921"
   },
   {
-    "id": "absolutely-dark",
-    "name": "Absolutely Dark",
-    "mode": "dark",
-    "background": "#262624",
-    "foreground": "#e5e4e1",
-    "accent": "#6a9bcc",
-    "danger": "#d47563",
-    "success": "#9aca86",
-    "warning": "#e8c96b"
-  },
-  {
-    "id": "absolutely-light",
-    "name": "Absolutely Light",
-    "mode": "light",
-    "background": "#faf9f5",
-    "foreground": "#141413",
-    "accent": "#184e95",
-    "danger": "#a84b3a",
-    "success": "#2e7c4c",
-    "warning": "#8a6220"
-  },
-  {
-    "id": "zen-dark",
-    "name": "*Zen Dark",
+    "id": "zen-night",
+    "name": "*Zen",
     "mode": "dark",
     "background": "#19191b",
     "foreground": "#f5f5f4",
@@ -50,8 +29,8 @@ globalThis.SudaThemeCatalog = [
     "overlayBorderAccentWeight": 0.02
   },
   {
-    "id": "zen-light",
-    "name": "*Zen Light",
+    "id": "zen-day",
+    "name": "*Zen",
     "mode": "light",
     "background": "#f4f1ed",
     "foreground": "#27272a",
@@ -64,7 +43,7 @@ globalThis.SudaThemeCatalog = [
     "overlayAccentWeight": 0.032
   },
   {
-    "id": "ayu",
+    "id": "ayu-night",
     "name": "Ayu",
     "mode": "dark",
     "background": "#0b0e14",
@@ -75,8 +54,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#f9af4f"
   },
   {
-    "id": "ayu-light",
-    "name": "Ayu Light",
+    "id": "ayu-day",
+    "name": "Ayu",
     "mode": "light",
     "background": "#f8f9fa",
     "foreground": "#5c6166",
@@ -84,17 +63,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#ea6c6d",
     "success": "#6cbf43",
     "warning": "#eca944"
-  },
-  {
-    "id": "ayu-mirage",
-    "name": "Ayu Mirage",
-    "mode": "dark",
-    "background": "#1f2430",
-    "foreground": "#cccac2",
-    "accent": "#6dcbfa",
-    "danger": "#ed8274",
-    "success": "#87d96c",
-    "warning": "#facc6e"
   },
   {
     "id": "black-metal",
@@ -106,116 +74,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#486e6f",
     "success": "#dd9999",
     "warning": "#a06666"
-  },
-  {
-    "id": "black-metal-bathory",
-    "name": "Black Metal (Bathory)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#fbcb97",
-    "warning": "#e78a53"
-  },
-  {
-    "id": "black-metal-burzum",
-    "name": "Black Metal (Burzum)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#ddeecc",
-    "warning": "#99bbaa"
-  },
-  {
-    "id": "black-metal-dark-funeral",
-    "name": "Black Metal (Dark Funeral)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#d0dfee",
-    "warning": "#5f81a5"
-  },
-  {
-    "id": "black-metal-gorgoroth",
-    "name": "Black Metal (Gorgoroth)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#9b8d7f",
-    "warning": "#8c7f70"
-  },
-  {
-    "id": "black-metal-immortal",
-    "name": "Black Metal (Immortal)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#7799bb",
-    "warning": "#556677"
-  },
-  {
-    "id": "black-metal-khold",
-    "name": "Black Metal (Khold)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#eceee3",
-    "warning": "#974b46"
-  },
-  {
-    "id": "black-metal-marduk",
-    "name": "Black Metal (Marduk)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#a5aaa7",
-    "warning": "#626b67"
-  },
-  {
-    "id": "black-metal-mayhem",
-    "name": "Black Metal (Mayhem)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#f3ecd4",
-    "warning": "#eecc6c"
-  },
-  {
-    "id": "black-metal-nile",
-    "name": "Black Metal (Nile)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#aa9988",
-    "warning": "#777755"
-  },
-  {
-    "id": "black-metal-venom",
-    "name": "Black Metal (Venom)",
-    "mode": "dark",
-    "background": "#000000",
-    "foreground": "#c1c1c1",
-    "accent": "#888888",
-    "danger": "#5f8787",
-    "success": "#f8f7f2",
-    "warning": "#79241f"
   },
   {
     "id": "catppuccin-frappe",
@@ -262,8 +120,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#f9e2af"
   },
   {
-    "id": "everforest-dark",
-    "name": "Everforest Dark",
+    "id": "everforest-night",
+    "name": "Everforest",
     "mode": "dark",
     "background": "#232a2e",
     "foreground": "#d3c6aa",
@@ -273,8 +131,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#dbbc7f"
   },
   {
-    "id": "everforest-light",
-    "name": "Everforest Light",
+    "id": "everforest-day",
+    "name": "Everforest",
     "mode": "light",
     "background": "#efebd4",
     "foreground": "#5c6a72",
@@ -284,8 +142,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#dbbc7f"
   },
   {
-    "id": "gruvbox-light",
-    "name": "Gruvbox Light",
+    "id": "gruvbox-day",
+    "name": "Gruvbox",
     "mode": "light",
     "background": "#fbf1c7",
     "foreground": "#3c3836",
@@ -295,8 +153,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#d79921"
   },
   {
-    "id": "iceberg-dark",
-    "name": "Iceberg Dark",
+    "id": "iceberg-night",
+    "name": "Iceberg",
     "mode": "dark",
     "background": "#161821",
     "foreground": "#c6c8d1",
@@ -306,8 +164,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#e2a478"
   },
   {
-    "id": "iceberg-light",
-    "name": "Iceberg Light",
+    "id": "iceberg-day",
+    "name": "Iceberg",
     "mode": "light",
     "background": "#e8e9ec",
     "foreground": "#33374c",
@@ -317,8 +175,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#c57339"
   },
   {
-    "id": "linear-dark",
-    "name": "Linear Dark",
+    "id": "linear-night",
+    "name": "Linear",
     "mode": "dark",
     "background": "#0f0f10",
     "foreground": "#eeeff1",
@@ -328,8 +186,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#f5a524"
   },
   {
-    "id": "linear-light",
-    "name": "Linear Light",
+    "id": "linear-day",
+    "name": "Linear",
     "mode": "light",
     "background": "#ffffff",
     "foreground": "#44494d",
@@ -350,7 +208,7 @@ globalThis.SudaThemeCatalog = [
     "warning": "#b91c1c"
   },
   {
-    "id": "nord",
+    "id": "nord-night",
     "name": "Nord",
     "mode": "dark",
     "background": "#2e3440",
@@ -361,8 +219,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#ebcb8b"
   },
   {
-    "id": "nord-light",
-    "name": "Nord Light",
+    "id": "nord-day",
+    "name": "Nord",
     "mode": "light",
     "background": "#e5e9f0",
     "foreground": "#414858",
@@ -370,28 +228,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#bf616a",
     "success": "#a3be8c",
     "warning": "#ebcb8b"
-  },
-  {
-    "id": "nord-wave",
-    "name": "Nord Wave",
-    "mode": "dark",
-    "background": "#212121",
-    "foreground": "#d8dee9",
-    "accent": "#81a1c1",
-    "danger": "#bf616a",
-    "success": "#a3be8c",
-    "warning": "#ebcb8b"
-  },
-  {
-    "id": "oscura-dusk",
-    "name": "Oscura Dusk",
-    "mode": "dark",
-    "background": "#131419",
-    "foreground": "#e6e6e6",
-    "accent": "#e6e7a3",
-    "danger": "#ff5c5c",
-    "success": "#4ebe96",
-    "warning": "#d2d714"
   },
   {
     "id": "oscura-midnight",
@@ -427,62 +263,29 @@ globalThis.SudaThemeCatalog = [
     "warning": "#ea9d34"
   },
   {
-    "id": "rose-pine-moon",
-    "name": "Rose Pine Moon",
+    "id": "solarized-night",
+    "name": "Solarized",
     "mode": "dark",
-    "background": "#232136",
-    "foreground": "#e0def4",
-    "accent": "#9ccfd8",
-    "danger": "#eb6f92",
-    "success": "#3e8fb0",
-    "warning": "#f6c177"
+    "background": "#002b36",
+    "foreground": "#839496",
+    "accent": "#268bd2",
+    "danger": "#dc322f",
+    "success": "#859900",
+    "warning": "#b58900"
   },
   {
-    "id": "solarized-darcula",
-    "name": "Solarized Darcula",
-    "mode": "dark",
-    "background": "#3d3f41",
-    "foreground": "#d2d8d9",
-    "accent": "#2075c7",
-    "danger": "#f24840",
-    "success": "#629655",
-    "warning": "#b68800"
+    "id": "solarized-day",
+    "name": "Solarized",
+    "mode": "light",
+    "background": "#fdf6e3",
+    "foreground": "#657b83",
+    "accent": "#268bd2",
+    "danger": "#dc322f",
+    "success": "#859900",
+    "warning": "#b58900"
   },
   {
-    "id": "solarized-dark-higher-contrast",
-    "name": "Solarized Dark Higher Contrast",
-    "mode": "dark",
-    "background": "#001e27",
-    "foreground": "#9cc2c3",
-    "accent": "#2176c7",
-    "danger": "#d11c24",
-    "success": "#6cbe6c",
-    "warning": "#a57706"
-  },
-  {
-    "id": "solarized-dark-patched",
-    "name": "Solarized Dark Patched",
-    "mode": "dark",
-    "background": "#001e27",
-    "foreground": "#708284",
-    "accent": "#2176c7",
-    "danger": "#d11c24",
-    "success": "#738a05",
-    "warning": "#a57706"
-  },
-  {
-    "id": "solarized-osaka-night",
-    "name": "Solarized Osaka Night",
-    "mode": "dark",
-    "background": "#1a1b25",
-    "foreground": "#c2caf1",
-    "accent": "#82a1f1",
-    "danger": "#e77d8f",
-    "success": "#a8cd76",
-    "warning": "#d8b172"
-  },
-  {
-    "id": "tokyonight",
+    "id": "tokyonight-night",
     "name": "TokyoNight",
     "mode": "dark",
     "background": "#1a1b26",
@@ -494,7 +297,7 @@ globalThis.SudaThemeCatalog = [
   },
   {
     "id": "tokyonight-day",
-    "name": "TokyoNight Day",
+    "name": "TokyoNight",
     "mode": "light",
     "background": "#e1e2e7",
     "foreground": "#3760bf",
@@ -502,39 +305,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#f52a65",
     "success": "#587539",
     "warning": "#8c6c3e"
-  },
-  {
-    "id": "tokyonight-moon",
-    "name": "TokyoNight Moon",
-    "mode": "dark",
-    "background": "#222436",
-    "foreground": "#c8d3f5",
-    "accent": "#82aaff",
-    "danger": "#ff757f",
-    "success": "#c3e88d",
-    "warning": "#ffc777"
-  },
-  {
-    "id": "tokyonight-night",
-    "name": "TokyoNight Night",
-    "mode": "dark",
-    "background": "#1a1b26",
-    "foreground": "#c0caf5",
-    "accent": "#7aa2f7",
-    "danger": "#f7768e",
-    "success": "#9ece6a",
-    "warning": "#e0af68"
-  },
-  {
-    "id": "tokyonight-storm",
-    "name": "TokyoNight Storm",
-    "mode": "dark",
-    "background": "#24283b",
-    "foreground": "#c0caf5",
-    "accent": "#7aa2f7",
-    "danger": "#f7768e",
-    "success": "#9ece6a",
-    "warning": "#e0af68"
   },
   {
     "id": "true-black",

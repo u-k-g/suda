@@ -135,21 +135,23 @@ export async function init() {
   await keybindingsPage.init();
 
   const themeSelect = getOptionEl("theme");
-  if (globalThis.ThemeManager) {
-    themeSelect.textContent = "";
-    for (const theme of ThemeManager.themes) {
-      const option = document.createElement("option");
-      option.value = theme.id;
-      option.textContent = theme.name;
-      themeSelect.appendChild(option);
-    }
-  }
   themeSelect.addEventListener("input", () => {
     maintainAccentView();
     applyThemePreview();
   });
   getOptionEl("accentColor").addEventListener("input", () => applyThemePreview());
-  // Theme options are filled above; wrap every select after its options exist.
+
+  const onThemeModeInput = () => {
+    // Switching appearance rebuilds the theme list; keep a mode-matched theme selected.
+    populateThemeSelect(getThemeModeFromForm());
+    maintainAccentView();
+    applyThemePreview();
+    syncAppearanceToggleLabels();
+  };
+  document.querySelector("#setting-themeModeDay")?.addEventListener("change", onThemeModeInput);
+  document.querySelector("#setting-themeModeDay")?.addEventListener("input", onThemeModeInput);
+
+  // Theme options are filled in setFormFromSettings; wrap selects after controls exist.
   enhanceSelectDropdowns();
 
   const onUpdated = () => {
@@ -413,8 +415,63 @@ function resetInputValue(event) {
   event.preventDefault();
 }
 
+// Appearance switch: unchecked = night (dark), checked = day (light).
+export function getThemeModeFromForm() {
+  const toggle = document.querySelector("#setting-themeModeDay");
+  return toggle?.checked ? "light" : "dark";
+}
+
+export function setThemeModeOnForm(mode) {
+  const toggle = document.querySelector("#setting-themeModeDay");
+  if (toggle) toggle.checked = mode === "light";
+  syncAppearanceToggleLabels();
+}
+
+function syncAppearanceToggleLabels() {
+  const container = document.querySelector("#theme-mode-container");
+  if (!container) return;
+  const isDay = getThemeModeFromForm() === "light";
+  container.dataset.mode = isDay ? "light" : "dark";
+  for (const label of container.querySelectorAll(".appearance-toggle-label")) {
+    const active = (label.dataset.side === "day") === isDay;
+    label.classList.toggle("is-active", active);
+  }
+}
+
+// Rebuild the theme <select> for the chosen appearance. Keeps the previous theme when it still
+// matches; otherwise falls back to the preferred Zen theme for that mode.
+export function populateThemeSelect(mode = getThemeModeFromForm(), preferredThemeId = null) {
+  const themeSelect = getOptionEl("theme");
+  if (!themeSelect || !globalThis.ThemeManager) return;
+
+  const themes = ThemeManager.themesForMode(mode);
+  const previous = preferredThemeId ?? themeSelect.value;
+  themeSelect.textContent = "";
+  for (const theme of themes) {
+    const option = document.createElement("option");
+    option.value = theme.id;
+    option.textContent = theme.name;
+    themeSelect.appendChild(option);
+  }
+
+  const keep = themes.find((theme) => theme.id === previous);
+  const preferredId = ThemeManager.preferredThemeIdForMode(mode);
+  const fallback = themes.find((theme) => theme.id === preferredId) ?? themes[0];
+  themeSelect.value = (keep ?? fallback)?.id ?? "";
+  themeSelect._rebuildDropdown?.();
+  themeSelect._syncDropdown?.();
+}
+
 function setFormFromSettings(settings) {
+  // Appearance + theme list depend on the saved theme's mode; set them before other controls.
+  const themeId = settings.theme;
+  const themeMode = globalThis.ThemeManager?.get(themeId)?.mode || "dark";
+  setThemeModeOnForm(themeMode);
+  populateThemeSelect(themeMode, themeId);
+
   for (const [optionName, optionType] of Object.entries(options)) {
+    // Theme was applied via populateThemeSelect so its option list matches appearance.
+    if (optionName === "theme") continue;
     const el = getOptionEl(optionName);
     const value = settings[optionName];
     switch (optionType) {

@@ -496,6 +496,30 @@ body.options-page #settings-grid-container .setting-control > div > .reset-link 
   white-space: nowrap;
 }
 
+/* Night / Day appearance switch: labels flank the same iOS-style control. */
+body.options-page .appearance-toggle {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: 10px;
+  width: auto !important;
+}
+
+body.options-page .appearance-toggle-label {
+  color: var(--options-muted);
+  flex: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  transition: color 140ms ease;
+  user-select: none;
+}
+
+body.options-page .appearance-toggle-label.is-active {
+  color: var(--options-text);
+}
+
 /* iOS-style boolean switches on the right */
 body.options-page .setting-switch {
   cursor: pointer;
