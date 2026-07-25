@@ -217,7 +217,11 @@ function installListener(element, event, callback) {
         onUnload();
         return;
       }
-      if (isEnabledForUrl) {
+      // Command-bar-only mode deliberately bypasses the entire mode stack. The native extension
+      // command still reaches runInTopFrame through the runtime message listener, and the command
+      // bar installs its own UI listeners when opened.
+      const commandBarOnly = Settings.isLoaded() && Settings.get("commandBarOnly");
+      if (isEnabledForUrl && !commandBarOnly) {
         return callback.apply(this, arguments);
       } else {
         return true;

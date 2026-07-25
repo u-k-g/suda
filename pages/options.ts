@@ -8,6 +8,7 @@ import * as keybindingsPage from "./keybindings.js";
 const options = {
   accentColor: "string",
   commandBarCenter: "option",
+  commandBarOnly: "boolean",
   disabledModelessCommandBarSources: "inverted-set",
   fastScrollStepSize: "number",
   filterLinkHints: "boolean",

@@ -8,7 +8,10 @@ import * as bgUtils from "../../background_scripts/bg_utils.js";
 context("extension command", () => {
   teardown(() => {
     chrome.runtime.lastError = undefined;
-    if (Settings.isLoaded()) Settings._settings.disabledActions = [];
+    if (Settings.isLoaded()) {
+      Settings._settings.commandBarOnly = false;
+      Settings._settings.disabledActions = [];
+    }
   });
 
   should("suggest the native new-tab shortcut for the all-mode command bar", () => {
@@ -32,6 +35,20 @@ context("extension command", () => {
     assert.equal("runInTopFrame", sentMessage.message.handler);
     assert.equal("CommandBar.activateAll", sentMessage.message.registryEntry.command);
     assert.equal({ frameId: 0 }, sentOptions);
+  });
+
+  should("keep the native command bar available in command-bar-only mode", async () => {
+    let sentMessage;
+    await Settings.onLoaded();
+    Settings._settings.commandBarOnly = true;
+    stub(chrome.tabs, "sendMessage", (_tabId, message, _options, callback) => {
+      sentMessage = message;
+      callback();
+    });
+
+    await handleExtensionCommand("open-command-bar", { id: 42 });
+
+    assert.equal("CommandBar.activateAll", sentMessage.registryEntry.command);
   });
 
   should("ignore the native command-bar shortcut when its action is disabled", async () => {
@@ -273,6 +290,7 @@ context("cycleRecentTabs command", () => {
   let now;
   let recencyOrder;
   let selectedTabIds;
+  let activeTabId;
 
   setup(() => {
     cycleSize = 5;
@@ -280,6 +298,7 @@ context("cycleRecentTabs command", () => {
     now = 1000;
     recencyOrder = [1, 2, 3, 4, 5, 6, 7];
     selectedTabIds = [];
+    activeTabId = 1;
     resetRecentTabCycle();
     const getSetting = Settings.get.bind(Settings);
     stub(Settings, "get", (key) => {
@@ -293,32 +312,60 @@ context("cycleRecentTabs command", () => {
     stub(
       chrome.tabs,
       "query",
-      async () => recencyOrder.map((id) => ({ id, lastAccessed: 100 - id })),
+      async (queryInfo) => {
+        if (queryInfo.active) return [{ id: activeTabId }];
+        return recencyOrder.map((id) => ({ id, lastAccessed: 100 - id }));
+      },
     );
     stub(chrome.tabs, "get", async (id) => ({ id, windowId: 1 }));
     stub(chrome.windows, "update", async () => {});
-    stub(chrome.tabs, "update", async (id) => selectedTabIds.push(id));
+    stub(chrome.tabs, "update", async (id) => {
+      activeTabId = id;
+      selectedTabIds.push(id);
+    });
   });
 
-  should("cycle a fixed list of five recent tabs within 400ms", async () => {
+  should("cycle a fixed list of five total recent tabs within 400ms", async () => {
     await BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } });
-    for (const currentTabId of [2, 3, 4, 5, 6]) {
+    for (const currentTabId of [2, 3, 4, 5, 1]) {
       now += 250;
       await BackgroundCommands.cycleRecentTabs({ tab: { id: currentTabId } });
     }
 
-    assert.equal([2, 3, 4, 5, 6, 2], selectedTabIds);
+    assert.equal([2, 3, 4, 5, 1, 2], selectedTabIds);
   });
 
   should("respect the configured cycle size", async () => {
     cycleSize = 3;
     await BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } });
-    for (const currentTabId of [2, 3, 4]) {
+    for (const currentTabId of [2, 3, 1]) {
       now += 250;
       await BackgroundCommands.cycleRecentTabs({ tab: { id: currentTabId } });
     }
 
-    assert.equal([2, 3, 4, 2], selectedTabIds);
+    assert.equal([2, 3, 1, 2], selectedTabIds);
+  });
+
+  should("serialize rapid presses without admitting a less-recent tab", async () => {
+    await Promise.all(
+      Array.from(
+        { length: 6 },
+        () => BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } }),
+      ),
+    );
+
+    assert.equal([2, 3, 4, 5, 1, 2], selectedTabIds);
+  });
+
+  should("restart from the actual active tab after an external tab switch", async () => {
+    await BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } });
+    now += 100;
+    activeTabId = 6;
+    recencyOrder = [6, 2, 1, 5, 4, 3, 7];
+
+    await BackgroundCommands.cycleRecentTabs({ tab: { id: 6 } });
+
+    assert.equal([2, 2], selectedTabIds);
   });
 
   should("continue the cycle within the configured timeout", async () => {

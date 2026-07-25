@@ -271,9 +271,11 @@ function nextZoomLevel(currentZoom, steps) {
 }
 
 let recentTabCycle = null;
+let recentTabCycleQueue = Promise.resolve();
 
 function resetRecentTabCycle() {
   recentTabCycle = null;
+  recentTabCycleQueue = Promise.resolve();
 }
 
 function getRecentTabCycleSettings() {
@@ -294,29 +296,35 @@ async function startRecentTabCycle(currentTabId, pressedAt, size) {
   const openTabs = await chrome.tabs.query({});
   const openTabIds = new Set(openTabs.map((tab) => tab.id));
   const tabIds = bgUtils.tabRecency.getTabsByRecency()
-    .filter((tabId) => tabId !== currentTabId && openTabIds.has(tabId));
+    .filter((tabId) => openTabIds.has(tabId));
 
   // Tabs which have not yet appeared in TabRecency are the least recent. Append them using the
   // browser's last-accessed timestamp as a best-effort fallback.
   const knownTabIds = new Set(tabIds);
   const remainingTabIds = openTabs
-    .filter((tab) => tab.id !== currentTabId && !knownTabIds.has(tab.id))
+    .filter((tab) => !knownTabIds.has(tab.id))
     .sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0))
     .map((tab) => tab.id);
+  const orderedTabIds = tabIds.concat(remainingTabIds)
+    .filter((tabId) => tabId !== currentTabId);
+  // The configured size is the total number of tabs in the cycle, not the number of destinations.
+  // Put the actual current tab first because its onActivated recency event may still be queued.
+  const cycleTabIds = [currentTabId, ...orderedTabIds].slice(0, size);
 
   recentTabCycle = {
+    activeTabId: currentTabId,
     lastPressedAt: pressedAt,
-    nextIndex: 0,
+    nextIndex: cycleTabIds.length > 1 ? 1 : 0,
     size,
-    tabIds: tabIds.concat(remainingTabIds).slice(0, size),
+    tabIds: cycleTabIds,
   };
 }
 
-async function selectNextRecentTab(currentTabId) {
-  const pressedAt = Date.now();
+async function selectNextRecentTab(currentTabId, pressedAt) {
   const { size, timeoutMs } = getRecentTabCycleSettings();
   if (
     recentTabCycle == null ||
+    recentTabCycle.activeTabId !== currentTabId ||
     recentTabCycle.size !== size ||
     pressedAt - recentTabCycle.lastPressedAt > timeoutMs
   ) {
@@ -325,12 +333,17 @@ async function selectNextRecentTab(currentTabId) {
     recentTabCycle.lastPressedAt = pressedAt;
   }
 
+  if (recentTabCycle.tabIds.length <= 1) return;
+
   while (recentTabCycle.tabIds.length > 0) {
     const index = recentTabCycle.nextIndex % recentTabCycle.tabIds.length;
     const id = recentTabCycle.tabIds[index];
     recentTabCycle.nextIndex = (index + 1) % recentTabCycle.tabIds.length;
     try {
-      if (await selectSpecificTab({ id })) return;
+      if (await selectSpecificTab({ id })) {
+        recentTabCycle.activeTabId = id;
+        return;
+      }
     } catch {
       // Keep trying the active cycle when a browser rejects a candidate for another transient
       // tab/window race.
@@ -340,6 +353,21 @@ async function selectNextRecentTab(currentTabId) {
       ? 0
       : index % recentTabCycle.tabIds.length;
   }
+}
+
+function queueNextRecentTab(fallbackCurrentTabId) {
+  const pressedAt = Date.now();
+  const selection = recentTabCycleQueue.then(async () => {
+    // A rapid sequence of key presses can arrive before the previous tabs.update has completed, so
+    // the sender tab attached to a queued message may already be stale. Resolve the active tab only
+    // when this selection reaches the front of the queue.
+    const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    await selectNextRecentTab(activeTab?.id ?? fallbackCurrentTabId, pressedAt);
+  });
+  // Keep the queue usable after a real selection error while still returning that error to the
+  // command invocation which encountered it.
+  recentTabCycleQueue = selection.catch(() => {});
+  return selection;
 }
 
 // These are commands which are bound to keystrokes which must be handled by the background page.
@@ -524,7 +552,7 @@ const BackgroundCommands = {
   },
 
   async cycleRecentTabs({ tab }) {
-    await selectNextRecentTab(tab.id);
+    await queueNextRecentTab(tab.id);
   },
 
   async reload(request) {

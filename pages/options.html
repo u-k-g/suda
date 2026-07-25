@@ -81,6 +81,25 @@
             <div id="settings-grid-container">
               <div class="setting-row">
                 <div class="setting-copy">
+                  <label class="setting-name" for="setting-commandBarOnly">
+                    Command bar only
+                  </label>
+                  <div class="example">
+              Disable Suda's normal, insert, and other page modes so every page keystroke passes
+              through untouched. Suda remains available through
+              <strong>Open Suda's all-mode command bar</strong>, configured at
+              <code>helium://extensions/shortcuts</code>.
+            </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-commandBarOnly">
+                    <input id="setting-commandBarOnly" name="commandBarOnly" type="checkbox" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-copy">
                   <h2>Excluded URLs and keys</h2>
                   <div class="example">
               Disable Suda on URLs.
@@ -254,7 +273,8 @@
                 <div class="setting-copy">
                   <h2>Recent-tab cycle size</h2>
                   <div class="example">
-              The number of recent destination tabs included when repeatedly pressing <tt>r</tt>.
+              The total number of recent tabs included when repeatedly pressing <tt>r</tt>,
+              including the tab where the cycle starts.
             </div>
                 </div>
                 <div class="setting-control">
@@ -555,7 +575,10 @@
                 <h2 id="new-tab-command-bar-title">Replace new tabs with the Command Bar</h2>
                 <p>Make your browser's new-tab shortcut open Suda's all-mode Command Bar:</p>
                 <ol>
-                  <li>Open <code>chrome://extensions/shortcuts</code> in Chrome.</li>
+                  <li>
+                    Open <code>helium://extensions/shortcuts</code> in Helium, or
+                    <code>chrome://extensions/shortcuts</code> in Chrome.
+                  </li>
                   <li>
                     Find Suda and set <strong>Open Suda's all-mode command bar</strong> to
                     <kbd>Cmd</kbd> + <kbd>T</kbd> on macOS or <kbd>Ctrl</kbd> + <kbd>T</kbd> on

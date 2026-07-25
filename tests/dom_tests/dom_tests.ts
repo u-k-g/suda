@@ -1020,6 +1020,20 @@ context("Key mapping", () => {
     assert.isTrue(handlerCalled);
   });
 
+  should("pass mapped keys through in command-bar-only mode", () => {
+    stubSettings("commandBarOnly", true);
+    const event = new KeyboardEvent("keydown", {
+      bubbles: true,
+      cancelable: true,
+      key: "m",
+    });
+
+    globalThis.dispatchEvent(event);
+
+    assert.isFalse(handlerCalled);
+    assert.isFalse(event.defaultPrevented);
+  });
+
   should("not call command handler for pass keys", () => {
     sendKeyboardEvent("p");
     assert.isFalse(handlerCalled);

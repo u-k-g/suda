@@ -89,9 +89,26 @@ context("options page", () => {
       "Replace new tabs with the Command Bar",
       guide.querySelector("h2").textContent,
     );
+    assert.isTrue(guide.textContent.includes("helium://extensions/shortcuts"));
     assert.isTrue(guide.textContent.includes("chrome://extensions/shortcuts"));
     assert.isTrue(guide.textContent.includes("Open Suda's all-mode command bar"));
     assert.equal(guide, document.querySelector("#settings-grid-container").lastElementChild);
+  });
+
+  should("enable command-bar-only mode", async () => {
+    const commandBarOnly = optionsPage.getOptionEl("commandBarOnly");
+    assert.isFalse(commandBarOnly.checked);
+    assert.isTrue(
+      commandBarOnly.closest(".setting-row").textContent.includes(
+        "helium://extensions/shortcuts",
+      ),
+    );
+
+    commandBarOnly.checked = true;
+    await optionsPage.saveOptions();
+
+    assert.isTrue(Settings.get("commandBarOnly"));
+    assert.isTrue((await chrome.storage.sync.get("commandBarOnly")).commandBarOnly);
   });
 
   should("keep complex editors collapsed until requested", () => {
