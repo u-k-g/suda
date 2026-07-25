@@ -190,6 +190,60 @@ context("commandBar page", () => {
     await chrome.storage.session.remove("commandToOptionsToKeys");
   });
 
+  should("use the edit-URL action for the URL mode", async () => {
+    await chrome.storage.session.set({
+      commandToOptionsToKeys: {
+        "CommandBar.activateEditUrl": { "": ["<space>e"] },
+      },
+    });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
+    ui.setQuery("url");
+    await ui.update();
+
+    assert.equal(
+      ["Space", "e"],
+      Array.from(ui.completionList.firstElementChild.querySelectorAll("kbd")).map((element) =>
+        element.textContent
+      ),
+    );
+
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+
+    assert.equal("", ui.mode);
+    assert.isTrue(ui.modeIndicator.hidden);
+    assert.equal("omni", ui.completerName);
+    assert.equal("Search or enter URL", ui.input.placeholder);
+    assert.isFalse(ui.forceNewTab);
+    await chrome.storage.session.remove("commandToOptionsToKeys");
+  });
+
+  should("use the main command-bar action for the search mode", async () => {
+    await chrome.storage.session.set({
+      commandToOptionsToKeys: {
+        "CommandBar.activateAll": { "": ["<space>t"] },
+      },
+    });
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
+    ui.setQuery("search");
+    await ui.update();
+
+    assert.equal(
+      ["Space", "t"],
+      Array.from(ui.completionList.firstElementChild.querySelectorAll("kbd")).map((element) =>
+        element.textContent
+      ),
+    );
+
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+
+    assert.equal("", ui.mode);
+    assert.isTrue(ui.modeIndicator.hidden);
+    assert.equal("omni", ui.completerName);
+    assert.equal("Search or enter URL", ui.input.placeholder);
+    assert.isTrue(ui.forceNewTab);
+    await chrome.storage.session.remove("commandToOptionsToKeys");
+  });
+
   should("hide mode descriptions by default and allow enabling them", async () => {
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
     assert.isFalse(ui.box.classList.contains("show-mode-descriptions"));

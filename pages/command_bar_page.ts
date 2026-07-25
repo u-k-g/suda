@@ -202,7 +202,7 @@ type CommandBarMode = {
   completer?: string;
   newTab?: boolean;
   selectFirst?: boolean;
-  useCurrentUrl?: boolean;
+  targetMode?: string;
 };
 
 type SetModeOptions = {
@@ -223,12 +223,13 @@ const modeSelector: CommandBarMode = {
 const commandBarModes: CommandBarMode[] = [
   {
     name: "search",
-    description: "Search the web or open a URL in a new tab",
-    aliases: "navigate url new tab",
+    description: "Open the main command bar",
+    aliases: "all modeless navigate url new tab",
     completer: "omni",
     newTab: true,
+    targetMode: "",
     icon: "globe",
-    bindingCommands: [],
+    bindingCommands: ["CommandBar.activateAll"],
   },
   {
     name: "history",
@@ -262,9 +263,10 @@ const commandBarModes: CommandBarMode[] = [
     description: "Edit the current URL",
     aliases: "address location current",
     completer: "omni",
-    useCurrentUrl: true,
+    newTab: false,
+    targetMode: "",
     icon: "pencil-simple",
-    bindingCommands: [],
+    bindingCommands: ["CommandBar.activateEditUrl"],
   },
   {
     name: "actions",
@@ -434,8 +436,7 @@ class CommandBarUI {
     this.setCompleterName(
       options.completer ?? mode?.completer ?? (isModeless ? "omni" : "modes"),
     );
-    const query = mode?.useCurrentUrl ? this.currentUrl : options.query ?? "";
-    this.setQuery(query);
+    this.setQuery(options.query ?? "");
 
     this.modeIndicator.textContent = name === linkActionMode.name
       ? `links · ${this.linkSelectionCount}`
@@ -462,7 +463,7 @@ class CommandBarUI {
       UIComponentMessenger.postMessage({ name: "commandBarAction", action: name });
       return;
     }
-    this.setMode(name);
+    this.setMode(mode.targetMode ?? name, { newTab: mode.newTab });
     this.refreshCompletions();
     this.update();
   }
