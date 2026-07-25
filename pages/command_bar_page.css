@@ -411,7 +411,6 @@ ul {
   color: var(--command-bar-selected-text);
 }
 
-/* On the accent fill, secondary text stays legible but visually subordinate, like Arc. */
 #commandBar li.selected .mode-description,
 #commandBar li.selected .mark-scope,
 #commandBar li.selected .url,

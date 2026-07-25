@@ -191,12 +191,12 @@ context("options page", () => {
     assert.equal("350", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
   });
 
-  should("show the default accent field only for Arc themes", () => {
+  should("show the default accent field only for Zen themes", () => {
     const theme = optionsPage.getOptionEl("theme");
     const accent = optionsPage.getOptionEl("accentColor");
     const row = document.querySelector("#accent-row");
 
-    assert.equal("arc-dark", theme.value);
+    assert.equal("zen-dark", theme.value);
     assert.equal("#6CED96", accent.value);
     assert.isFalse(row.style.display === "none");
 
@@ -204,12 +204,12 @@ context("options page", () => {
     theme.dispatchEvent(new window.Event("input"));
     assert.equal("none", row.style.display);
 
-    theme.value = "arc-light";
+    theme.value = "zen-light";
     theme.dispatchEvent(new window.Event("input"));
     assert.isFalse(row.style.display === "none");
   });
 
-  should("preview and save a valid custom Arc accent", async () => {
+  should("preview and save a valid custom Zen accent", async () => {
     const accent = optionsPage.getOptionEl("accentColor");
     accent.value = "12abEF";
     accent.dispatchEvent(new window.Event("input"));
@@ -224,7 +224,7 @@ context("options page", () => {
     assert.equal("#12ABEF", Settings.get("accentColor"));
   });
 
-  should("reject an invalid custom Arc accent", async () => {
+  should("reject an invalid custom Zen accent", async () => {
     const accent = optionsPage.getOptionEl("accentColor");
     accent.value = "green";
 

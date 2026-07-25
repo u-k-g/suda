@@ -1,5 +1,5 @@
 const ThemeManager = {
-  defaultTheme: "arc-dark",
+  defaultTheme: "zen-dark",
 
   get themeSpecs() {
     return globalThis.SudaThemeCatalog || [];

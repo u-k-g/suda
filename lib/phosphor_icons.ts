@@ -1,8 +1,5 @@
 // A small, curated set of Phosphor icons (https://phosphoricons.com, MIT license) inlined as SVG
 // path data, so they can be embedded in generated HTML and colored with `currentColor`.
-//
-// Icons are used sparingly in the command bar: one per row or mode, in the style of the Arc
-// command bar.
 
 const paths = {
   "arrow-right":

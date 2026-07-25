@@ -35,8 +35,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#8a6220"
   },
   {
-    "id": "arc-dark",
-    "name": "Arc Dark",
+    "id": "zen-dark",
+    "name": "Zen Dark",
     "mode": "dark",
     "background": "#19191b",
     "foreground": "#f5f5f4",
@@ -50,8 +50,8 @@ globalThis.SudaThemeCatalog = [
     "overlayBorderAccentWeight": 0.02
   },
   {
-    "id": "arc-light",
-    "name": "Arc Light",
+    "id": "zen-light",
+    "name": "Zen Light",
     "mode": "light",
     "background": "#f4f1ed",
     "foreground": "#27272a",

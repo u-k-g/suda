@@ -1,7 +1,7 @@
 <h1 align="center">suda</h1>
 
 <p align="center">
-  keyboard driven browser navigation inspired by the helix editor.
+  zen/arc style command bar and keyboard driven browser navigation inspired by the helix editor.
 </p>
 
 <p align="center">
@@ -15,8 +15,7 @@
 
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
-- an Arc Browser-inspired command bar and configurable key mappings
-- Arc Dark interface styling by default, with a broad selection of optional themes
+- a zen/arc browser style command bar
 
 <img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/5da89cb4-33aa-43a2-b31e-d18623404e60" />
 

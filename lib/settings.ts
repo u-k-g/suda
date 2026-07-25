@@ -10,7 +10,7 @@ const sudaNewTabPageUrl = chrome.runtime.getURL("pages/new_tab.html") ||
   "chrome-extension://suda/pages/new_tab.html";
 
 const defaultOptions = {
-  theme: "arc-dark",
+  theme: "zen-dark",
   // Custom accent used by themes which declare that capability.
   accentColor: "#6CED96",
   scrollStepSize: 120,
@@ -257,14 +257,6 @@ const Settings = {
     return settings;
   },
 
-  migrateAccentColor(settings) {
-    if (settings.accentColor == null && settings.arcAccentColor != null) {
-      settings.accentColor = settings.arcAccentColor;
-    }
-    delete settings.arcAccentColor;
-    return settings;
-  },
-
   migrateLegacyKeyBindingMode(settings) {
     delete settings.keyBindingMode;
     return settings;
@@ -325,7 +317,6 @@ const Settings = {
     settings = this.migratePre2_0(settings);
     settings = this.migratePre2_4(settings);
     settings = this.migratePre2_4_1(settings);
-    settings = this.migrateAccentColor(settings);
     settings = this.migrateLegacyKeyBindingMode(settings);
     settings = this.migrateCommandBarSettings(settings);
     settings = this.migrateHardReloadCommand(settings);
@@ -345,7 +336,6 @@ const Settings = {
     const resultKeys = Object.keys(result);
     const removedKeys = Object.keys(settings).filter((key) => !resultKeys.includes(key));
     await chrome.storage.sync.remove(removedKeys);
-    await chrome.storage.sync.remove("arcAccentColor");
     await chrome.storage.sync.remove("keyBindingMode");
     await chrome.storage.sync.remove("disabledCommandBarModes");
     await chrome.storage.sync.set(result);
