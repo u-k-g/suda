@@ -373,6 +373,22 @@ context("commandBar page", () => {
     assert.equal("www.example.com", url);
   });
 
+  should("replace the current URL from the combined command bar when requested", async () => {
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: false });
+    ui.setQuery("www.example.com");
+    let handler = null;
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") return [];
+      handler = message.handler;
+    });
+
+    await ui.update();
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+    ui.onHidden();
+
+    assert.equal("openUrlInCurrentTab", handler);
+  });
+
   should("open a URL from new-tab URL mode in the current tab", async () => {
     await commandBarPage.activate({
       mode: "url",

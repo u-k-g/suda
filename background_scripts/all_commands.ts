@@ -241,6 +241,10 @@ const allCommands = [
   {
     name: "CommandBar.activateAll",
     desc: "Open the command bar",
+    options: {
+      replaceCurrentUrl: "Replace the current tab's URL with the selected destination instead of " +
+        "opening it in a new tab. False by default.",
+    },
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -317,7 +321,7 @@ const allCommands = [
 
   {
     name: "CommandBar.activateEditUrl",
-    desc: "Edit the current URL",
+    desc: "Open the command bar and replace the current URL",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,

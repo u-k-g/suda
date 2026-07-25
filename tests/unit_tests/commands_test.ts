@@ -116,6 +116,10 @@ context("KeyMappingsParser", () => {
   should("reject unknown options on map statements", () => {
     assert.equal(1, getErrors("map j LinkHints.activateMode action=focus").length);
     assert.equal(1, getErrors("map j LinkHints.activateMode unknownOption=a").length);
+    assert.equal(
+      0,
+      getErrors("map j CommandBar.activateAll replaceCurrentUrl").length,
+    );
   });
 
   should("reject count option on commands with noRepeat=true", () => {
@@ -294,13 +298,15 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
   });
 
-  should("reuse the protected-page fallback tab for its selected result", () => {
+  should("optionally replace the current URL from the main command bar", () => {
     let openOptions = null;
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
-    CommandBar.activateAllInCurrentTab(0);
-
+    CommandBar.activateAll(0, { options: { replaceCurrentUrl: true } });
     assert.equal({ completer: "omni", mode: "", newTab: false }, openOptions);
+
+    CommandBar.activateAll(0, { options: { replaceCurrentUrl: "false" } });
+    assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
   });
 
   should("open Ctrl-W n directly in search mode", () => {
@@ -321,23 +327,13 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "commands", mode: "actions", selectFirst: true }, openOptions);
   });
 
-  should("edit the current URL in the current tab", () => {
+  should("use the replace-current main command bar for activateEditUrl", () => {
     let openOptions = null;
-    stub(globalThis, "location", { href: "https://example.com/path" });
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
     CommandBar.activateEditUrl(0);
 
-    assert.equal(
-      {
-        completer: "omni",
-        mode: "url",
-        selectFirst: true,
-        query: "https://example.com/path",
-        newTab: false,
-      },
-      openOptions,
-    );
+    assert.equal({ completer: "omni", mode: "", newTab: false }, openOptions);
   });
 
   should("bind Helix J and K to configurable fast scrolling", () => {

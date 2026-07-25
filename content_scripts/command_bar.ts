@@ -51,19 +51,12 @@ const CommandBar = {
     });
   },
 
-  activateAll(sourceFrameId) {
+  activateAll(sourceFrameId, registryEntry = { options: {} }) {
+    const replaceCurrentUrl = registryEntry.options?.replaceCurrentUrl;
     this.open(sourceFrameId, {
       completer: "omni",
       mode: "",
-      newTab: true,
-    });
-  },
-
-  activateAllInCurrentTab(sourceFrameId) {
-    this.open(sourceFrameId, {
-      completer: "omni",
-      mode: "",
-      newTab: false,
+      newTab: !(replaceCurrentUrl === true || replaceCurrentUrl === "true"),
     });
   },
 
@@ -113,12 +106,8 @@ const CommandBar = {
   },
 
   activateEditUrl(sourceFrameId) {
-    this.open(sourceFrameId, {
-      completer: "omni",
-      mode: "url",
-      selectFirst: true,
-      query: globalThis.location.href,
-      newTab: false,
+    return this.activateAll(sourceFrameId, {
+      options: { replaceCurrentUrl: true },
     });
   },
 

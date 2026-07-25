@@ -270,7 +270,9 @@ async function initializeOnDomReady() {
     "all";
   if (forcedAllMode) {
     DomUtils.injectUserCss();
-    CommandBar.activateAllInCurrentTab(0);
+    CommandBar.activateAll(0, {
+      options: { replaceCurrentUrl: true },
+    });
   } else if (Settings.get("openCommandBarOnNewTabPage")) {
     DomUtils.injectUserCss();
     CommandBar.activateNewTab(0);
