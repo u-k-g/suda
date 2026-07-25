@@ -267,32 +267,6 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activate",
-    desc: "Open URL, bookmark or history entry",
-    options: {
-      query: "The text to prefill the CommandBar with.",
-      keyword: 'The keyword of a search engine defined in the "Custom search engines" ' +
-        "section of the Suda Options page. The CommandBar will be scoped to use that search engine.",
-    },
-    group: "commandBar",
-    topFrame: true,
-    noRepeat: true,
-  },
-
-  {
-    name: "CommandBar.activateInNewTab",
-    desc: "Open URL, bookmark or history entry in a new tab",
-    group: "commandBar",
-    options: {
-      query: "The text to prefill the CommandBar with.",
-      keyword: 'The keyword of a search engine defined in the "Custom search engines" ' +
-        "section of the Suda Options page. The CommandBar will be scoped to use that search engine.",
-    },
-    topFrame: true,
-    noRepeat: true,
-  },
-
-  {
     name: "CommandBar.activateBookmarks",
     desc: "Open a bookmark",
     group: "commandBar",

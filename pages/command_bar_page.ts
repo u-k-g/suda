@@ -228,7 +228,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "omni",
     newTab: true,
     icon: "globe",
-    bindingCommands: ["CommandBar.activateInNewTab", "CommandBar.activate"],
+    bindingCommands: [],
   },
   {
     name: "history",
@@ -838,10 +838,7 @@ class CommandBarUI {
     if (this.completerName === "modes") {
       const query = this.input.value.trim().toLowerCase();
       const queryTerms = query.split(/\s+/).filter(Boolean);
-      const disabledModes = new Set(Settings.get("disabledCommandBarModes"));
-      this.completions = commandBarModes.filter((mode) =>
-        isCommandBarModeEnabled(mode) && !disabledModes.has(mode.name)
-      ).map(
+      this.completions = commandBarModes.filter(isCommandBarModeEnabled).map(
         (mode, index) => {
           const name = mode.name.toLowerCase();
           const aliases = mode.aliases.toLowerCase();

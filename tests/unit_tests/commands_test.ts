@@ -71,7 +71,9 @@ context("KeyMappingsParser", () => {
   });
 
   should("parse option values surrounded by quotes", () => {
-    const { keyToRegistryEntry } = KeyMappingsParser.parse('map v CommandBar.activate query="a b"');
+    const { keyToRegistryEntry } = KeyMappingsParser.parse(
+      'map v CommandBar.activateBookmarks query="a b"',
+    );
     const entry = keyToRegistryEntry["v"];
     assert.equal({ query: "a b" }, entry.options);
   });
@@ -281,9 +283,9 @@ context("Validate commands and options data structures", () => {
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
     assert.equal("CommandBar.activateAll", helixKeyMappings["<space>t"]);
     assert.equal("openOptionsPage", helixKeyMappings["<space>,"]);
-    assert.equal("CommandBar.activateInNewTab", helixKeyMappings["<c-w>n"]);
+    assert.equal("CommandBar.activateHistory", helixKeyMappings["<space>h"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
-    assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>h"));
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-w>n"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>/"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>?"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>S"));
@@ -307,15 +309,6 @@ context("Validate commands and options data structures", () => {
 
     CommandBar.activateAll(0, { options: { replaceCurrentUrl: "false" } });
     assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
-  });
-
-  should("open Ctrl-W n directly in search mode", () => {
-    let openOptions = null;
-    stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
-
-    CommandBar.activateInNewTab(0, { options: {} });
-
-    assert.equal({ completer: "omni", mode: "search", newTab: true }, openOptions);
   });
 
   should("open command selection in actions mode", () => {
@@ -407,6 +400,8 @@ context("Validate commands and options data structures", () => {
         "visitPreviousTab",
         "goUp",
         "openCopiedUrlInCurrentTab",
+        "CommandBar.activate",
+        "CommandBar.activateInNewTab",
       ]
     ) {
       assert.isFalse(commandNames.includes(name));

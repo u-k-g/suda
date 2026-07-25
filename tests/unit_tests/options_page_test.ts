@@ -222,21 +222,13 @@ context("options page", () => {
     assert.equal("tab", Settings.get("commandBarCenter"));
   });
 
-  should("use the configured command-bar mode and source defaults", () => {
-    const uncheckedModeValues = Array.from(
-      document.querySelectorAll('[name="disabledCommandBarModes"]:not(:checked)'),
-    ).map((element) => element.value);
+  should("use the configured command-bar source defaults", () => {
     const uncheckedSourceValues = Array.from(
       document.querySelectorAll('[name="disabledModelessCommandBarSources"]:not(:checked)'),
     ).map((element) => element.value);
 
-    assert.equal(["url"], uncheckedModeValues);
-    assert.equal(["history"], uncheckedSourceValues);
-    assert.equal(
-      "Actions",
-      document.querySelector('[name="disabledCommandBarModes"][value="actions"]')
-        .parentElement.textContent.trim(),
-    );
+    assert.equal(null, document.querySelector('[name="disabledCommandBarModes"]'));
+    assert.equal([], uncheckedSourceValues);
     assert.equal(
       null,
       document.querySelector('[name="disabledModelessCommandBarSources"][value="commands"]'),
@@ -247,9 +239,7 @@ context("options page", () => {
     );
   });
 
-  should("save unchecked command-bar modes and modeless sources as disabled", async () => {
-    document.querySelector('[name="disabledCommandBarModes"][value="marks"]').checked = false;
-    document.querySelector('[name="disabledCommandBarModes"][value="url"]').checked = true;
+  should("save unchecked modeless sources as disabled", async () => {
     document.querySelector(
       '[name="disabledModelessCommandBarSources"][value="bookmarks"]',
     ).checked = false;
@@ -259,7 +249,6 @@ context("options page", () => {
 
     await optionsPage.saveOptions();
 
-    assert.equal(["marks"], Settings.get("disabledCommandBarModes"));
     assert.equal(["bookmarks"], Settings.get("disabledModelessCommandBarSources"));
   });
 

@@ -13,24 +13,6 @@ const CommandBar = {
   // sourceFrameId here (and below) is the ID of the frame from which this request originates, which
   // may be different from the current frame.
 
-  activate(sourceFrameId, registryEntry) {
-    const options = Object.assign({}, registryEntry.options, {
-      completer: "omni",
-      mode: "search",
-      newTab: true,
-    });
-    this.open(sourceFrameId, options);
-  },
-
-  activateInNewTab(sourceFrameId, registryEntry) {
-    const options = Object.assign({}, registryEntry.options, {
-      completer: "omni",
-      mode: "search",
-      newTab: true,
-    });
-    this.open(sourceFrameId, options);
-  },
-
   // Cmd/Ctrl-T has already created the destination tab. Open URL mode against that tab with an
   // empty query so submitting replaces the local new-tab page instead of creating another tab.
   activateNewTab(sourceFrameId) {

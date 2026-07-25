@@ -319,12 +319,10 @@ const NormalModeCommands = {
 
   "LinkHints.activateMode": LinkHints.activateMode.bind(LinkHints),
 
-  "CommandBar.activate": CommandBar.activate.bind(CommandBar),
   "CommandBar.activateAll": CommandBar.activateAll.bind(CommandBar),
   "CommandBar.activateModeSelection": CommandBar.activateModeSelection.bind(CommandBar),
   "CommandBar.activateHistory": CommandBar.activateHistory.bind(CommandBar),
   "CommandBar.activateMarks": CommandBar.activateMarks.bind(CommandBar),
-  "CommandBar.activateInNewTab": CommandBar.activateInNewTab.bind(CommandBar),
   "CommandBar.activateTabSelection": CommandBar.activateTabSelection.bind(CommandBar),
   "CommandBar.activateBookmarks": CommandBar.activateBookmarks.bind(CommandBar),
   "CommandBar.activateCommandSelection": CommandBar.activateCommandSelection.bind(CommandBar),

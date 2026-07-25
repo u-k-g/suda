@@ -44,9 +44,6 @@ context("commandBar page", () => {
 
   teardown(() => {
     if (!Settings.isLoaded()) return;
-    Settings._settings.disabledCommandBarModes = structuredClone(
-      Settings.defaultOptions.disabledCommandBarModes,
-    );
     Settings._settings.disabledModelessCommandBarSources = structuredClone(
       Settings.defaultOptions.disabledModelessCommandBarSources,
     );
@@ -164,15 +161,6 @@ context("commandBar page", () => {
       ui.completions.map((completion) => completion.commandBarAction),
     );
     assert.equal(0, ui.selection);
-  });
-
-  should("hide user-disabled modes from the mode selector", async () => {
-    Settings._settings.disabledCommandBarModes = ["tabs"];
-    await commandBarPage.activate({ mode: "modes", completer: "modes" });
-    ui.setQuery("tabs");
-    await ui.update();
-
-    assert.isFalse(ui.completions.some((completion) => completion.commandBarMode === "tabs"));
   });
 
   should("hide modes whose activation actions are disabled", async () => {
@@ -458,7 +446,6 @@ context("commandBar page", () => {
   });
 
   should("offer only one search mode and one URL-edit mode", async () => {
-    Settings._settings.disabledCommandBarModes = [];
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("url");
     await ui.update();

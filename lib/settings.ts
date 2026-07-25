@@ -20,8 +20,7 @@ const defaultOptions = {
   smoothScroll: true,
   showCommandBarModeDescriptions: false,
   commandBarCenter: "window",
-  disabledCommandBarModes: ["url"],
-  disabledModelessCommandBarSources: ["history"],
+  disabledModelessCommandBarSources: [],
   disabledActions: [
     "duplicateTab",
     "firstTab",
@@ -270,16 +269,8 @@ const Settings = {
     return settings;
   },
 
-  migrateCommandBarActionsMode(settings) {
-    if (Array.isArray(settings.disabledCommandBarModes)) {
-      settings.disabledCommandBarModes = Array.from(
-        new Set(
-          settings.disabledCommandBarModes
-            .map((mode) => mode === "commands" ? "actions" : mode)
-            .filter((mode) => mode !== "find"),
-        ),
-      );
-    }
+  migrateCommandBarSettings(settings) {
+    delete settings.disabledCommandBarModes;
     if (Array.isArray(settings.disabledModelessCommandBarSources)) {
       settings.disabledModelessCommandBarSources = settings.disabledModelessCommandBarSources
         .filter((source) => source !== "commands");
@@ -308,6 +299,8 @@ const Settings = {
       "visitPreviousTab",
       "goUp",
       "openCopiedUrlInCurrentTab",
+      "CommandBar.activate",
+      "CommandBar.activateInNewTab",
     ]);
     if (typeof settings.keyMappings === "string") {
       settings.keyMappings = settings.keyMappings.split("\n")
@@ -333,7 +326,7 @@ const Settings = {
     settings = this.migratePre2_4_1(settings);
     settings = this.migrateAccentColor(settings);
     settings = this.migrateLegacyKeyBindingMode(settings);
-    settings = this.migrateCommandBarActionsMode(settings);
+    settings = this.migrateCommandBarSettings(settings);
     settings = this.migrateHardReloadCommand(settings);
     settings = this.migrateRemovedCommands(settings);
     return settings;
@@ -353,6 +346,7 @@ const Settings = {
     await chrome.storage.sync.remove(removedKeys);
     await chrome.storage.sync.remove("arcAccentColor");
     await chrome.storage.sync.remove("keyBindingMode");
+    await chrome.storage.sync.remove("disabledCommandBarModes");
     await chrome.storage.sync.set(result);
     await this.load();
   },
