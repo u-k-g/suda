@@ -37,7 +37,7 @@
 
 </details>
 
-<details>
+<details open>
 <summary><strong>upstream</strong></summary>
 
 Suda is an independent, opinionated fork of [Vimium](https://github.com/philc/vimium). it is not
