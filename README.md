@@ -32,6 +32,10 @@
 5. select **load unpacked**
 6. choose the extracted `suda` directory
 
+> **Enable keyboard-driven navigation:** click the Suda icon in the browser toolbar, open
+> **Options**, then turn off **Command bar only**. This enables Suda's normal, insert, link-hint,
+> and other page modes.
+
 </details>
 
 <details>
