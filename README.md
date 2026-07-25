@@ -19,7 +19,6 @@
 
 <img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/1a2ce7bc-01b3-4ef7-a0f2-3ada37303bfc" />
 
-
 </details>
 
 <details open>
@@ -44,9 +43,8 @@
 Suda is an independent, opinionated fork of [Vimium](https://github.com/philc/vimium). it is not
 part of the Vimium project.
 
-the fork lightly follows the philosophy of the [helix editor](https://helix-editor.com/) and its
-`hx` workflow: selections are central, commands compose around them and keyboard interaction should
-stay direct and predictable.
+the fork lightly follows the philosophy of the [helix editor](https://helix-editor.com/): selections are central, commands compose around them and keyboard interaction should
+stay direct and highly predictable.
 
 </details>
 
