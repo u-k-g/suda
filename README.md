@@ -17,7 +17,6 @@
 - keyboard-driven links, tabs, history, bookmarks and search
 - a zen/arc browser style command bar
 
-<img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/1a2ce7bc-01b3-4ef7-a0f2-3ada37303bfc" />
 
 </details>
 
