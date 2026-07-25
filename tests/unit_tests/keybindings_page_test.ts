@@ -5,6 +5,8 @@ import * as keybindingsPage from "../../pages/keybindings.js";
 import * as optionsPage from "../../pages/options.js";
 
 const waitForBindingSave = () => new Promise((resolve) => setTimeout(resolve, 50));
+const revertIsPlaceholder = (row) =>
+  row.querySelector(".revert-binding").classList.contains("revert-binding-placeholder");
 
 async function recordShortcut(command, currentKey, keyEvents) {
   const row = document.querySelector(
@@ -76,8 +78,8 @@ context("keybindings page", () => {
     assert.equal("Hard reload the page", hard.querySelector(".command-description").textContent);
     assert.isFalse(soft.classList.contains("is-custom"));
     assert.isTrue(hard.classList.contains("is-unbound"));
-    assert.isTrue(soft.querySelector(".revert-binding").hidden);
-    assert.isTrue(hard.querySelector(".revert-binding").hidden);
+    assert.isTrue(revertIsPlaceholder(soft));
+    assert.isTrue(revertIsPlaceholder(hard));
     assert.isFalse(soft.querySelector(".command-description").classList.contains("command-custom"));
     assert.equal("None", hard.querySelector(".binding-unbound").textContent);
   });
@@ -261,6 +263,36 @@ context("keybindings page", () => {
     );
   });
 
+  should("pass shortcut capture through normal mode and remove the temporary handler", async () => {
+    const editor = document.querySelector(
+      '.binding-row[data-command="scrollDown"][data-key="j"] .binding-editor',
+    );
+    editor.click();
+
+    const captureHandler = handlerStack.stack.at(-1);
+    assert.equal("keybinding-capture", captureHandler._name);
+    assert.equal(
+      true,
+      handlerStack.bubbleEvent(
+        "keydown",
+        new window.KeyboardEvent("keydown", { code: "KeyQ", key: "q" }),
+      ),
+    );
+
+    editor.dispatchEvent(
+      new window.KeyboardEvent("keydown", {
+        bubbles: true,
+        code: "KeyQ",
+        key: "q",
+      }),
+    );
+    editor.blur();
+    await waitForBindingSave();
+
+    assert.isFalse(handlerStack.stack.includes(captureHandler));
+    assert.isTrue(Settings.get("keyMappings").includes("map q scrollDown"));
+  });
+
   should("record modifier shortcuts", async () => {
     await recordShortcut("scrollDown", "j", [
       { code: "KeyD", ctrlKey: true, key: "d" },
@@ -275,6 +307,34 @@ context("keybindings page", () => {
       Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
     );
     assert.equal("+", rebound.querySelector(".key-chord-joiner").textContent);
+  });
+
+  should("display Ctrl+C and Ctrl+S with their final letters as keys", async () => {
+    await recordShortcut("scrollDown", "j", [
+      { code: "ControlLeft", ctrlKey: true, key: "Control" },
+      { code: "KeyC", ctrlKey: true, key: "c" },
+    ]);
+
+    let rebound = document.querySelector(
+      '.binding-row[data-command="scrollDown"][data-key="<c-c>"]',
+    );
+    assert.equal(
+      ["Ctrl", "c"],
+      Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
+    );
+
+    await recordShortcut("scrollDown", "<c-c>", [
+      { code: "ControlLeft", ctrlKey: true, key: "Control" },
+      { code: "KeyS", ctrlKey: true, key: "s" },
+    ]);
+
+    rebound = document.querySelector(
+      '.binding-row[data-command="scrollDown"][data-key="<c-s>"]',
+    );
+    assert.equal(
+      ["Ctrl", "s"],
+      Array.from(rebound.querySelectorAll("kbd")).map((key) => key.textContent),
+    );
   });
 
   should("record a Ctrl chord followed by another key as a sequence", async () => {
@@ -328,7 +388,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollUp"][data-key=""][data-revert-key="k"]',
     );
     assert.isTrue(displaced != null);
-    assert.isFalse(displaced.querySelector(".revert-binding").hidden);
+    assert.isFalse(revertIsPlaceholder(displaced));
     assert.isTrue(displaced.classList.contains("is-custom"));
   });
 
@@ -361,7 +421,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key=""][data-revert-key="j"]',
     );
     assert.isTrue(removedDefault.classList.contains("is-custom"));
-    assert.isFalse(removedDefault.querySelector(".revert-binding").hidden);
+    assert.isFalse(revertIsPlaceholder(removedDefault));
     // Revert control stays immediately left of the keybinding editor.
     assert.equal(
       removedDefault.querySelector(".binding-editor"),
@@ -375,7 +435,7 @@ context("keybindings page", () => {
     const changed = document.querySelector(
       '.binding-row[data-command="scrollDown"][data-key="x"]',
     );
-    assert.isFalse(changed.querySelector(".revert-binding").hidden);
+    assert.isFalse(revertIsPlaceholder(changed));
     assert.equal(
       changed.querySelector(".binding-editor"),
       changed.querySelector(".revert-binding").nextElementSibling,
@@ -391,7 +451,7 @@ context("keybindings page", () => {
       '.binding-row[data-command="scrollDown"][data-key="j"]',
     );
     assert.isTrue(restored != null);
-    assert.isTrue(restored.querySelector(".revert-binding").hidden);
+    assert.isTrue(revertIsPlaceholder(restored));
     assert.isTrue(Settings.get("keyMappings").includes("map j scrollDown"));
   });
 

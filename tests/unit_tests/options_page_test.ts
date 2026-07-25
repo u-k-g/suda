@@ -29,10 +29,13 @@ context("options page", () => {
     assert.equal(null, document.querySelector("#save"));
   });
 
-  should("load only settings-page dependencies", async () => {
+  should("load normal mode separately from the settings UI module", async () => {
     const source = await Deno.readTextFile("pages/options.ts");
     assert.isTrue(source.includes('import "./settings_page_dependencies.js"'));
     assert.isFalse(source.includes('import "./all_content_scripts.js"'));
+    assert.isTrue(
+      document.querySelector('script[src="all_content_scripts.js"][type="module"]') != null,
+    );
     assert.isTrue(document.querySelector('link[href="options_layout.css"]') != null);
     assert.isTrue(document.querySelector('link[href="settings_shell.css"]') != null);
   });
@@ -155,8 +158,8 @@ context("options page", () => {
   });
 
   should("show the recent-tab cycle defaults", () => {
-    assert.equal("5", optionsPage.getOptionEl("recentTabCycleSize").value);
-    assert.equal("400", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
+    assert.equal("4", optionsPage.getOptionEl("recentTabCycleSize").value);
+    assert.equal("350", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
   });
 
   should("show the default accent field only for Arc themes", () => {

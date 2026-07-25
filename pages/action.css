@@ -26,6 +26,12 @@ h1 {
   padding: var(--padding);
 }
 
+#not-enabled-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 #dialog-body > * {
   margin: 10px 0;
 }

@@ -336,6 +336,11 @@ body.settings-page .revert-binding,
   width: 32px;
 }
 
+.revert-binding-placeholder {
+  pointer-events: none;
+  visibility: hidden;
+}
+
 body.options-page .revert-binding svg,
 body.settings-page .revert-binding svg,
 .revert-binding svg {
@@ -358,12 +363,6 @@ body.settings-page .revert-binding:focus-visible,
   border: 0;
   box-shadow: none;
   color: var(--bindings-text);
-}
-
-body.options-page .revert-binding[hidden],
-body.settings-page .revert-binding[hidden],
-.revert-binding[hidden] {
-  display: none;
 }
 
 /* Resting: plain keys only (no chrome). Hover/focus/recording: button surface + Edit. */

@@ -29,7 +29,11 @@ function formatKeyTokenParts(token) {
     s: "Shift",
   };
   const modifiers = [];
-  while (modifierNames[parts[0]]) modifiers.push(modifierNames[parts.shift()]);
+  // The final part is always the key, even when it has the same name as a modifier. For example,
+  // <c-c> is Ctrl+C and <c-s> is Ctrl+S, not Ctrl+Ctrl and Ctrl+Shift.
+  while (parts.length > 1 && modifierNames[parts[0]]) {
+    modifiers.push(modifierNames[parts.shift()]);
+  }
   const keyName = parts.join("-");
   const namedKeys = {
     backspace: "Backspace",
@@ -306,8 +310,11 @@ function createBindingRow(row, groupLabel, rowTemplate) {
   editor.addEventListener("blur", () => finishCaptureOnBlur(editor));
 
   const revertButton = rowNode.querySelector(".revert-binding");
-  revertButton.disabled = row.isDisabled;
-  revertButton.hidden = !row.isCustom;
+  // Preserve this button's space in every row so revealing it does not move the binding editor.
+  revertButton.disabled = row.isDisabled || !row.isCustom;
+  revertButton.classList.toggle("revert-binding-placeholder", !row.isCustom);
+  revertButton.setAttribute("aria-hidden", String(!row.isCustom));
+  revertButton.tabIndex = row.isCustom ? 0 : -1;
   revertButton.setAttribute(
     "aria-label",
     row.revertKey
@@ -439,10 +446,18 @@ function endCaptureUi(editor) {
   editor.removeAttribute("aria-live");
 }
 
+function stopPassingCaptureKeysToPage(capture) {
+  if (capture?.handlerId != null) {
+    handlerStack.remove(capture.handlerId);
+    capture.handlerId = null;
+  }
+}
+
 function cancelShortcutCapture() {
   if (activeCapture == null) return;
   clearTimeout(activeCapture.timer);
   const { editor, row } = activeCapture;
+  stopPassingCaptureKeysToPage(activeCapture);
   activeCapture = null;
   endCaptureUi(editor);
   renderBindingValue(editor.querySelector(".binding-keys"), row.key);
@@ -451,7 +466,20 @@ function cancelShortcutCapture() {
 function beginShortcutCapture(editor, row) {
   if (activeCapture?.editor === editor) return;
   cancelShortcutCapture();
-  activeCapture = { editor, row, tokens: [], timer: null };
+  activeCapture = {
+    editor,
+    row,
+    tokens: [],
+    timer: null,
+    // Normal mode handles key events on window before this button sees them. Put a temporary
+    // pass-through handler above normal mode so the binding editor can record those events.
+    handlerId: handlerStack.push({
+      _name: "keybinding-capture",
+      keydown: () => handlerStack.passEventToPage,
+      keypress: () => handlerStack.passEventToPage,
+      keyup: () => handlerStack.passEventToPage,
+    }),
+  };
   editor.classList.add("is-recording");
   editor.setAttribute("aria-live", "polite");
   showCaptureValue(activeCapture);
@@ -491,6 +519,7 @@ async function clearBindingFromCapture() {
   if (activeCapture == null) return;
   clearTimeout(activeCapture.timer);
   const { editor, row } = activeCapture;
+  stopPassingCaptureKeysToPage(activeCapture);
   activeCapture = null;
   endCaptureUi(editor);
   if (row.key) {
@@ -504,6 +533,7 @@ async function commitShortcutCapture() {
   if (activeCapture == null || activeCapture.tokens.length === 0) return;
   clearTimeout(activeCapture.timer);
   const { editor, row, tokens } = activeCapture;
+  stopPassingCaptureKeysToPage(activeCapture);
   activeCapture = null;
   endCaptureUi(editor);
   await updateBinding(row, tokens.join(""));

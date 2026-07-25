@@ -123,6 +123,7 @@ globalThis.chrome = {
 
   scripting: {
     executeScript() {},
+    insertCSS() {},
   },
 
   search: {

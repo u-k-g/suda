@@ -12,13 +12,12 @@
 
   <body class="suda-body">
     <div id="not-enabled-error" style="display: none">
-      <h1>
-        Suda is not allowed to run on this page.
-      </h1>
-      <p>
-        Your browser does not run web extensions like Suda on certain pages, usually for security
-        reasons.
-      </p>
+      <h1 id="not-enabled-title">Suda cannot control this page.</h1>
+      <p id="not-enabled-message"></p>
+      <div id="not-enabled-actions">
+        <button id="open-command-bar-fallback">Open Suda command bar</button>
+        <button id="manage-extension-access" hidden>Manage access</button>
+      </div>
     </div>
 
     <div id="dialog-body">
