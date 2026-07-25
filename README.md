@@ -17,6 +17,9 @@
 - keyboard-driven links, tabs, history, bookmarks and search
 - a zen/arc browser style command bar
 
+![Uploading image.png…]()
+
+
 </details>
 
 <details open>
