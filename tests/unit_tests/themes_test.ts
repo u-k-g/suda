@@ -21,8 +21,8 @@ context("themes", () => {
         "Absolutely Dark",
         "Vesper",
         "Matte Black",
-        "* Zen Dark",
-        "* Zen Light",
+        "*Zen Dark",
+        "*Zen Light",
         "Oscura Dusk",
         "Oscura Midnight",
         "TokyoNight Night",
@@ -57,8 +57,8 @@ context("themes", () => {
 
   should("list starred themes first, then the rest alphabetically by name", () => {
     const names = ThemeManager.themes.map((theme) => theme.name);
-    assert.equal("* Zen Dark", names[0]);
-    assert.equal("* Zen Light", names[1]);
+    assert.equal("*Zen Dark", names[0]);
+    assert.equal("*Zen Light", names[1]);
 
     const firstUnstarred = names.findIndex((name) => !name.startsWith("*"));
     assert.isTrue(firstUnstarred > 0);

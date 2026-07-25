@@ -36,7 +36,7 @@ globalThis.SudaThemeCatalog = [
   },
   {
     "id": "zen-dark",
-    "name": "* Zen Dark",
+    "name": "*Zen Dark",
     "mode": "dark",
     "background": "#19191b",
     "foreground": "#f5f5f4",
@@ -51,7 +51,7 @@ globalThis.SudaThemeCatalog = [
   },
   {
     "id": "zen-light",
-    "name": "* Zen Light",
+    "name": "*Zen Light",
     "mode": "light",
     "background": "#f4f1ed",
     "foreground": "#27272a",
