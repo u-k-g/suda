@@ -51,12 +51,14 @@ context("settings", () => {
     should("rename the commands mode in saved settings", async () => {
       await chrome.storage.sync.set({
         settingsVersion: "2.4.1",
-        disabledCommandBarModes: ["commands", "tabs", "actions"],
+        disabledCommandBarModes: ["commands", "tabs", "actions", "find"],
+        disabledModelessCommandBarSources: ["commands", "history"],
       });
 
       await Settings.load();
 
       assert.equal(["actions", "tabs"], Settings.get("disabledCommandBarModes"));
+      assert.equal(["history"], Settings.get("disabledModelessCommandBarSources"));
     });
   });
 
@@ -91,13 +93,27 @@ context("settings", () => {
         keyMappings: [
           "map x toggleViewSource",
           "map z1 setZoom level=1.1",
+          "map z2 showHelp",
+          "map z3 Marks.activateGotoMode",
+          "map z4 CommandBar.activateFind",
+          "map z5 CommandBar.activateEditUrlInNewTab",
+          "map z6 CommandBar.activateBookmarksInNewTab",
+          "map z7 visitPreviousTab",
+          "map z8 goUp",
+          "map z9 openCopiedUrlInCurrentTab",
           "map y reload",
         ].join("\n"),
+        disabledActions: [
+          "showHelp",
+          "Marks.activateGotoMode",
+          "reload",
+        ],
       });
 
       await Settings.load();
 
       assert.equal("map y reload", Settings.get("keyMappings"));
+      assert.equal(["reload"], Settings.get("disabledActions"));
     });
   });
 

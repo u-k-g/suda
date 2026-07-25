@@ -319,7 +319,7 @@ context("commandBar page", () => {
   });
 
   should("return from a mode to modeless search with backspace on an empty query", async () => {
-    await commandBarPage.activate({ mode: "find", completer: "local" });
+    await commandBarPage.activate({ mode: "history", completer: "history" });
     await ui.onKeyEvent(newKeyEvent({ key: "Backspace" }));
 
     assert.equal("", ui.mode);
@@ -521,6 +521,6 @@ context("commandBar page", () => {
     await ui.updateCompletions();
     assert.equal(1, ui.completionList.childNodes.length);
     const keys = Array.from(ui.completionList.querySelectorAll(".key")).map((x) => x.textContent);
-    assert.equal(["gn"], keys);
+    assert.equal(["gl"], keys);
   });
 });

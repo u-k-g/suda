@@ -145,20 +145,6 @@ const NormalModeCommands = {
   },
 
   // Url manipulation.
-  goUp(count) {
-    let url = globalThis.location.href;
-    if (url.endsWith("/")) {
-      url = url.substring(0, url.length - 1);
-    }
-
-    let urlsplit = url.split("/");
-    // make sure we haven't hit the base domain yet
-    if (urlsplit.length > 3) {
-      urlsplit = urlsplit.slice(0, Math.max(3, urlsplit.length - count));
-      globalThis.location.href = urlsplit.join("/");
-    }
-  },
-
   goToRoot() {
     globalThis.location.href = globalThis.location.origin;
   },
@@ -182,12 +168,6 @@ const NormalModeCommands = {
         url,
         count,
       })
-    );
-  },
-
-  openCopiedUrlInCurrentTab() {
-    HUD.pasteFromClipboard((url) =>
-      chrome.runtime.sendMessage({ handler: "openUrlInCurrentTab", url })
     );
   },
 
@@ -236,9 +216,6 @@ const NormalModeCommands = {
   // Misc.
   mainFrame() {
     return focusThisFrame({ highlight: true, forceFocusThisFrame: true });
-  },
-  showHelp(sourceFrameId) {
-    return HelpDialog.toggle({ sourceFrameId });
   },
 
   passNextKey(count, options) {
@@ -345,19 +322,15 @@ const NormalModeCommands = {
   "CommandBar.activate": CommandBar.activate.bind(CommandBar),
   "CommandBar.activateAll": CommandBar.activateAll.bind(CommandBar),
   "CommandBar.activateModeSelection": CommandBar.activateModeSelection.bind(CommandBar),
-  "CommandBar.activateFind": CommandBar.activateFind.bind(CommandBar),
   "CommandBar.activateHistory": CommandBar.activateHistory.bind(CommandBar),
   "CommandBar.activateMarks": CommandBar.activateMarks.bind(CommandBar),
   "CommandBar.activateInNewTab": CommandBar.activateInNewTab.bind(CommandBar),
   "CommandBar.activateTabSelection": CommandBar.activateTabSelection.bind(CommandBar),
   "CommandBar.activateBookmarks": CommandBar.activateBookmarks.bind(CommandBar),
-  "CommandBar.activateBookmarksInNewTab": CommandBar.activateBookmarksInNewTab.bind(CommandBar),
   "CommandBar.activateCommandSelection": CommandBar.activateCommandSelection.bind(CommandBar),
   "CommandBar.activateEditUrl": CommandBar.activateEditUrl.bind(CommandBar),
-  "CommandBar.activateEditUrlInNewTab": CommandBar.activateEditUrlInNewTab.bind(CommandBar),
 
   "Marks.activateCreateMode": Marks.activateCreateMode.bind(Marks),
-  "Marks.activateGotoMode": Marks.activateGotoMode.bind(Marks),
 };
 
 // The types in <input type="..."> that we consider for focusInput command. Right now this is

@@ -442,6 +442,21 @@ context("multi completer", () => {
     assert.isTrue(tabsWereCalled);
   });
 
+  should("always include actions in modeless aggregation", async () => {
+    stub(chrome.storage.session, "get", async () => ({ commandToOptionsToKeys: {} }));
+    stub(Commands, "keyToRegistryEntry", {});
+    const modelessCompleter = new MultiCompleter([new CommandCompleter()]);
+
+    const results = await filterCompleter(modelessCompleter, ["reload"], {
+      commandBarMode: "",
+      disabledModelessCommandBarSources: ["commands"],
+    });
+
+    assert.isTrue(
+      results.some((suggestion) => suggestion.command?.registryEntry.command === "reload"),
+    );
+  });
+
   should("rank an open tab above a domain in modeless results", async () => {
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://test${path}`);
     const fakeCompleter = {
@@ -488,22 +503,27 @@ context("command completer", () => {
   const commandCompleter = new CommandCompleter();
   const multiCompleter = new MultiCompleter([commandCompleter]);
 
-  should("return all commands with default options if no mappings are specified", async () => {
-    stub(chrome.storage.session, "get", async () => ({
-      commandToOptionsToKeys: {},
-    }));
-    stub(Commands, "keyToRegistryEntry", {});
+  should(
+    "return all enabled commands with default options if no mappings are specified",
+    async () => {
+      stub(chrome.storage.session, "get", async () => ({
+        commandToOptionsToKeys: {},
+      }));
+      stub(Commands, "keyToRegistryEntry", {});
 
-    const suggestions = await filterCompleter(commandCompleter, []);
+      const suggestions = await filterCompleter(commandCompleter, []);
 
-    // Checks that all available commands are returned as suggestions.
-    assert.equal(allCommands.length, suggestions.length);
+      const enabledCommands = allCommands.filter((command) =>
+        Settings.isActionEnabled(command.name)
+      );
+      assert.equal(enabledCommands.length, suggestions.length);
 
-    // Check that by default no options (e.g. value=1.1) are applied to each command.
-    assert.isTrue(
-      suggestions.every((s) => Object.keys(s.command.registryEntry.options).length === 0),
-    );
-  });
+      // Check that by default no options (e.g. value=1.1) are applied to each command.
+      assert.isTrue(
+        suggestions.every((s) => Object.keys(s.command.registryEntry.options).length === 0),
+      );
+    },
+  );
 
   should("create suggestions for different variations of the same command", async () => {
     stub(chrome.storage.session, "get", async () => ({

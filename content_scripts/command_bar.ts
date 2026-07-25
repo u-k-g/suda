@@ -67,11 +67,6 @@ const CommandBar = {
     });
   },
 
-  activateFind(_sourceFrameId) {
-    Marks.setPreviousPosition();
-    return new FindMode();
-  },
-
   activateHistory(sourceFrameId) {
     this.open(sourceFrameId, { completer: "history", mode: "history", selectFirst: true });
   },
@@ -117,26 +112,7 @@ const CommandBar = {
     this.open(sourceFrameId, options);
   },
 
-  activateBookmarksInNewTab(sourceFrameId, registryEntry) {
-    const options = Object.assign({}, registryEntry.options, {
-      completer: "bookmarks",
-      mode: "bookmarks",
-      selectFirst: true,
-      newTab: true,
-    });
-    this.open(sourceFrameId, options);
-  },
-
   activateEditUrl(sourceFrameId) {
-    this.open(sourceFrameId, {
-      completer: "omni",
-      mode: "url",
-      selectFirst: true,
-      query: globalThis.location.href,
-    });
-  },
-
-  activateEditUrlInNewTab(sourceFrameId) {
     this.open(sourceFrameId, {
       completer: "omni",
       mode: "url",

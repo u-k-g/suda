@@ -273,7 +273,6 @@ context("Validate commands and options data structures", () => {
 
   should("route Helix picker keys through the unified command bar", () => {
     assert.equal("CommandBar.activateModeSelection", helixKeyMappings[":"]);
-    assert.equal("CommandBar.activateFind", helixKeyMappings["<space>/"]);
     assert.equal("CommandBar.activateMarks", helixKeyMappings["<space>'"]);
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
     assert.equal("CommandBar.activateAll", helixKeyMappings["<space>t"]);
@@ -281,6 +280,7 @@ context("Validate commands and options data structures", () => {
     assert.equal("CommandBar.activateInNewTab", helixKeyMappings["<c-w>n"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>h"));
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>/"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>?"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>S"));
   });
@@ -321,6 +321,25 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "commands", mode: "actions", selectFirst: true }, openOptions);
   });
 
+  should("edit the current URL in the current tab", () => {
+    let openOptions = null;
+    stub(globalThis, "location", { href: "https://example.com/path" });
+    stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
+
+    CommandBar.activateEditUrl(0);
+
+    assert.equal(
+      {
+        completer: "omni",
+        mode: "url",
+        selectFirst: true,
+        query: "https://example.com/path",
+        newTab: false,
+      },
+      openOptions,
+    );
+  });
+
   should("bind Helix J and K to configurable fast scrolling", () => {
     assert.equal("scrollFastDown", helixKeyMappings["J"]);
     assert.equal("scrollFastUp", helixKeyMappings["K"]);
@@ -337,6 +356,13 @@ context("Validate commands and options data structures", () => {
     assert.equal("enterCaretMode", helixKeyMappings["a"]);
   });
 
+  should("bind gh and gl to the previous and next tabs", () => {
+    assert.equal("previousTab", helixKeyMappings["gh"]);
+    assert.equal("nextTab", helixKeyMappings["gl"]);
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "gn"));
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "gp"));
+  });
+
   should("fold selected-text search into slash and remove the standalone commands", () => {
     assert.equal("enterFindMode", helixKeyMappings["/"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "*"));
@@ -349,8 +375,6 @@ context("Validate commands and options data structures", () => {
   should("leave optional navigation actions unbound by default", () => {
     for (
       const key of [
-        "gh",
-        "gl",
         "<space>R",
         "p",
         "gu",
@@ -369,11 +393,61 @@ context("Validate commands and options data structures", () => {
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>d"));
   });
 
-  should("remove setZoom and toggleViewSource entirely", () => {
+  should("leave tab muting unbound", () => {
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-w>m"));
+  });
+
+  should("remove retired actions entirely", () => {
     const commandNames = allCommands.map(({ name }) => name);
-    assert.isFalse(commandNames.includes("setZoom"));
-    assert.isFalse(commandNames.includes("toggleViewSource"));
+    for (
+      const name of [
+        "setZoom",
+        "toggleViewSource",
+        "showHelp",
+        "Marks.activateGotoMode",
+        "CommandBar.activateFind",
+        "CommandBar.activateEditUrlInNewTab",
+        "CommandBar.activateBookmarksInNewTab",
+        "visitPreviousTab",
+        "goUp",
+        "openCopiedUrlInCurrentTab",
+      ]
+    ) {
+      assert.isFalse(commandNames.includes(name));
+    }
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>v"));
+  });
+
+  should("disable the requested optional actions by default", () => {
+    assert.equal(
+      [
+        "duplicateTab",
+        "firstTab",
+        "lastTab",
+        "createTab",
+        "scrollToLeft",
+        "scrollToRight",
+        "passNextKey",
+        "goPrevious",
+        "goNext",
+        "CommandBar.activateBookmarks",
+        "CommandBar.activateCommandSelection",
+        "togglePinTab",
+        "nextFrame",
+        "mainFrame",
+      ],
+      Settings.defaultOptions.disabledActions,
+    );
+  });
+
+  should("keep goToRoot enabled but unbound by default", () => {
+    assert.isTrue(
+      allCommands.some(({ name }) => name === "goToRoot"),
+    );
+    assert.isFalse(Settings.defaultOptions.disabledActions.includes("goToRoot"));
+    assert.isFalse(
+      Object.values(helixKeyMappings).some((mapping) => mapping.split(" ")[0] === "goToRoot"),
+    );
   });
 
   should("use Space-f as the only Helix link-hint binding", () => {

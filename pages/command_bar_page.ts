@@ -222,14 +222,6 @@ const modeSelector: CommandBarMode = {
 
 const commandBarModes: CommandBarMode[] = [
   {
-    name: "find",
-    description: "Find text on the current page",
-    aliases: "page search",
-    action: true,
-    icon: "magnifying-glass",
-    bindingCommands: ["CommandBar.activateFind"],
-  },
-  {
     name: "search",
     description: "Search the web or open a URL in a new tab",
     aliases: "navigate url new tab",

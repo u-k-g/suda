@@ -523,16 +523,6 @@ const BackgroundCommands = {
     await removeTabsRelative("both", request);
   },
 
-  async visitPreviousTab({ count, tab }) {
-    await bgUtils.tabRecency.init();
-    let tabIds = bgUtils.tabRecency.getTabsByRecency();
-    tabIds = tabIds.filter((tabId) => tabId !== tab.id);
-    if (tabIds.length > 0) {
-      const id = tabIds[(count - 1) % tabIds.length];
-      await selectSpecificTab({ id });
-    }
-  },
-
   async cycleRecentTabs({ tab }) {
     await selectNextRecentTab(tab.id);
   },

@@ -156,7 +156,7 @@ context("options page", () => {
 
   should("show the recent-tab cycle defaults", () => {
     assert.equal("5", optionsPage.getOptionEl("recentTabCycleSize").value);
-    assert.equal("800", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
+    assert.equal("400", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
   });
 
   should("show the default accent field only for Arc themes", () => {
@@ -236,6 +236,14 @@ context("options page", () => {
       "Actions",
       document.querySelector('[name="disabledCommandBarModes"][value="actions"]')
         .parentElement.textContent.trim(),
+    );
+    assert.equal(
+      null,
+      document.querySelector('[name="disabledModelessCommandBarSources"][value="commands"]'),
+    );
+    assert.isTrue(
+      document.querySelector('[name="disabledModelessCommandBarSources"]')
+        .closest(".setting-row").textContent.includes("Suda actions are always included"),
     );
   });
 

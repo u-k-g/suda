@@ -429,9 +429,9 @@ const helixKeyMappings = {
   // Goto mode
   "gg": "scrollToTop",
   "ge": "scrollToBottom",
+  "gh": "previousTab",
+  "gl": "nextTab",
   "gi": "focusInput",
-  "gn": "nextTab",
-  "gp": "previousTab",
 
   // Modes and selection-first actions
   "i": "enterInsertMode",
@@ -454,9 +454,7 @@ const helixKeyMappings = {
   "<space>t": "CommandBar.activateAll",
   "<space>b": "CommandBar.activateTabSelection",
   "<space>B": "CommandBar.activateBookmarks",
-  "<space>/": "CommandBar.activateFind",
   "<space>e": "CommandBar.activateEditUrl",
-  "<space>E": "CommandBar.activateEditUrlInNewTab",
   "<space>m": "Marks.activateCreateMode",
   "<space>'": "CommandBar.activateMarks",
   "<space>r": "reload",
@@ -470,7 +468,6 @@ const helixKeyMappings = {
   "<c-w>H": "moveTabLeft",
   "<c-w>L": "moveTabRight",
   "<c-w>p": "togglePinTab",
-  "<c-w>m": "toggleMuteTab",
 };
 
 export {

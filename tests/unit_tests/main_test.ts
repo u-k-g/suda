@@ -276,7 +276,7 @@ context("cycleRecentTabs command", () => {
 
   setup(() => {
     cycleSize = 5;
-    cycleTimeoutMs = 800;
+    cycleTimeoutMs = 400;
     now = 1000;
     recencyOrder = [1, 2, 3, 4, 5, 6, 7];
     selectedTabIds = [];
@@ -300,10 +300,10 @@ context("cycleRecentTabs command", () => {
     stub(chrome.tabs, "update", async (id) => selectedTabIds.push(id));
   });
 
-  should("cycle a fixed list of five recent tabs within 800ms", async () => {
+  should("cycle a fixed list of five recent tabs within 400ms", async () => {
     await BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } });
     for (const currentTabId of [2, 3, 4, 5, 6]) {
-      now += 500;
+      now += 250;
       await BackgroundCommands.cycleRecentTabs({ tab: { id: currentTabId } });
     }
 
@@ -314,7 +314,7 @@ context("cycleRecentTabs command", () => {
     cycleSize = 3;
     await BackgroundCommands.cycleRecentTabs({ tab: { id: 1 } });
     for (const currentTabId of [2, 3, 4]) {
-      now += 500;
+      now += 250;
       await BackgroundCommands.cycleRecentTabs({ tab: { id: currentTabId } });
     }
 

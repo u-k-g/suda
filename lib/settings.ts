@@ -16,13 +16,28 @@ const defaultOptions = {
   scrollStepSize: 120,
   fastScrollStepSize: 800,
   recentTabCycleSize: 5,
-  recentTabCycleTimeoutMs: 800,
+  recentTabCycleTimeoutMs: 400,
   smoothScroll: true,
   showCommandBarModeDescriptions: false,
   commandBarCenter: "window",
   disabledCommandBarModes: ["url"],
   disabledModelessCommandBarSources: ["history"],
-  disabledActions: [],
+  disabledActions: [
+    "duplicateTab",
+    "firstTab",
+    "lastTab",
+    "createTab",
+    "scrollToLeft",
+    "scrollToRight",
+    "passNextKey",
+    "goPrevious",
+    "goNext",
+    "CommandBar.activateBookmarks",
+    "CommandBar.activateCommandSelection",
+    "togglePinTab",
+    "nextFrame",
+    "mainFrame",
+  ],
   keyMappings: "",
   linkHintCharacters: "sadfjklewcmpgh",
   linkHintNumbers: "0123456789",
@@ -256,12 +271,19 @@ const Settings = {
   },
 
   migrateCommandBarActionsMode(settings) {
-    if (!Array.isArray(settings.disabledCommandBarModes)) return settings;
-    settings.disabledCommandBarModes = Array.from(
-      new Set(
-        settings.disabledCommandBarModes.map((mode) => mode === "commands" ? "actions" : mode),
-      ),
-    );
+    if (Array.isArray(settings.disabledCommandBarModes)) {
+      settings.disabledCommandBarModes = Array.from(
+        new Set(
+          settings.disabledCommandBarModes
+            .map((mode) => mode === "commands" ? "actions" : mode)
+            .filter((mode) => mode !== "find"),
+        ),
+      );
+    }
+    if (Array.isArray(settings.disabledModelessCommandBarSources)) {
+      settings.disabledModelessCommandBarSources = settings.disabledModelessCommandBarSources
+        .filter((source) => source !== "commands");
+    }
     return settings;
   },
 
@@ -275,12 +297,31 @@ const Settings = {
   },
 
   migrateRemovedCommands(settings) {
-    if (typeof settings.keyMappings !== "string") return settings;
-    settings.keyMappings = settings.keyMappings.split("\n")
-      .filter((line) => {
-        return !/^\s*map\s+\S+\s+(?:toggleViewSource|setZoom)(?:\s|$)/.test(line);
-      })
-      .join("\n");
+    const removedCommands = new Set([
+      "toggleViewSource",
+      "setZoom",
+      "showHelp",
+      "Marks.activateGotoMode",
+      "CommandBar.activateFind",
+      "CommandBar.activateEditUrlInNewTab",
+      "CommandBar.activateBookmarksInNewTab",
+      "visitPreviousTab",
+      "goUp",
+      "openCopiedUrlInCurrentTab",
+    ]);
+    if (typeof settings.keyMappings === "string") {
+      settings.keyMappings = settings.keyMappings.split("\n")
+        .filter((line) => {
+          const commandName = line.match(/^\s*map\s+\S+\s+(\S+)/)?.[1];
+          return commandName == null || !removedCommands.has(commandName);
+        })
+        .join("\n");
+    }
+    if (Array.isArray(settings.disabledActions)) {
+      settings.disabledActions = settings.disabledActions.filter((name) =>
+        !removedCommands.has(name)
+      );
+    }
     return settings;
   },
 

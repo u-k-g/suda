@@ -219,26 +219,6 @@ const Marks = {
       },
     });
   },
-
-  activateGotoMode(_count, { registryEntry }) {
-    this.currentRegistryEntry = registryEntry;
-    this.mode = new Mode();
-    this.mode.init({
-      name: "goto-mark",
-      indicator: "Go to mark...",
-      exitOnEscape: true,
-      suppressAllKeyboardEvents: true,
-      keydown: (event) => {
-        if (KeyboardUtils.isPrintable(event)) {
-          this.exit(() => {
-            const keyChar = KeyboardUtils.getKeyChar(event);
-            this.gotoMark(keyChar, event.shiftKey);
-          });
-          return handlerStack.suppressEvent;
-        }
-      },
-    });
-  },
 };
 
 globalThis.Marks = Marks;

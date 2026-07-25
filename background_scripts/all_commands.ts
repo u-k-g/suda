@@ -109,13 +109,6 @@ const allCommands = [
   },
 
   {
-    name: "openCopiedUrlInCurrentTab",
-    desc: "Open the clipboard's URL in the current tab",
-    group: "navigation",
-    noRepeat: true,
-  },
-
-  {
     name: "openCopiedUrlInNewTab",
     desc: "Open the clipboard's URL in a new tab",
     group: "navigation",
@@ -124,13 +117,6 @@ const allCommands = [
       position: "Where to place the tab in the tab bar. " +
         "One of `start`, `before`, `after`, `end`. `after` is the default.",
     },
-  },
-
-  {
-    name: "goUp",
-    desc: "Go up the URL hierarchy",
-    group: "navigation",
-    advanced: true,
   },
 
   {
@@ -240,19 +226,6 @@ const allCommands = [
     noRepeat: true,
   },
 
-  {
-    name: "Marks.activateGotoMode",
-    desc: "Jump to a mark",
-    options: {
-      swap: "Swap global and local marks. This option exists because in a browser, global marks " +
-        "are generally more useful than local marks, and so it may be desirable to make lowercase " +
-        "letters represent global marks rather than local marks.",
-    },
-    group: "navigation",
-    advanced: true,
-    noRepeat: true,
-  },
-
   //
   // CommandBar
   //
@@ -268,14 +241,6 @@ const allCommands = [
   {
     name: "CommandBar.activateAll",
     desc: "Open the command bar",
-    group: "commandBar",
-    topFrame: true,
-    noRepeat: true,
-  },
-
-  {
-    name: "CommandBar.activateFind",
-    desc: "Find text using the command bar",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -335,17 +300,6 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateBookmarksInNewTab",
-    desc: "Open a bookmark in a new tab",
-    group: "commandBar",
-    options: {
-      query: "The text to prefill the CommandBar with.",
-    },
-    topFrame: true,
-    noRepeat: true,
-  },
-
-  {
     name: "CommandBar.activateCommandSelection",
     desc: "Execute a Suda action",
     group: "commandBar",
@@ -364,14 +318,6 @@ const allCommands = [
   {
     name: "CommandBar.activateEditUrl",
     desc: "Edit the current URL",
-    group: "commandBar",
-    topFrame: true,
-    noRepeat: true,
-  },
-
-  {
-    name: "CommandBar.activateEditUrlInNewTab",
-    desc: "Edit the current URL and open in a new tab",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -446,13 +392,6 @@ const allCommands = [
   {
     name: "nextTab",
     desc: "Go one tab right",
-    group: "tabs",
-    background: true,
-  },
-
-  {
-    name: "visitPreviousTab",
-    desc: "Go to previously-visited tab",
     group: "tabs",
     background: true,
   },
@@ -628,14 +567,6 @@ const allCommands = [
     group: "misc",
     background: true,
     noRepeat: true,
-  },
-
-  {
-    name: "showHelp",
-    desc: "Show help",
-    group: "misc",
-    noRepeat: true,
-    topFrame: true,
   },
 ];
 

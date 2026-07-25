@@ -676,7 +676,8 @@ const maxResults = 10;
 function modelessSourceForCompleter(completer) {
   if (completer.commandBarSource) return completer.commandBarSource;
   if (completer instanceof BookmarkCompleter) return "bookmarks";
-  if (completer instanceof CommandCompleter) return "commands";
+  // Enabled Suda actions are always available in the combined/default command bar.
+  if (completer instanceof CommandCompleter) return null;
   if (completer instanceof HistoryCompleter) return "history";
   if (completer instanceof TabCompleter) return "tabs";
   if (completer instanceof DomainCompleter || completer instanceof SearchEngineCompleter) {

@@ -159,11 +159,18 @@ context("keybindings page", () => {
   should("organize active commands into feature groups", () => {
     const groups = Array.from(document.querySelectorAll(".binding-group"))
       .map((group) => group.dataset.group);
-    assert.equal(["navigation", "commandBar", "find", "history", "tabs", "misc"], groups);
+    assert.equal(
+      ["navigation", "commandBar", "find", "history", "tabs", "misc", "disabled"],
+      groups,
+    );
   });
 
   should("place unbound commands at the bottom of every group", () => {
-    for (const group of document.querySelectorAll(".binding-group")) {
+    for (
+      const group of document.querySelectorAll(
+        ".binding-group:not(.disabled-actions-group)",
+      )
+    ) {
       let reachedUnboundCommands = false;
       for (const row of group.querySelectorAll(".binding-row")) {
         if (row.classList.contains("is-unbound")) {
@@ -178,6 +185,7 @@ context("keybindings page", () => {
   should(
     "move disabled actions into a collapsed section and restore their original group",
     async () => {
+      const initiallyDisabled = Settings.get("disabledActions");
       await keybindingsPage.setActionEnabled("scrollDown", false);
 
       const disabledGroup = document.querySelector(
@@ -197,32 +205,23 @@ context("keybindings page", () => {
       ) {
         assert.fail("disabled action remained in its original group");
       }
-      assert.equal(["scrollDown"], Settings.get("disabledActions"));
+      assert.equal([...initiallyDisabled, "scrollDown"], Settings.get("disabledActions"));
 
       disabledGroup.open = true;
       await keybindingsPage.setActionEnabled("scrollDown", true);
 
-      if (document.querySelector("#binding-groups > .disabled-actions-group") != null) {
-        const remaining = Array.from(
-          document.querySelectorAll(
-            "#binding-groups > .disabled-actions-group .binding-row",
-          ),
-        ).map((row) => row.dataset.command);
-        assert.fail(
-          `disabled section remained after re-enabling its only action: ${
-            JSON.stringify({
-              remaining,
-              setting: Settings.get("disabledActions"),
-            })
-          }`,
-        );
-      }
+      assert.equal(
+        null,
+        document.querySelector(
+          '#binding-groups > .disabled-actions-group [data-command="scrollDown"]',
+        ),
+      );
       assert.isTrue(
         document.querySelector(
           '.binding-group[data-group="navigation"] [data-command="scrollDown"]',
         ) != null,
       );
-      assert.equal([], Settings.get("disabledActions"));
+      assert.equal(initiallyDisabled, Settings.get("disabledActions"));
     },
   );
 
