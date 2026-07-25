@@ -4,12 +4,14 @@ import "../../lib/themes.js";
 
 context("themes", () => {
   should("include the complete imported catalog and curated themes", () => {
-    assert.equal(80, ThemeManager.themes.length);
+    assert.equal(50, ThemeManager.themes.length);
     const names = new Set(ThemeManager.themes.map((theme) => theme.name));
     for (
       const name of [
-        "Gruvbox Dark Hard",
-        "Everforest Dark Hard",
+        "Gruvbox Dark",
+        "Gruvbox Light",
+        "Everforest Dark",
+        "Everforest Light",
         "Iceberg Light",
         "Catppuccin Mocha",
         "Rose Pine Dawn",
@@ -19,14 +21,10 @@ context("themes", () => {
         "Absolutely Dark",
         "Vesper",
         "Matte Black",
-        "Material Ocean",
-        "Zen Dark",
-        "Zen Light",
-        "VS Code Plus Dark",
-        "Xcode Dark",
-        "Notion Light",
-        "One Dark",
-        "Raycast Dark",
+        "* Zen Dark",
+        "* Zen Light",
+        "Oscura Dusk",
+        "Oscura Midnight",
         "TokyoNight Night",
         "Linear Dark",
         "True Black",
@@ -34,6 +32,44 @@ context("themes", () => {
     ) {
       assert.isTrue(names.has(name), `Missing theme: ${name}`);
     }
+    for (
+      const name of [
+        "Everforest Dark Hard",
+        "Everforest Dark Med",
+        "Everforest Dark Soft",
+        "Everforest Light Hard",
+        "Everforest Light Med",
+        "Everforest Light Soft",
+        "Gruvbox Dark Hard",
+        "Gruvbox Dark Soft",
+        "Gruvbox Light Hard",
+        "Gruvbox Light Soft",
+        "Gruvbox Material",
+        "Material",
+        "Material Dark",
+        "Material Ocean",
+        "Oceanic Material",
+      ]
+    ) {
+      assert.isFalse(names.has(name), `Unexpected theme: ${name}`);
+    }
+  });
+
+  should("list starred themes first, then the rest alphabetically by name", () => {
+    const names = ThemeManager.themes.map((theme) => theme.name);
+    assert.equal("* Zen Dark", names[0]);
+    assert.equal("* Zen Light", names[1]);
+
+    const firstUnstarred = names.findIndex((name) => !name.startsWith("*"));
+    assert.isTrue(firstUnstarred > 0);
+    assert.isTrue(names.slice(0, firstUnstarred).every((name) => name.startsWith("*")));
+    assert.isTrue(names.slice(firstUnstarred).every((name) => !name.startsWith("*")));
+
+    const unstarred = names.slice(firstUnstarred);
+    const sortedUnstarred = [...unstarred].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" })
+    );
+    assert.equal(sortedUnstarred.join("\n"), unstarred.join("\n"));
   });
 
   should("define every theme with the semantic UI color contract", () => {
@@ -106,9 +142,9 @@ context("themes", () => {
       properties.get("--suda-overlay-color") === properties.get("--suda-canvas-color"),
     );
 
-    ThemeManager.apply("gruvbox-dark-hard", root, "#12ABEF");
-    assert.equal("#d79921", properties.get("--suda-accent-color"));
-    assert.equal("#fabd2f", properties.get("--suda-warning-color"));
+    ThemeManager.apply("gruvbox-dark", root, "#12ABEF");
+    assert.equal("#458588", properties.get("--suda-accent-color"));
+    assert.equal("#d79921", properties.get("--suda-warning-color"));
     assert.equal(
       properties.get("--suda-canvas-color"),
       properties.get("--suda-overlay-color"),

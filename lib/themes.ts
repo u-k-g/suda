@@ -5,8 +5,20 @@ const ThemeManager = {
     return globalThis.SudaThemeCatalog || [];
   },
 
+  // Starred names (`* ...`) pin to the top; everything else is A–Z by display name.
+  compareThemeNames(a, b) {
+    const aStarred = typeof a === "string" ? a.startsWith("*") : a.name?.startsWith("*");
+    const bStarred = typeof b === "string" ? b.startsWith("*") : b.name?.startsWith("*");
+    if (aStarred !== bStarred) return aStarred ? -1 : 1;
+    const aName = typeof a === "string" ? a : a.name;
+    const bName = typeof b === "string" ? b : b.name;
+    return aName.localeCompare(bName, undefined, { sensitivity: "base" });
+  },
+
   get themes() {
-    return this.themeSpecs.map((theme) => this.resolveTheme(theme));
+    return this.themeSpecs
+      .map((theme) => this.resolveTheme(theme))
+      .sort((a, b) => this.compareThemeNames(a, b));
   },
 
   getSpec(themeId) {

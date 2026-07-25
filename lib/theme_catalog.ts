@@ -2,15 +2,15 @@
 // surfaces, borders, muted text, and contrast corrections are derived by ThemeManager.
 globalThis.SudaThemeCatalog = [
   {
-    "id": "gruvbox-dark-hard",
-    "name": "Gruvbox Dark Hard",
+    "id": "gruvbox-dark",
+    "name": "Gruvbox Dark",
     "mode": "dark",
-    "background": "#1d2021",
+    "background": "#282828",
     "foreground": "#ebdbb2",
-    "accent": "#d79921",
+    "accent": "#458588",
     "danger": "#cc241d",
     "success": "#98971a",
-    "warning": "#fabd2f"
+    "warning": "#d79921"
   },
   {
     "id": "absolutely-dark",
@@ -36,7 +36,7 @@ globalThis.SudaThemeCatalog = [
   },
   {
     "id": "zen-dark",
-    "name": "Zen Dark",
+    "name": "* Zen Dark",
     "mode": "dark",
     "background": "#19191b",
     "foreground": "#f5f5f4",
@@ -51,7 +51,7 @@ globalThis.SudaThemeCatalog = [
   },
   {
     "id": "zen-light",
-    "name": "Zen Light",
+    "name": "* Zen Light",
     "mode": "light",
     "background": "#f4f1ed",
     "foreground": "#27272a",
@@ -262,19 +262,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#f9e2af"
   },
   {
-    "id": "everforest-dark-hard",
-    "name": "Everforest Dark Hard",
-    "mode": "dark",
-    "background": "#1e2326",
-    "foreground": "#d3c6aa",
-    "accent": "#7fbbb3",
-    "danger": "#e67e80",
-    "success": "#a7c080",
-    "warning": "#dbbc7f"
-  },
-  {
-    "id": "everforest-dark-med",
-    "name": "Everforest Dark Med",
+    "id": "everforest-dark",
+    "name": "Everforest Dark",
     "mode": "dark",
     "background": "#232a2e",
     "foreground": "#d3c6aa",
@@ -284,30 +273,8 @@ globalThis.SudaThemeCatalog = [
     "warning": "#dbbc7f"
   },
   {
-    "id": "everforest-dark-soft",
-    "name": "Everforest Dark Soft",
-    "mode": "dark",
-    "background": "#293136",
-    "foreground": "#d3c6aa",
-    "accent": "#7fbbb3",
-    "danger": "#e67e80",
-    "success": "#a7c080",
-    "warning": "#dbbc7f"
-  },
-  {
-    "id": "everforest-light-hard",
-    "name": "Everforest Light Hard",
-    "mode": "light",
-    "background": "#f2efdf",
-    "foreground": "#5c6a72",
-    "accent": "#7fbbb3",
-    "danger": "#e67e80",
-    "success": "#a7c080",
-    "warning": "#dbbc7f"
-  },
-  {
-    "id": "everforest-light-med",
-    "name": "Everforest Light Med",
+    "id": "everforest-light",
+    "name": "Everforest Light",
     "mode": "light",
     "background": "#efebd4",
     "foreground": "#5c6a72",
@@ -315,39 +282,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#e67e80",
     "success": "#a7c080",
     "warning": "#dbbc7f"
-  },
-  {
-    "id": "everforest-light-soft",
-    "name": "Everforest Light Soft",
-    "mode": "light",
-    "background": "#e5dfc5",
-    "foreground": "#5c6a72",
-    "accent": "#7fbbb3",
-    "danger": "#e67e80",
-    "success": "#a7c080",
-    "warning": "#dbbc7f"
-  },
-  {
-    "id": "gruvbox-dark",
-    "name": "Gruvbox Dark",
-    "mode": "dark",
-    "background": "#282828",
-    "foreground": "#ebdbb2",
-    "accent": "#458588",
-    "danger": "#cc241d",
-    "success": "#98971a",
-    "warning": "#d79921"
-  },
-  {
-    "id": "gruvbox-dark-soft",
-    "name": "Gruvbox Dark Soft",
-    "mode": "dark",
-    "background": "#32302f",
-    "foreground": "#ebdbb2",
-    "accent": "#d79921",
-    "danger": "#cc241d",
-    "success": "#98971a",
-    "warning": "#d79921"
   },
   {
     "id": "gruvbox-light",
@@ -359,61 +293,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#cc241d",
     "success": "#98971a",
     "warning": "#d79921"
-  },
-  {
-    "id": "gruvbox-light-hard",
-    "name": "Gruvbox Light Hard",
-    "mode": "light",
-    "background": "#f9f5d7",
-    "foreground": "#3c3836",
-    "accent": "#458588",
-    "danger": "#cc241d",
-    "success": "#98971a",
-    "warning": "#d79921"
-  },
-  {
-    "id": "gruvbox-light-soft",
-    "name": "Gruvbox Light Soft",
-    "mode": "light",
-    "background": "#f2e5bc",
-    "foreground": "#3c3836",
-    "accent": "#b57614",
-    "danger": "#cc241d",
-    "success": "#98971a",
-    "warning": "#d79921"
-  },
-  {
-    "id": "gruvbox-material",
-    "name": "Gruvbox Material",
-    "mode": "dark",
-    "background": "#1d2021",
-    "foreground": "#d4be98",
-    "accent": "#6da3ec",
-    "danger": "#ea6926",
-    "success": "#c1d041",
-    "warning": "#eecf75"
-  },
-  {
-    "id": "gruvbox-material-dark",
-    "name": "Gruvbox Material Dark",
-    "mode": "dark",
-    "background": "#282828",
-    "foreground": "#d4be98",
-    "accent": "#7daea3",
-    "danger": "#ea6962",
-    "success": "#a9b665",
-    "warning": "#d8a657"
-  },
-  {
-    "id": "gruvbox-material-light",
-    "name": "Gruvbox Material Light",
-    "mode": "light",
-    "background": "#fbf1c7",
-    "foreground": "#654735",
-    "accent": "#45707a",
-    "danger": "#c14a4a",
-    "success": "#6c782e",
-    "warning": "#b47109"
   },
   {
     "id": "iceberg-dark",
@@ -438,28 +317,6 @@ globalThis.SudaThemeCatalog = [
     "warning": "#c57339"
   },
   {
-    "id": "iterm2-solarized-dark",
-    "name": "iTerm2 Solarized Dark",
-    "mode": "dark",
-    "background": "#002b36",
-    "foreground": "#839496",
-    "accent": "#268bd2",
-    "danger": "#dc322f",
-    "success": "#859900",
-    "warning": "#b58900"
-  },
-  {
-    "id": "iterm2-solarized-light",
-    "name": "iTerm2 Solarized Light",
-    "mode": "light",
-    "background": "#fdf6e3",
-    "foreground": "#657b83",
-    "accent": "#268bd2",
-    "danger": "#dc322f",
-    "success": "#859900",
-    "warning": "#b58900"
-  },
-  {
     "id": "linear-dark",
     "name": "Linear Dark",
     "mode": "dark",
@@ -480,61 +337,6 @@ globalThis.SudaThemeCatalog = [
     "danger": "#e5484d",
     "success": "#30a46c",
     "warning": "#f5a524"
-  },
-  {
-    "id": "material",
-    "name": "Material",
-    "mode": "light",
-    "background": "#eaeaea",
-    "foreground": "#232322",
-    "accent": "#134eb2",
-    "danger": "#b7141f",
-    "success": "#457b24",
-    "warning": "#f6981e"
-  },
-  {
-    "id": "material-dark",
-    "name": "Material Dark",
-    "mode": "dark",
-    "background": "#232322",
-    "foreground": "#e5e5e5",
-    "accent": "#134eb2",
-    "danger": "#b7141f",
-    "success": "#457b24",
-    "warning": "#f6981e"
-  },
-  {
-    "id": "material-darker",
-    "name": "Material Darker",
-    "mode": "dark",
-    "background": "#212121",
-    "foreground": "#eeffff",
-    "accent": "#82aaff",
-    "danger": "#ff5370",
-    "success": "#c3e88d",
-    "warning": "#ffcb6b"
-  },
-  {
-    "id": "material-design-colors",
-    "name": "Material Design Colors",
-    "mode": "dark",
-    "background": "#1d262a",
-    "foreground": "#e7ebed",
-    "accent": "#37b6ff",
-    "danger": "#fc3841",
-    "success": "#5cf19e",
-    "warning": "#fed032"
-  },
-  {
-    "id": "material-ocean",
-    "name": "Material Ocean",
-    "mode": "dark",
-    "background": "#0f111a",
-    "foreground": "#8f93a2",
-    "accent": "#82aaff",
-    "danger": "#ff5370",
-    "success": "#c3e88d",
-    "warning": "#ffcb6b"
   },
   {
     "id": "matte-black",
@@ -581,81 +383,26 @@ globalThis.SudaThemeCatalog = [
     "warning": "#ebcb8b"
   },
   {
-    "id": "notion-dark",
-    "name": "Notion Dark",
+    "id": "oscura-dusk",
+    "name": "Oscura Dusk",
     "mode": "dark",
-    "background": "#191919",
-    "foreground": "#ffffff",
-    "accent": "#2eaadc",
-    "danger": "#e5484d",
-    "success": "#30a46c",
-    "warning": "#f5a524"
+    "background": "#131419",
+    "foreground": "#e6e6e6",
+    "accent": "#e6e7a3",
+    "danger": "#ff5c5c",
+    "success": "#4ebe96",
+    "warning": "#d2d714"
   },
   {
-    "id": "notion-light",
-    "name": "Notion Light",
-    "mode": "light",
-    "background": "#ffffff",
-    "foreground": "#37352f",
-    "accent": "#2eaadc",
-    "danger": "#e5484d",
-    "success": "#30a46c",
-    "warning": "#f5a524"
-  },
-  {
-    "id": "oceanic-material",
-    "name": "Oceanic Material",
+    "id": "oscura-midnight",
+    "name": "Oscura Midnight",
     "mode": "dark",
-    "background": "#1c262b",
-    "foreground": "#c2c8d7",
-    "accent": "#1e80f0",
-    "danger": "#ee2b2a",
-    "success": "#40a33f",
-    "warning": "#ffea2e"
-  },
-  {
-    "id": "one-dark",
-    "name": "One Dark",
-    "mode": "dark",
-    "background": "#21252b",
-    "foreground": "#abb2bf",
-    "accent": "#61afef",
-    "danger": "#e06c75",
-    "success": "#98c379",
-    "warning": "#e5c07b"
-  },
-  {
-    "id": "one-light",
-    "name": "One Light",
-    "mode": "light",
-    "background": "#f9f9f9",
-    "foreground": "#2a2c33",
-    "accent": "#2f5af3",
-    "danger": "#de3e35",
-    "success": "#3f953a",
-    "warning": "#d2b67c"
-  },
-  {
-    "id": "raycast-dark",
-    "name": "Raycast Dark",
-    "mode": "dark",
-    "background": "#1a1a1a",
-    "foreground": "#ffffff",
-    "accent": "#56c2ff",
-    "danger": "#ff5360",
-    "success": "#59d499",
-    "warning": "#ffc531"
-  },
-  {
-    "id": "raycast-light",
-    "name": "Raycast Light",
-    "mode": "light",
-    "background": "#ffffff",
-    "foreground": "#000000",
-    "accent": "#138af2",
-    "danger": "#b12424",
-    "success": "#006b4f",
-    "warning": "#f8a300"
+    "background": "#0b0b0f",
+    "foreground": "#e6e6e6",
+    "accent": "#e6e7a3",
+    "danger": "#ff5c5c",
+    "success": "#4ebe96",
+    "warning": "#d2d714"
   },
   {
     "id": "rose-pine",
@@ -810,82 +557,5 @@ globalThis.SudaThemeCatalog = [
     "danger": "#f5a191",
     "success": "#90b99f",
     "warning": "#e6b99d"
-  },
-  {
-    "id": "vs-code-plus-dark",
-    "name": "VS Code Plus Dark",
-    "mode": "dark",
-    "background": "#1e1e1e",
-    "foreground": "#d4d4d4",
-    "accent": "#007acc",
-    "danger": "#e5484d",
-    "success": "#30a46c",
-    "warning": "#f5a524"
-  },
-  {
-    "id": "vs-code-plus-light",
-    "name": "VS Code Plus Light",
-    "mode": "light",
-    "background": "#ffffff",
-    "foreground": "#333333",
-    "accent": "#007acc",
-    "danger": "#e5484d",
-    "success": "#30a46c",
-    "warning": "#f5a524"
-  },
-  {
-    "id": "xcode-dark",
-    "name": "Xcode Dark",
-    "mode": "dark",
-    "background": "#292a30",
-    "foreground": "#dfdfe0",
-    "accent": "#4eb0cc",
-    "danger": "#ff8170",
-    "success": "#78c2b3",
-    "warning": "#d9c97c"
-  },
-  {
-    "id": "xcode-dark-hc",
-    "name": "Xcode Dark hc",
-    "mode": "dark",
-    "background": "#1f1f24",
-    "foreground": "#ffffff",
-    "accent": "#4ec4e6",
-    "danger": "#ff8a7a",
-    "success": "#83c9bc",
-    "warning": "#d9c668"
-  },
-  {
-    "id": "xcode-light",
-    "name": "Xcode Light",
-    "mode": "light",
-    "background": "#ffffff",
-    "foreground": "#262626",
-    "accent": "#0f68a0",
-    "danger": "#d12f1b",
-    "success": "#3e8087",
-    "warning": "#78492a"
-  },
-  {
-    "id": "xcode-light-hc",
-    "name": "Xcode Light hc",
-    "mode": "light",
-    "background": "#ffffff",
-    "foreground": "#000000",
-    "accent": "#0058a1",
-    "danger": "#ad1805",
-    "success": "#355d61",
-    "warning": "#78492a"
-  },
-  {
-    "id": "xcode-wwdc",
-    "name": "Xcode WWDC",
-    "mode": "dark",
-    "background": "#292c36",
-    "foreground": "#e7e8eb",
-    "accent": "#8884c5",
-    "danger": "#bb383a",
-    "success": "#94c66e",
-    "warning": "#d28e5d"
   }
 ];

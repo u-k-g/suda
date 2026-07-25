@@ -200,7 +200,7 @@ context("options page", () => {
     assert.equal("#6CED96", accent.value);
     assert.isFalse(row.style.display === "none");
 
-    theme.value = "gruvbox-dark-hard";
+    theme.value = "gruvbox-dark";
     theme.dispatchEvent(new window.Event("input"));
     assert.equal("none", row.style.display);
 
