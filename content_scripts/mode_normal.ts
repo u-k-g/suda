@@ -71,12 +71,16 @@ class NormalMode extends KeyHandlerMode {
       // We never return to a UI-component frame (e.g. the help dialog), it might have lost the
       // focus.
       const sourceFrameId = globalThis.isSudaUIComponent ? 0 : frameId;
-      chrome.runtime.sendMessage({
-        handler: "sendMessageToFrames",
-        message: { handler: "runInTopFrame", sourceFrameId, registryEntry },
-      });
+      Utils.promiseIgnoringClosedTab(
+        chrome.runtime.sendMessage({
+          handler: "sendMessageToFrames",
+          message: { handler: "runInTopFrame", sourceFrameId, registryEntry },
+        }),
+      );
     } else if (registryEntry.background) {
-      chrome.runtime.sendMessage({ handler: "runBackgroundCommand", registryEntry, count });
+      Utils.promiseIgnoringClosedTab(
+        chrome.runtime.sendMessage({ handler: "runBackgroundCommand", registryEntry, count }),
+      );
     } else {
       const commandFn = NormalModeCommands[registryEntry.command];
       commandFn(count, { registryEntry });

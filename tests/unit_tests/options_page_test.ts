@@ -82,6 +82,18 @@ context("options page", () => {
     );
   });
 
+  should("explain how to replace the new-tab shortcut with the command bar", () => {
+    const guide = document.querySelector(".new-tab-command-bar-guide");
+
+    assert.equal(
+      "Replace new tabs with the Command Bar",
+      guide.querySelector("h2").textContent,
+    );
+    assert.isTrue(guide.textContent.includes("chrome://extensions/shortcuts"));
+    assert.isTrue(guide.textContent.includes("Open Suda's all-mode command bar"));
+    assert.equal(guide, document.querySelector("#settings-grid-container").lastElementChild);
+  });
+
   should("keep complex editors collapsed until requested", () => {
     const searchEngines = optionsPage.getOptionEl("searchEngines");
     const panel = searchEngines.closest(".setting-editor-panel");

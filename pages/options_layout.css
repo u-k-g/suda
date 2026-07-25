@@ -654,6 +654,47 @@ body.options-page .validation-message {
   width: 100%;
 }
 
+body.options-page .new-tab-command-bar-guide {
+  background: var(--options-row);
+  border: 1px solid var(--options-border);
+  border-radius: 12px;
+  box-sizing: border-box;
+  color: var(--options-muted);
+  margin-top: 40px;
+  padding: 20px 22px;
+}
+
+body.options-page .new-tab-command-bar-guide h2 {
+  color: var(--options-text);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 0;
+}
+
+body.options-page .new-tab-command-bar-guide p,
+body.options-page .new-tab-command-bar-guide ol {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+body.options-page .new-tab-command-bar-guide p {
+  margin: 5px 0 10px;
+}
+
+body.options-page .new-tab-command-bar-guide ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+body.options-page .new-tab-command-bar-guide li + li {
+  margin-top: 4px;
+}
+
+body.options-page .new-tab-command-bar-guide kbd {
+  font-size: 11px;
+}
+
 /* Nested containers used to use display:contents for the old grid; keep them as rows. */
 body.options-page #link-hint-characters-container,
 body.options-page #link-hint-numbers-container,

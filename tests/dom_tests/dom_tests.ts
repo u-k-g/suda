@@ -719,6 +719,20 @@ context("Helix normal-mode commands", () => {
     assert.isFalse(executed);
   });
 
+  should("consume closed-tab message failures for background commands", () => {
+    const messagePromise = Promise.resolve();
+    let protectedPromise = null;
+    stub(chrome.runtime, "sendMessage", () => messagePromise);
+    stub(Utils, "promiseIgnoringClosedTab", (promise) => protectedPromise = promise);
+
+    NormalMode.prototype.commandHandler({
+      command: { background: true, command: "removeTab", options: {} },
+      count: 1,
+    });
+
+    assert.equal(messagePromise, protectedPromise);
+  });
+
   should("find selected text with the find command", () => {
     let updatedQuery = null;
     let savedQuery = false;
