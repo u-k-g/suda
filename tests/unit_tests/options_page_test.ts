@@ -95,20 +95,20 @@ context("options page", () => {
     assert.equal(guide, document.querySelector("#settings-grid-container").lastElementChild);
   });
 
-  should("enable command-bar-only mode", async () => {
+  should("enable command-bar-only mode by default and allow disabling it", async () => {
     const commandBarOnly = optionsPage.getOptionEl("commandBarOnly");
-    assert.isFalse(commandBarOnly.checked);
+    assert.isTrue(commandBarOnly.checked);
     assert.isTrue(
       commandBarOnly.closest(".setting-row").textContent.includes(
         "helium://extensions/shortcuts",
       ),
     );
 
-    commandBarOnly.checked = true;
+    commandBarOnly.checked = false;
     await optionsPage.saveOptions();
 
-    assert.isTrue(Settings.get("commandBarOnly"));
-    assert.isTrue((await chrome.storage.sync.get("commandBarOnly")).commandBarOnly);
+    assert.isFalse(Settings.get("commandBarOnly"));
+    assert.isFalse((await chrome.storage.sync.get("commandBarOnly")).commandBarOnly);
   });
 
   should("keep complex editors collapsed until requested", () => {

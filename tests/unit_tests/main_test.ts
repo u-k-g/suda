@@ -9,7 +9,7 @@ context("extension command", () => {
   teardown(() => {
     chrome.runtime.lastError = undefined;
     if (Settings.isLoaded()) {
-      Settings._settings.commandBarOnly = false;
+      Settings._settings.commandBarOnly = Settings.defaultOptions.commandBarOnly;
       Settings._settings.disabledActions = [];
     }
   });
