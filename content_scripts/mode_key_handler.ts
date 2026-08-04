@@ -32,6 +32,8 @@ class KeyHandlerMode extends Mode {
     if (countPrefix == null) countPrefix = 0;
     this.countPrefix = countPrefix;
     this.keyState = [this.keyMapping];
+    this.keySequence = [];
+    if (this.options?.showKeyHints) HUD.hideKeyHints();
   }
 
   init(options) {
@@ -126,6 +128,7 @@ class KeyHandlerMode extends Mode {
     if (!(keyChar in this.keyState[0])) {
       this.countPrefix = 0;
     }
+    this.keySequence.push(keyChar);
 
     // Advance the key state. The new key state is the current mappings of keyChar, plus @keyMapping.
     const state = this.keyState.filter((mapping) => keyChar in mapping).map((mapping) =>
@@ -142,6 +145,12 @@ class KeyHandlerMode extends Mode {
       if ((this.options.count != null) && (--this.options.count <= 0)) {
         this.exit();
       }
+    } else if (this.options.showKeyHints) {
+      const continuations = Object.entries(this.keyState[0]).map(([key, mapping]) => ({
+        key,
+        description: mapping.desc ?? "More shortcuts",
+      }));
+      HUD.showKeyHints(this.keySequence, continuations);
     }
     return this.suppressEvent;
   }

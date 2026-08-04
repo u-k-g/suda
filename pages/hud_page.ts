@@ -88,6 +88,27 @@ function ensureClipboardIsAvailable() {
   return true;
 }
 
+function keyLabel(key) {
+  const namedKeys = {
+    space: "Space",
+    escape: "Esc",
+    enter: "Enter",
+    tab: "Tab",
+  };
+  const token = key.match(/^<(.+)>$/)?.[1] ?? key;
+  const parts = token.split("-");
+  const modifiers = { a: "Alt", c: "Ctrl", m: "Meta", s: "Shift" };
+  return parts.map((part, index) =>
+    index < parts.length - 1 ? modifiers[part] ?? part : namedKeys[part] ?? part
+  ).join("+");
+}
+
+function appendKey(container, key) {
+  const keyEl = document.createElement("kbd");
+  keyEl.textContent = keyLabel(key);
+  container.appendChild(keyEl);
+}
+
 // Exported for unit tests.
 export const handlers = {
   show(data) {
@@ -95,7 +116,57 @@ export const handlers = {
     el.textContent = data.text;
     el.classList.add("suda-ui-component-visible");
     el.classList.remove("suda-ui-component-hidden");
-    el.classList.remove("hud-find");
+    el.classList.remove("hud-find", "hud-key-hints", "hud-toast");
+  },
+
+  showToast(data) {
+    const el = document.querySelector("#hud");
+    el.textContent = "";
+    el.classList.add("suda-ui-component-visible", "hud-toast");
+    el.classList.remove("suda-ui-component-hidden", "hud-find", "hud-key-hints");
+
+    const icon = document.createElement("span");
+    icon.className = "hud-toast-icon";
+    icon.textContent = "✓";
+    const text = document.createElement("span");
+    text.className = "hud-toast-text";
+    text.textContent = data.text;
+    el.append(icon, text);
+    if (data.detail) {
+      const detail = document.createElement("span");
+      detail.className = "hud-toast-detail";
+      detail.textContent = data.detail;
+      el.appendChild(detail);
+    }
+  },
+
+  showKeyHints(data) {
+    const el = document.querySelector("#hud");
+    el.textContent = "";
+    el.classList.add("suda-ui-component-visible", "hud-key-hints");
+    el.classList.remove("suda-ui-component-hidden", "hud-find", "hud-toast");
+
+    const prefix = document.createElement("span");
+    prefix.className = "hud-key-prefix";
+    for (const key of data.prefix) appendKey(prefix, key);
+    const chevron = document.createElement("span");
+    chevron.className = "hud-key-chevron";
+    chevron.textContent = "›";
+    prefix.appendChild(chevron);
+    el.appendChild(prefix);
+
+    const options = document.createElement("span");
+    options.className = "hud-key-options";
+    for (const continuation of data.continuations) {
+      const option = document.createElement("span");
+      option.className = "hud-key-option";
+      appendKey(option, continuation.key);
+      const description = document.createElement("span");
+      description.textContent = continuation.description;
+      option.appendChild(description);
+      options.appendChild(option);
+    }
+    el.appendChild(options);
   },
 
   hidden() {
@@ -105,6 +176,7 @@ export const handlers = {
     el.textContent = "";
     el.classList.add("suda-ui-component-hidden");
     el.classList.remove("suda-ui-component-visible");
+    el.classList.remove("hud-key-hints", "hud-toast");
   },
 
   showFindMode() {

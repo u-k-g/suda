@@ -172,6 +172,29 @@ context("commandBar page", () => {
     assert.isFalse(ui.completions.some((completion) => completion.commandBarMode === "tabs"));
   });
 
+  should("keep Actions and its shortcut visible in command-bar-only mode", async () => {
+    Settings._settings.commandBarOnly = true;
+    Settings._settings.disabledActions = ["CommandBar.activateCommandSelection"];
+    await chrome.storage.session.set({
+      commandToOptionsToKeys: {
+        "CommandBar.activateCommandSelection": { "": ["<space>a"] },
+      },
+    });
+
+    await commandBarPage.activate({ mode: "modes", completer: "modes" });
+    ui.setQuery("actions");
+    await ui.update();
+
+    assert.equal("actions", ui.completions[0].commandBarMode);
+    assert.equal(
+      ["Space", "a"],
+      Array.from(ui.completionList.firstElementChild.querySelectorAll("kbd")).map((element) =>
+        element.textContent
+      ),
+    );
+    await chrome.storage.session.remove("commandToOptionsToKeys");
+  });
+
   should("render mode shortcuts from the live key mappings", async () => {
     await chrome.storage.session.set({
       commandToOptionsToKeys: {

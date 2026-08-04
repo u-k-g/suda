@@ -407,7 +407,7 @@ class VisualMode extends KeyHandlerMode {
       message = message.slice(0, 12) + "...";
     }
     const plural = this.yankedText.length === 1 ? "" : "s";
-    HUD.show(`Yanked ${this.yankedText.length} character${plural}: \"${message}\".`, 2500);
+    HUD.toast(`${this.yankedText.length} character${plural} copied`, message, 2500);
 
     return this.yankedText;
   }

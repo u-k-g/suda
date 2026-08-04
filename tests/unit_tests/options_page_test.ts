@@ -235,7 +235,7 @@ context("options page", () => {
     assert.equal("350", optionsPage.getOptionEl("recentTabCycleTimeoutMs").value);
   });
 
-  should("show the default accent field only for Zen themes", () => {
+  should("show the accent field for Zen and Black Metal with their palette defaults", () => {
     const theme = optionsPage.getOptionEl("theme");
     const accent = optionsPage.getOptionEl("accentColor");
     const row = document.querySelector("#accent-row");
@@ -248,11 +248,17 @@ context("options page", () => {
     theme.dispatchEvent(new window.Event("input"));
     assert.equal("none", row.style.display);
 
+    theme.value = "black-metal";
+    theme.dispatchEvent(new window.Event("input"));
+    assert.isFalse(row.style.display === "none");
+    assert.equal("#A06666", accent.value);
+
     const dayToggle = document.querySelector("#setting-themeModeDay");
     dayToggle.checked = true;
     dayToggle.dispatchEvent(new window.Event("change", { bubbles: true }));
     assert.equal("zen-day", theme.value);
     assert.isFalse(row.style.display === "none");
+    assert.equal("#6CED96", accent.value);
   });
 
   should("preview and save a valid custom Zen accent", async () => {

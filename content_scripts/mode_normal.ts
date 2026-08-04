@@ -9,6 +9,7 @@ class NormalMode extends KeyHandlerMode {
       name: "normal",
       indicator: false, // There is normally no mode indicator in normal mode.
       commandHandler: this.commandHandler.bind(this),
+      showKeyHints: true,
     };
 
     super.init(Object.assign(defaults, options));
@@ -159,7 +160,7 @@ const NormalModeCommands = {
     ).then((url) => {
       if (url != null) {
         HUD.copyToClipboard(url);
-        HUD.show(`Yanked ${url}`, 2000);
+        HUD.toast("Link copied", url, 2200);
       }
     });
   },

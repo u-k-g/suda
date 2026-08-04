@@ -990,6 +990,30 @@ context("Key mapping", () => {
     assert.isTrue(normalMode.isMappedKey("p"));
   });
 
+  should("show available continuations after a partial key sequence", () => {
+    let shownHints = null;
+    stub(HUD, "showKeyHints", (prefix, continuations) => {
+      shownHints = { prefix, continuations };
+    });
+    normalMode.setKeyMapping({
+      g: {
+        g: { command: "scrollToTop", desc: "Scroll to the top", options: {} },
+        e: { command: "scrollToBottom", desc: "Scroll to the bottom", options: {} },
+      },
+    });
+
+    normalMode.handleKeyChar("g");
+
+    assert.equal(["g"], shownHints.prefix);
+    assert.equal(
+      [
+        { key: "g", description: "Scroll to the top" },
+        { key: "e", description: "Scroll to the bottom" },
+      ],
+      shownHints.continuations,
+    );
+  });
+
   should("recognize pass keys", () => {
     assert.isTrue(normalMode.isPassKey("p"));
   });

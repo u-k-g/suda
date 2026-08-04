@@ -176,6 +176,11 @@ context("themes", () => {
       properties.get("--suda-canvas-color"),
       properties.get("--suda-overlay-color"),
     );
+
+    ThemeManager.apply("black-metal", root);
+    assert.equal("#a06666", properties.get("--suda-accent-color"));
+    ThemeManager.apply("black-metal", root, "#12ABEF");
+    assert.equal("#12abef", properties.get("--suda-accent-color"));
   });
 
   should("reject malformed custom accent colors", () => {

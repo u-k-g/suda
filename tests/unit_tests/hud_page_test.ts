@@ -68,4 +68,30 @@ context("hud page", () => {
     assert.isFalse(message.backwards);
     assert.isTrue(document.querySelector("#hud-find-input") != null);
   });
+
+  should("render partial key sequences and their available continuations", () => {
+    hudPage.handlers.showKeyHints({
+      prefix: ["<space>"],
+      continuations: [
+        { key: "f", description: "Select links, then choose an action" },
+        { key: ">", description: "Go forward" },
+      ],
+    });
+
+    assert.equal(
+      ["Space", "f", ">"],
+      Array.from(document.querySelectorAll("#hud kbd")).map((element) => element.textContent),
+    );
+    assert.isTrue(document.querySelector("#hud").textContent.includes("Select links"));
+    assert.isTrue(document.querySelector("#hud").classList.contains("hud-key-hints"));
+  });
+
+  should("render action confirmations as bottom-bar toasts", () => {
+    hudPage.handlers.showToast({ text: "Link copied", detail: "https://example.com/" });
+
+    assert.equal("✓", document.querySelector(".hud-toast-icon").textContent);
+    assert.equal("Link copied", document.querySelector(".hud-toast-text").textContent);
+    assert.equal("https://example.com/", document.querySelector(".hud-toast-detail").textContent);
+    assert.isTrue(document.querySelector("#hud").classList.contains("hud-toast"));
+  });
 });

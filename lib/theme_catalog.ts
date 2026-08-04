@@ -70,10 +70,11 @@ globalThis.SudaThemeCatalog = [
     "mode": "dark",
     "background": "#000000",
     "foreground": "#c1c1c1",
-    "accent": "#888888",
+    "accent": "#a06666",
     "danger": "#486e6f",
     "success": "#dd9999",
-    "warning": "#a06666"
+    "warning": "#a06666",
+    "customizableAccent": true
   },
   {
     "id": "catppuccin-frappe",

@@ -222,22 +222,30 @@ context("KeyMappingsParser", () => {
 
 context("disabled actions", () => {
   should(
-    "keep their configured keys but omit them from active mappings and help data",
+    "keep inactive shortcut labels available in command-bar-only mode",
     async () => {
       Settings._settings.disabledActions = ["scrollDown"];
+      Settings._settings.commandBarOnly = true;
       await Commands.loadKeyMappings("");
       const activeMapping =
         (await chrome.storage.session.get("normalModeKeyStateMapping")).normalModeKeyStateMapping;
-      const helpData =
+      const commandBarOnlyData =
         (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys;
       const configuredCommand = Commands.keyToRegistryEntry["j"]?.command;
 
+      Settings._settings.commandBarOnly = false;
+      await Commands.loadKeyMappings("");
+      const normalModeData =
+        (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys;
+
       Settings._settings.disabledActions = [];
+      Settings._settings.commandBarOnly = Settings.defaultOptions.commandBarOnly;
       await Commands.loadKeyMappings("");
 
       assert.equal("scrollDown", configuredCommand);
       assert.isFalse(Object.hasOwn(activeMapping, "j"));
-      assert.isFalse(Object.hasOwn(helpData, "scrollDown"));
+      assert.equal(["j"], commandBarOnlyData.scrollDown[""]);
+      assert.isFalse(Object.hasOwn(normalModeData, "scrollDown"));
     },
   );
 });

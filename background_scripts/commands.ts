@@ -338,6 +338,7 @@ const Commands = {
   // mode_key_handler.js.
   async installKeyStateMapping() {
     const keyStateMapping = {};
+    const commandsByName = Utils.keyBy(allCommands, "name");
     for (const keys of Object.keys(this.keyToRegistryEntry || {})) {
       const registryEntry = this.keyToRegistryEntry[keys];
       if (!Settings.isActionEnabled(registryEntry.command)) continue;
@@ -353,7 +354,9 @@ const Commands = {
             ? currentMapping[key]
             : (currentMapping[key] = {});
         } else {
-          currentMapping[key] = Object.assign({}, registryEntry);
+          currentMapping[key] = Object.assign({}, registryEntry, {
+            desc: commandsByName[registryEntry.command]?.desc ?? registryEntry.command,
+          });
           // We don't need these properties in the content scripts.
           for (const prop of ["keySequence"]) {
             delete currentMapping[key][prop];
@@ -401,7 +404,9 @@ const Commands = {
     };
     for (const key of Object.keys(this.keyToRegistryEntry || {})) {
       const registryEntry = this.keyToRegistryEntry[key];
-      if (!Settings.isActionEnabled(registryEntry.command)) continue;
+      if (
+        !Settings.isActionEnabled(registryEntry.command) && !Settings.get("commandBarOnly")
+      ) continue;
       const optionString = formatOptionString(registryEntry.options || {});
       commandToOptionsToKeys[registryEntry.command] ||= {};
       commandToOptionsToKeys[registryEntry.command][optionString] ||= [];

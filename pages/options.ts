@@ -136,6 +136,7 @@ export async function init() {
 
   const themeSelect = getOptionEl("theme");
   themeSelect.addEventListener("input", () => {
+    setAccentToThemeDefault();
     maintainAccentView();
     applyThemePreview();
   });
@@ -144,6 +145,7 @@ export async function init() {
   const onThemeModeInput = () => {
     // Switching appearance rebuilds the theme list; keep a mode-matched theme selected.
     populateThemeSelect(getThemeModeFromForm());
+    setAccentToThemeDefault();
     maintainAccentView();
     applyThemePreview();
     syncAppearanceToggleLabels();
@@ -553,6 +555,14 @@ function getSettingsFromForm() {
 
 function isCustomAccentThemeSelected() {
   return globalThis.ThemeManager?.isAccentCustomizable(getOptionEl("theme").value) ?? false;
+}
+
+// Each customizable theme starts from its own palette accent when selected. The saved value still
+// wins when the settings page initially loads, preserving an existing customization.
+function setAccentToThemeDefault() {
+  const theme = globalThis.ThemeManager?.get(getOptionEl("theme").value);
+  if (!theme?.customizableAccent) return;
+  getOptionEl("accentColor").value = theme.accent.toUpperCase();
 }
 
 // Keep the control out of the way for themes whose accent is fixed by their palette.

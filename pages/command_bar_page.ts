@@ -325,6 +325,9 @@ const commandBarModesByName: Record<string, CommandBarMode> = Object.fromEntries
 );
 
 function isCommandBarModeEnabled(mode) {
+  // The selector is itself a valid route to Actions even when its optional direct activation
+  // binding is disabled. This is especially important in command-bar-only mode.
+  if (mode.name === "actions") return true;
   return mode.bindingCommands.length === 0 ||
     mode.bindingCommands.some((action) => Settings.isActionEnabled(action));
 }
@@ -418,9 +421,10 @@ class CommandBarUI {
     this.commandToOptionsToKeys = commandToOptionsToKeys;
   }
   getModeKeybindings(mode) {
-    const keys = mode.bindingCommands.filter((action) => Settings.isActionEnabled(action)).flatMap(
-      (action) => Object.values(this.commandToOptionsToKeys[action] ?? {}).flat(),
-    );
+    const showInactiveBindings = Settings.get("commandBarOnly");
+    const keys = mode.bindingCommands.filter((action) =>
+      showInactiveBindings || Settings.isActionEnabled(action)
+    ).flatMap((action) => Object.values(this.commandToOptionsToKeys[action] ?? {}).flat());
     return Array.from(new Set(keys));
   }
 

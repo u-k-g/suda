@@ -7,6 +7,7 @@ const HUD = {
   tween: null,
   hudUI: null,
   findMode: null,
+  presentationRequestId: 0,
   abandon() {
     if (this.hudUI) {
       this.hudUI.hide(false);
@@ -73,10 +74,12 @@ const HUD = {
 
   // duration - if omitted, the message will show until dismissed.
   async show(text, duration) {
+    const requestId = ++this.presentationRequestId;
     await DomUtils.documentComplete();
     clearTimeout(this._showForDurationTimerId);
     // @hudUI.activate will take charge of making it visible
     await this.init(false);
+    if (requestId !== this.presentationRequestId) return;
     this.hudUI.show({ name: "show", text });
     this.tween.fade(1.0, 150);
 
@@ -85,10 +88,39 @@ const HUD = {
     }
   },
 
+  async toast(text, detail = "", duration = 2200) {
+    const requestId = ++this.presentationRequestId;
+    await DomUtils.documentComplete();
+    clearTimeout(this._showForDurationTimerId);
+    await this.init(false);
+    if (requestId !== this.presentationRequestId) return;
+    this.hudUI.show({ name: "showToast", text, detail });
+    this.tween.fade(1.0, 150);
+    this._showForDurationTimerId = setTimeout(() => this.hide(), duration);
+  },
+
+  async showKeyHints(prefix, continuations) {
+    const requestId = ++this.presentationRequestId;
+    await DomUtils.documentComplete();
+    clearTimeout(this._showForDurationTimerId);
+    await this.init(false);
+    if (requestId !== this.presentationRequestId) return;
+    this.hudUI.show({ name: "showKeyHints", prefix, continuations });
+    this.tween.fade(1.0, 100);
+  },
+
+  hideKeyHints() {
+    this.presentationRequestId += 1;
+    if (this.hudUI && this.tween) this.hide(true, false);
+  },
+
   async showFindMode(findMode = null) {
+    const requestId = ++this.presentationRequestId;
     this.findMode = findMode;
     await DomUtils.documentComplete();
+    clearTimeout(this._showForDurationTimerId);
     await this.init();
+    if (requestId !== this.presentationRequestId) return;
     this.hudUI.show({ name: "showFindMode" });
     this.tween.fade(1.0, 150);
   },
@@ -132,6 +164,7 @@ const HUD = {
   // If :updateIndicator is truthy, then we also refresh the mode indicator. The only time we don't
   // update the mode indicator, is when hide() is called for the mode indicator itself.
   hide(immediate, updateIndicator) {
+    this.presentationRequestId += 1;
     if (immediate == null) {
       immediate = false;
     }
