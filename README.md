@@ -23,7 +23,7 @@
 - keyboard-driven links, tabs, history, bookmarks and search
 - a zen browser style command bar
 
-<img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/866001f3-efdf-446f-b602-247bc2e1b808" />
+<img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/fc97763a-2e05-4c13-91ca-2a8f36ecedb6" />
 
 </details>
 
