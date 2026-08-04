@@ -20,17 +20,43 @@ jobs:
         id: version
         shell: bash
         run: |
+          set -euo pipefail
+
           tag="${GITHUB_REF_NAME#v}"
-          if [[ ! "$tag" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Expected a stable semantic version tag such as v2.5.0; got $GITHUB_REF_NAME" >&2
+          release_type=""
+          release_version=""
+          if [[ "$tag" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            release_type="stable"
+            release_version="$tag"
+          elif [[ "$GITHUB_REF_NAME" =~ ^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))-dev\.([0-9]{8})\.([0-9]{4})$ ]]; then
+            release_type="dev"
+            release_version="${BASH_REMATCH[1]}"
+            date_utc="${BASH_REMATCH[5]}"
+            minute_of_day="${BASH_REMATCH[6]}"
+            if normalized_date="$(date -j -u -f '%Y%m%d' "$date_utc" '+%Y%m%d' 2>/dev/null)"; then
+              :
+            else
+              normalized_date="$(date -u -d "${date_utc:0:4}-${date_utc:4:2}-${date_utc:6:2}" '+%Y%m%d' 2>/dev/null || true)"
+            fi
+            if [[ "$normalized_date" != "$date_utc" ]] || (( 10#$minute_of_day > 1439 )); then
+              echo "Invalid UTC timestamp in development release tag: $GITHUB_REF_NAME" >&2
+              exit 1
+            fi
+          else
+            echo "Expected vX.Y.Z or vX.Y.Z-dev.YYYYMMDD.mmmm; got $GITHUB_REF_NAME" >&2
             exit 1
           fi
-          IFS=. read -r major minor patch <<< "$tag"
+
+          IFS=. read -r major minor patch <<< "$release_version"
           if (( major > 65535 || minor > 65535 || patch > 65535 )); then
-            echo "Chrome manifest version components must not exceed 65535: $tag" >&2
+            echo "Chrome manifest version components must not exceed 65535: $release_version" >&2
             exit 1
           fi
-          echo "number=$tag" >> "$GITHUB_OUTPUT"
+          {
+            echo "number=$release_version"
+            echo "release_type=$release_type"
+            echo "release_version=$tag"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
@@ -59,10 +85,21 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          SUDA_VERSION: ${{ steps.version.outputs.number }}
-        run: >-
-          gh release create "$GITHUB_REF_NAME"
-          dist/suda.zip
-          --verify-tag
-          --generate-notes
-          --title "Suda $SUDA_VERSION"
+          SUDA_RELEASE_TYPE: ${{ steps.version.outputs.release_type }}
+          SUDA_RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          set -euo pipefail
+
+          release_args=(
+            "$GITHUB_REF_NAME"
+            dist/suda.zip
+            --verify-tag
+            --generate-notes
+            --title "Suda $SUDA_RELEASE_VERSION"
+          )
+          if [[ "$SUDA_RELEASE_TYPE" == "dev" ]]; then
+            release_args+=(--prerelease --latest=false)
+          else
+            release_args+=(--latest)
+          fi
+          gh release create "${release_args[@]}"

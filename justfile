@@ -14,9 +14,9 @@ fetch-tlds:
 build:
   ./build_scripts/build.ts
 
-# Bump the latest release version and push a tag: `just tag [patch|minor|major]`.
-tag bump:
-  ./build_scripts/tag_release.ts {{quote(bump)}}
+# Create and push a stable or development release tag.
+tag release="" bump="":
+  ./build_scripts/tag_release.ts {{quote(release)}} {{quote(bump)}}
 
 # Format the repository, or pass paths/flags through to deno fmt.
 fmt *args:
