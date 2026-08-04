@@ -155,6 +155,17 @@ context("options page", () => {
     assert.isFalse((await chrome.storage.sync.get("commandBarOnly")).commandBarOnly);
   });
 
+  should("configure find match flash frequency and allow zero to disable it", async () => {
+    const findMatchFlashHz = optionsPage.getOptionEl("findMatchFlashHz");
+    assert.equal("6", findMatchFlashHz.value);
+
+    findMatchFlashHz.value = "0";
+    await optionsPage.saveOptions();
+
+    assert.equal(0, Settings.get("findMatchFlashHz"));
+    assert.equal(0, (await chrome.storage.sync.get("findMatchFlashHz")).findMatchFlashHz);
+  });
+
   should("keep complex editors collapsed until requested", () => {
     const searchEngines = optionsPage.getOptionEl("searchEngines");
     const panel = searchEngines.closest(".setting-editor-panel");

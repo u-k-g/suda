@@ -12,6 +12,7 @@ const options = {
   disabledModelessCommandBarSources: "inverted-set",
   fastScrollStepSize: "number",
   filterLinkHints: "boolean",
+  findMatchFlashHz: "number",
   grabBackFocus: "boolean",
   hideHud: "boolean",
   ignoreKeyboardLayout: "boolean",

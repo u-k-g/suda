@@ -498,6 +498,27 @@
 
               <div class="setting-row">
                 <div class="setting-copy">
+                  <label class="setting-name" for="setting-findMatchFlashHz"
+                  >Find match flash frequency</label>
+                  <div class="example">
+              Pulse matches at this frequency when Enter, <code>n</code>, or <code>N</code> moves to
+              them. Set to <code>0</code> to disable the flash.
+            </div>
+                </div>
+                <div class="setting-control">
+                  <input
+                    id="setting-findMatchFlashHz"
+                    name="findMatchFlashHz"
+                    type="number"
+                    min="0"
+                    step="1"
+                    aria-label="Find match flash frequency in hertz"
+                  />
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-copy">
                   <label class="setting-name"
                     for="setting-ignoreKeyboardLayout">Ignore keyboard layout</label>
                   <div class="example">

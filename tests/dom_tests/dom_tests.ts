@@ -1634,7 +1634,7 @@ context("FindMode", () => {
     assert.equal("first target", getSelection().anchorNode.parentElement.textContent);
   });
 
-  should("pulse a committed match through three 80ms contrast flashes", () => {
+  should("pulse a committed match through three flashes at the configured frequency", () => {
     const timers = [];
     stub(globalThis, "setTimeout", (callback, delay) => {
       timers.push({ callback, delay });
@@ -1646,7 +1646,10 @@ context("FindMode", () => {
     FindMode.flashActiveMatch();
 
     assert.isTrue(document.body.classList.contains("suda-find-match-flash"));
-    assert.equal([80, 160, 240, 320, 400], timers.map(({ delay }) => delay));
+    assert.equal(
+      [83.33, 166.67, 250, 333.33, 416.67],
+      timers.map(({ delay }) => Number(delay.toFixed(2))),
+    );
     const expectedFlashState = [false, true, false, true, false];
     timers.forEach(({ callback }, index) => {
       callback();
@@ -1655,6 +1658,18 @@ context("FindMode", () => {
         document.body.classList.contains("suda-find-match-flash"),
       );
     });
+  });
+
+  should("not pulse committed matches when the configured frequency is zero", () => {
+    let timerCount = 0;
+    stub(globalThis, "setTimeout", () => timerCount++);
+    stubSettings("findMatchFlashHz", 0);
+    FindMode.query = { hasResults: true };
+
+    FindMode.flashActiveMatch();
+
+    assert.isFalse(document.body.classList.contains("suda-find-match-flash"));
+    assert.equal(0, timerCount);
   });
 
   should("start reverse search at the previous match", () => {

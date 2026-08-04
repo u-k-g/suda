@@ -103,6 +103,7 @@ w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedi
   openCommandBarOnNewTabPage: false,
   grabBackFocus: false,
   regexFindMode: true,
+  findMatchFlashHz: 6,
   waitForEnterForFilteredHints: true,
   helpDialog_showAdvancedCommands: false,
   ignoreKeyboardLayout: false,

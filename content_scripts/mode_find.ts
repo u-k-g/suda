@@ -383,15 +383,17 @@ class FindMode extends Mode {
 
   static flashActiveMatch() {
     this.stopMatchFlash();
-    if (!this.query?.hasResults) return;
+    const frequencyHz = Settings.get("findMatchFlashHz");
+    if (!this.query?.hasResults || !Number.isFinite(frequencyHz) || frequencyHz <= 0) return;
 
     document.body.classList.add("suda-find-match-flash");
-    // Contrast → normal → contrast → normal → contrast → normal, in 80ms phases.
+    // Each contrast/normal phase occupies half a cycle (about 83.3ms at the default 6Hz).
+    const phaseDurationMs = 500 / frequencyHz;
     for (let phase = 1; phase <= 5; phase++) {
       const timerId = setTimeout(() => {
         document.body.classList.toggle("suda-find-match-flash", phase % 2 === 0);
         if (phase === 5) this.matchFlashTimerIds = [];
-      }, phase * 80);
+      }, phase * phaseDurationMs);
       this.matchFlashTimerIds.push(timerId);
     }
   }
