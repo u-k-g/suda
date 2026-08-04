@@ -1,7 +1,7 @@
 <h1 align="center">suda</h1>
 
 <p align="center">
-  zen/arc style command bar and keyboard driven browser navigation inspired by the helix editor.
+  zen/arc style command bar and keyboard driven browser navigation from vimium.
 </p>
 
 <p align="center">
