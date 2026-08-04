@@ -1,7 +1,7 @@
 <h1 align="center">suda</h1>
 
 <p align="center">
-  zen/arc style command bar and keyboard driven browser navigation from vimium.
+  zen style command bar and keyboard driven browser navigation from vimium.
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
-- a zen/arc browser style command bar
+- a zen browser style command bar
 
 <img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/866001f3-efdf-446f-b602-247bc2e1b808" />
 
