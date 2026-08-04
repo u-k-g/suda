@@ -9,8 +9,8 @@
 </p>
 
 > **Origin and license:** Suda is an independent fork of [Vimium](https://github.com/philc/vimium)
-> https://github.com/philc/vimium, originally created by Phil Crosby. The original copyright notice
-> also credits Ilya Sukhar. Suda is not affiliated with or endorsed by the Vimium project. It is
+> [https://github.com/philc/vimium], originally created by Phil Crosby. The original copyright notice
+> also credits Ilya Sukhar. Suda is not affiliated with the Vimium project. It is
 > distributed under the MIT License, with Vimium's original copyright notice and license terms
 > preserved in [MIT-LICENSE.txt](MIT-LICENSE.txt).
 
