@@ -8,10 +8,16 @@
   <img src="icons/icon1024.png" width="192" alt="suda icon">
 </p>
 
+> **Origin and license:** Suda is an independent fork of [Vimium](https://github.com/philc/vimium)
+> https://github.com/philc/vimium, originally created by Phil Crosby. The original copyright notice
+> also credits Ilya Sukhar. Suda is not affiliated with or endorsed by the Vimium project. It is
+> distributed under the MIT License, with Vimium's original copyright notice and license terms
+> preserved in [MIT-LICENSE.txt](MIT-LICENSE.txt).
+
 <details open>
 <summary><strong>overview</strong></summary>
 
-`suda` is an opinionated vimium fork inspired by the helix philosophy.
+`suda` is an opinionated Vimium fork inspired by the Helix philosophy.
 
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
@@ -37,14 +43,6 @@
 
 </details>
 
-<details open>
-<summary><strong>upstream</strong></summary>
-
-Suda is an independent, opinionated fork of [Vimium](https://github.com/philc/vimium). it is not
-part of the Vimium project.
-
-</details>
-
 <details>
 <summary><strong>development</strong></summary>
 
@@ -60,6 +58,7 @@ part of the Vimium project.
 <details>
 <summary><strong>license</strong></summary>
 
-Suda retains the upstream MIT license and copyright notice. see [MIT-LICENSE.txt](MIT-LICENSE.txt).
+Suda is distributed under the MIT License. The original Vimium copyright notice and license terms
+are preserved in [MIT-LICENSE.txt](MIT-LICENSE.txt), which is included in source and release builds.
 
 </details>

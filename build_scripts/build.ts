@@ -46,6 +46,12 @@ export async function buildExtension() {
   rsyncArgs.push(projectPath + path.SEPARATOR, outputDirectory);
   await runCommand("rsync", rsyncArgs);
 
+  // The MIT notice must accompany every distributed copy, including packaged release builds.
+  await Deno.copyFile(
+    fromProjectRoot("MIT-LICENSE.txt"),
+    path.join(outputDirectory, "MIT-LICENSE.txt"),
+  );
+
   for (const directory of sourceDirectories) {
     await compileDirectory(fromProjectRoot(directory), outputDirectory);
   }
