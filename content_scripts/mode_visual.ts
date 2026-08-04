@@ -434,12 +434,9 @@ VisualMode.prototype.movements = {
     return this.find(count, true);
   },
   "/"() {
-    const selection = this.selection.toString();
     this.exit();
-    const result = FindMode.findSelectionOrEnter(selection, { returnToViewport: true });
-    if (result instanceof FindMode) {
-      result.onExit(() => new VisualMode().init());
-    }
+    const result = new FindMode({ returnToViewport: true });
+    result.onExit(() => new VisualMode().init());
     return result;
   },
   "x"(count) {

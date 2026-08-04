@@ -6,6 +6,7 @@
 // - desc: shown in the help dialog and command listing page.
 // - details: extra help information that will only be shown on the command listing page.
 // - group: commands are displayed in groups in the help dialog and command listing.
+// - shortDesc: compact label used for partial-key hints in the bottom HUD.
 // - noRepeat: whether this command can be used with a count key prefix.
 // - repeatLimit: the number of allowed repetitions of this command before the user is prompted for
 //   confirmation.
@@ -43,6 +44,7 @@ const allCommands = [
   {
     name: "scrollToTop",
     desc: "Scroll to the top of the page",
+    shortDesc: "Top of page",
     group: "navigation",
     noRepeat: true,
   },
@@ -50,6 +52,7 @@ const allCommands = [
   {
     name: "scrollToBottom",
     desc: "Scroll to the bottom of the page",
+    shortDesc: "Bottom of page",
     group: "navigation",
     noRepeat: true,
   },
@@ -86,6 +89,7 @@ const allCommands = [
   {
     name: "reload",
     desc: "Reload the page",
+    shortDesc: "Reload page",
     group: "navigation",
     background: true,
     noRepeat: true,
@@ -168,6 +172,7 @@ const allCommands = [
   {
     name: "focusInput",
     desc: "Focus the first text input on the page",
+    shortDesc: "Focus text input",
     group: "navigation",
     noRepeat: true,
   },
@@ -175,6 +180,7 @@ const allCommands = [
   {
     name: "LinkHints.activateMode",
     desc: "Select links, then choose an action",
+    shortDesc: "Select links",
     group: "navigation",
     noRepeat: true,
   },
@@ -213,6 +219,7 @@ const allCommands = [
   {
     name: "Marks.activateCreateMode",
     desc: "Create a new mark",
+    shortDesc: "Create mark",
     details: "Do this by typing the key bound to this command, and then a letter. " +
       "This will set a mark bound to that letter. Lowercase letters are local marks and uppercase " +
       "letters are global marks.",
@@ -241,6 +248,7 @@ const allCommands = [
   {
     name: "CommandBar.activateAll",
     desc: "Open the command bar",
+    shortDesc: "Search or open URL",
     options: {
       replaceCurrentUrl: "Replace the current tab's URL with the selected destination instead of " +
         "opening it in a new tab. False by default.",
@@ -253,6 +261,7 @@ const allCommands = [
   {
     name: "CommandBar.activateHistory",
     desc: "Search history using the command bar",
+    shortDesc: "Search history",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -261,6 +270,7 @@ const allCommands = [
   {
     name: "CommandBar.activateMarks",
     desc: "Jump to a page mark using the command bar",
+    shortDesc: "Jump to mark",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -269,6 +279,7 @@ const allCommands = [
   {
     name: "CommandBar.activateBookmarks",
     desc: "Open a bookmark",
+    shortDesc: "Search bookmarks",
     group: "commandBar",
     options: {
       query: "The text to prefill the CommandBar with.",
@@ -288,6 +299,7 @@ const allCommands = [
   {
     name: "CommandBar.activateTabSelection",
     desc: "Search through your open tabs",
+    shortDesc: "Search tabs",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -296,6 +308,7 @@ const allCommands = [
   {
     name: "CommandBar.activateEditUrl",
     desc: "Open the command bar and replace the current URL",
+    shortDesc: "Edit URL",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
@@ -307,7 +320,14 @@ const allCommands = [
 
   {
     name: "enterFindMode",
-    desc: "Find selected text or enter find mode",
+    desc: "Search forward for a regular expression",
+    group: "find",
+    noRepeat: true,
+  },
+
+  {
+    name: "enterReverseFindMode",
+    desc: "Search backward for a regular expression",
     group: "find",
     noRepeat: true,
   },
@@ -363,6 +383,7 @@ const allCommands = [
   {
     name: "previousTab",
     desc: "Go one tab left",
+    shortDesc: "Previous tab",
     group: "tabs",
     background: true,
   },
@@ -370,6 +391,7 @@ const allCommands = [
   {
     name: "nextTab",
     desc: "Go one tab right",
+    shortDesc: "Next tab",
     group: "tabs",
     background: true,
   },
@@ -409,6 +431,7 @@ const allCommands = [
   {
     name: "togglePinTab",
     desc: "Pin or unpin current tab",
+    shortDesc: "Pin or unpin tab",
     group: "tabs",
     background: true,
     noRepeat: true,
@@ -429,6 +452,7 @@ const allCommands = [
   {
     name: "removeTab",
     desc: "Close current tab",
+    shortDesc: "Close tab",
     group: "tabs",
     background: true,
     // Don't close (in one command invocation) more than the number of tabs that can be re-opened by
@@ -439,6 +463,7 @@ const allCommands = [
   {
     name: "restoreTab",
     desc: "Restore closed tab",
+    shortDesc: "Restore tab",
     group: "tabs",
     background: true,
     repeatLimit: 20,
@@ -481,6 +506,7 @@ const allCommands = [
   {
     name: "moveTabLeft",
     desc: "Move tab to the left",
+    shortDesc: "Move tab left",
     group: "tabs",
     advanced: true,
     background: true,
@@ -489,6 +515,7 @@ const allCommands = [
   {
     name: "moveTabRight",
     desc: "Move tab to the right",
+    shortDesc: "Move tab right",
     group: "tabs",
     advanced: true,
     background: true,
@@ -534,6 +561,7 @@ const allCommands = [
   {
     name: "openOptionsPage",
     desc: "Edit options",
+    shortDesc: "Open settings",
     group: "misc",
     background: true,
     noRepeat: true,

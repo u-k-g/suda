@@ -103,10 +103,8 @@ class FindMode extends Mode {
     this.initialRange = getCurrentRange();
     FindMode.query = { rawQuery: "" };
 
-    if (options.returnToViewport) {
-      this.scrollX = globalThis.scrollX;
-      this.scrollY = globalThis.scrollY;
-    }
+    this.scrollX = globalThis.scrollX;
+    this.scrollY = globalThis.scrollY;
 
     super.init(Object.assign(options, {
       name: "find",
@@ -129,6 +127,7 @@ class FindMode extends Mode {
     }
     super.exit();
     if (event) {
+      if (KeyboardUtils.isEscape(event)) this.restoreInitialState();
       FindMode.handleEscape();
     }
   }
@@ -143,6 +142,11 @@ class FindMode extends Mode {
     selection.addRange(range);
   }
 
+  restoreInitialState() {
+    this.checkReturnToViewPort(true);
+    this.restoreSelection();
+  }
+
   findInPlace(query, options) {
     // If requested, restore the scroll position (so that failed searches leave the scroll position
     // unchanged).
@@ -152,6 +156,12 @@ class FindMode extends Mode {
     // characters. See #1434.
     this.restoreSelection();
     FindMode.updateQuery(query);
+    if (options.backwards && FindMode.query.matches.length > 0) {
+      const matchCount = FindMode.query.matches.length;
+      FindMode.query.activeMatchIndex = (FindMode.query.activeMatchIndex - 1 + matchCount) %
+        matchCount;
+      FindMode.query.activeRegexIndices = [FindMode.query.activeMatchIndex, 0];
+    }
     query = FindMode.query.isRegex
       ? FindMode.getQueryFromRegexMatches()
       : FindMode.query.parsedQuery;
@@ -293,14 +303,6 @@ class FindMode extends Mode {
     FindModeHistory.saveQuery(this.query.rawQuery);
   }
 
-  static findSelectionOrEnter(selection, options) {
-    Marks.setPreviousPosition();
-    if (!selection) return new FindMode(options);
-    this.updateQuery(selection);
-    this.saveQuery();
-    return this.findNext(false);
-  }
-
   // :options is an optional dict. valid parameters are 'caseSensitive' and 'backwards'.
   static execute(query, options) {
     let result = null;
@@ -349,8 +351,7 @@ class FindMode extends Mode {
     return result;
   }
 
-  // The user has found what they're looking for and is finished searching. We enter insert mode, if
-  // possible.
+  // Cancel the prompt and restore normal selection coloring without activating the found element.
   static handleEscape() {
     document.body.classList.remove("suda-find-mode");
     // Removing the class does not re-color existing selections. we recreate the current selection
@@ -361,10 +362,9 @@ class FindMode extends Mode {
       globalThis.getSelection().removeAllRanges();
       globalThis.getSelection().addRange(range);
     }
-    return focusFoundLink() || selectFoundInputElement();
   }
 
-  // Save the query so the user can do further searches with it.
+  // Accept the current match and save the query so n/N can continue navigating it.
   static handleEnter() {
     focusFoundLink();
     document.body.classList.add("suda-find-mode");
@@ -397,8 +397,8 @@ class FindMode extends Mode {
     }
   }
 
-  checkReturnToViewPort() {
-    if (this.options.returnToViewport) {
+  checkReturnToViewPort(force = false) {
+    if (force || this.options.returnToViewport) {
       globalThis.scrollTo(this.scrollX, this.scrollY);
     }
   }
@@ -418,7 +418,9 @@ const getCurrentRange = function () {
   }
 
   if (selection.type === "Range") {
+    const range = selection.getRangeAt(0).cloneRange();
     selection.collapseToStart();
+    return range;
   }
 
   return selection.getRangeAt(0);
@@ -441,20 +443,6 @@ const focusFoundLink = function () {
     if (link) {
       link.focus();
     }
-  }
-};
-
-const selectFoundInputElement = function () {
-  // Since the last focused element might not be the one currently pointed to by find (e.g. the
-  // current one might be disabled and therefore unable to receive focus), we use the approximate
-  // heuristic of checking that the last anchor node is an ancestor of our element.
-  const findModeAnchorNode = document.getSelection().anchorNode;
-  if (
-    FindMode.query.hasResults && document.activeElement &&
-    DomUtils.isSelectable(document.activeElement) &&
-    DomUtils.isDOMDescendant(findModeAnchorNode, document.activeElement)
-  ) {
-    return DomUtils.simulateSelect(document.activeElement);
   }
 };
 

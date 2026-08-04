@@ -50,7 +50,7 @@ context("hud page", () => {
     assert.equal("hideFindMode", message.name);
   });
 
-  should("keep find mode open and advance the current query when enter is pressed", async () => {
+  should("accept the current match and close the find prompt when enter is pressed", async () => {
     let message;
     const stubPort = {
       postMessage: (event) => {
@@ -64,9 +64,17 @@ context("hud page", () => {
     hudPage.handlers.showFindMode();
     await hudPage.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
 
-    assert.equal("findNext", message.name);
-    assert.isFalse(message.backwards);
-    assert.isTrue(document.querySelector("#hud-find-input") != null);
+    assert.equal("hideFindMode", message.name);
+    assert.isTrue(message.exitEventIsEnter);
+    assert.isFalse(message.exitEventIsEscape);
+  });
+
+  should("show the search direction in the prompt", () => {
+    hudPage.handlers.showFindMode({ backwards: false });
+    assert.equal("/", document.querySelector("#hud-find-input").dataset.prompt);
+
+    hudPage.handlers.showFindMode({ backwards: true });
+    assert.equal("?", document.querySelector("#hud-find-input").dataset.prompt);
   });
 
   should("render partial key sequences and their available continuations", () => {

@@ -73,7 +73,7 @@
   color: var(--suda-muted-color);
   flex: 0 0 auto;
   gap: 7px;
-  font-size: 12px;
+  font-size: 10.5px;
 }
 
 #hud kbd {
@@ -126,7 +126,7 @@ span#hud-match-count {
 }
 
 span#hud-find-input:before {
-  content: "/";
+  content: attr(data-prompt);
   color: var(--suda-accent-text-color);
   margin-right: 1px;
 }

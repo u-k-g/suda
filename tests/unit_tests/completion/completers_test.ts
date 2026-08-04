@@ -525,6 +525,30 @@ context("command completer", () => {
     },
   );
 
+  should(
+    "return every enabled action in Actions mode instead of limiting the list to ten",
+    async () => {
+      stub(chrome.storage.session, "get", async () => ({
+        commandToOptionsToKeys: {},
+      }));
+      stub(Commands, "keyToRegistryEntry", {});
+
+      const suggestions = await filterCompleter(multiCompleter, [], {
+        commandBarMode: "actions",
+        showAllOnEmpty: true,
+      });
+      const enabledCommands = allCommands.filter((command) =>
+        Settings.isActionEnabled(command.name)
+      );
+
+      assert.isTrue(suggestions.length > 10);
+      assert.equal(
+        enabledCommands.map((command) => command.name).sort(),
+        suggestions.map((suggestion) => suggestion.command.registryEntry.command).sort(),
+      );
+    },
+  );
+
   should("create suggestions for different variations of the same command", async () => {
     stub(chrome.storage.session, "get", async () => ({
       commandToOptionsToKeys: {

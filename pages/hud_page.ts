@@ -53,7 +53,12 @@ export function onKeyEvent(event) {
       exitEventIsEscape: KeyboardUtils.isEscape(event),
     });
   } else if (event.key === "Enter") {
-    UIComponentMessenger.postMessage({ name: "findNext", backwards: event.shiftKey });
+    inputEl.blur();
+    UIComponentMessenger.postMessage({
+      name: "hideFindMode",
+      exitEventIsEnter: true,
+      exitEventIsEscape: false,
+    });
   } else if (event.key === "ArrowUp") {
     if (rawQuery = FindModeHistory.getQuery(findMode.historyIndex + 1)) {
       findMode.historyIndex += 1;
@@ -179,7 +184,7 @@ export const handlers = {
     el.classList.remove("hud-key-hints", "hud-toast");
   },
 
-  showFindMode() {
+  showFindMode(data = {}) {
     let executeQuery;
     const hudEl = document.querySelector("#hud");
     hudEl.textContent = "";
@@ -194,6 +199,7 @@ export const handlers = {
       inputEl.contentEditable = "true";
     }
     inputEl.id = "hud-find-input";
+    inputEl.dataset.prompt = data.backwards ? "?" : "/";
     hudEl.appendChild(inputEl);
 
     inputEl.addEventListener(

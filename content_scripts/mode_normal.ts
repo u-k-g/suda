@@ -202,7 +202,13 @@ const NormalModeCommands = {
   },
 
   enterFindMode() {
-    return FindMode.findSelectionOrEnter(window.getSelection().toString());
+    Marks.setPreviousPosition();
+    return new FindMode();
+  },
+
+  enterReverseFindMode() {
+    Marks.setPreviousPosition();
+    return new FindMode({ backwards: true });
   },
 
   // Find.

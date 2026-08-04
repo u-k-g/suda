@@ -22,7 +22,6 @@ const HUD = {
   handleUIComponentMessage({ data }) {
     const handlers = {
       hideFindMode: this.hideFindMode,
-      findNext: this.findNext,
       search: this.search,
       unfocusIfFocused: this.unfocusIfFocused,
       pasteResponse: this.pasteResponse,
@@ -121,13 +120,14 @@ const HUD = {
     clearTimeout(this._showForDurationTimerId);
     await this.init();
     if (requestId !== this.presentationRequestId) return;
-    this.hudUI.show({ name: "showFindMode" });
+    this.hudUI.show({ name: "showFindMode", backwards: findMode?.options?.backwards === true });
     this.tween.fade(1.0, 150);
   },
 
   search(data) {
     // Keep focus in the HUD so the user can continue typing after a search.
     this.findMode.findInPlace(data.query, {
+      backwards: this.findMode.options.backwards === true,
       "postFindFocus": this.hudUI.iframeElement.contentWindow,
     });
 
@@ -135,27 +135,6 @@ const HUD = {
     const matchCount = FindMode.query.parsedQuery.length > 0 ? FindMode.query.matchCount : 0;
     const showMatchText = FindMode.query.rawQuery.length > 0;
     this.hudUI.postMessage({ name: "updateMatchesCount", matchCount, showMatchText });
-  },
-
-  findNext({ backwards = false }) {
-    if (!this.findMode || !FindMode.query.rawQuery) return;
-
-    const nextQuery = FindMode.getNextQueryFromRegexMatches(backwards);
-    if (nextQuery) {
-      Marks.setPreviousPosition();
-      FindMode.query.hasResults = FindMode.execute(nextQuery, {
-        backwards,
-        postFindFocus: this.hudUI.iframeElement.contentWindow,
-      });
-      FindMode.saveQuery();
-    }
-
-    const matchCount = FindMode.query.parsedQuery.length > 0 ? FindMode.query.matchCount : 0;
-    this.hudUI.postMessage({
-      name: "updateMatchesCount",
-      matchCount,
-      showMatchText: FindMode.query.rawQuery.length > 0,
-    });
   },
 
   // Hide the HUD.
@@ -189,7 +168,11 @@ const HUD = {
   // These parameters describe the reason find mode is exiting, and come from the HUD UI component.
   hideFindMode({ exitEventIsEnter, exitEventIsEscape }) {
     let postExit;
-    this.findMode.checkReturnToViewPort();
+    if (exitEventIsEscape) {
+      this.findMode.restoreInitialState();
+    } else {
+      this.findMode.checkReturnToViewPort();
+    }
 
     // An element won't receive a focus event if the search landed on it while we were in the HUD
     // iframe. To end up with the correct modes active, we create a focus/blur event manually after

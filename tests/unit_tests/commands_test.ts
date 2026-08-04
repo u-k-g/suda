@@ -221,6 +221,16 @@ context("KeyMappingsParser", () => {
 });
 
 context("disabled actions", () => {
+  should("install compact descriptions for partial-key hints", async () => {
+    await Commands.loadKeyMappings("");
+    const mapping =
+      (await chrome.storage.session.get("normalModeKeyStateMapping")).normalModeKeyStateMapping;
+
+    assert.equal("Edit URL", mapping["<space>"].e.desc);
+    assert.equal("Previous tab", mapping.g.h.desc);
+    assert.equal("Top of page", mapping.g.g.desc);
+  });
+
   should(
     "keep inactive shortcut labels available in command-bar-only mode",
     async () => {
@@ -360,8 +370,10 @@ context("Validate commands and options data structures", () => {
     assert.isFalse(Object.hasOwn(helixKeyMappings, "gp"));
   });
 
-  should("fold selected-text search into slash and remove the standalone commands", () => {
+  should("use Helix-style forward, reverse, next, and previous search bindings", () => {
     assert.equal("enterFindMode", helixKeyMappings["/"]);
+    assert.equal("enterReverseFindMode", helixKeyMappings["?"]);
+    assert.isTrue(Settings.defaultOptions.regexFindMode);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "*"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<a-*>"));
     const commandNames = allCommands.map(({ name }) => name);

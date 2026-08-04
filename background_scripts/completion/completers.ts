@@ -765,8 +765,9 @@ export class MultiCompleter {
 
     const seenUrls = new Set();
     const dedupedSuggestions = [];
+    const resultLimit = request.commandBarMode === "actions" ? Infinity : maxResults;
     for (const s of suggestions) {
-      if (dedupedSuggestions.length === maxResults) break;
+      if (dedupedSuggestions.length === resultLimit) break;
       if (s.deDuplicate) {
         const url = s.shortenUrl();
         if (seenUrls.has(url)) continue;

@@ -102,7 +102,7 @@ w: https://www.wikipedia.org/w/index.php?title=Special:Search&search=%s Wikipedi
   newTabCustomUrl: "",
   openCommandBarOnNewTabPage: false,
   grabBackFocus: false,
-  regexFindMode: false,
+  regexFindMode: true,
   waitForEnterForFilteredHints: true,
   helpDialog_showAdvancedCommands: false,
   ignoreKeyboardLayout: false,

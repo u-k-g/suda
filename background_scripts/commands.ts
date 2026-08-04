@@ -355,7 +355,8 @@ const Commands = {
             : (currentMapping[key] = {});
         } else {
           currentMapping[key] = Object.assign({}, registryEntry, {
-            desc: commandsByName[registryEntry.command]?.desc ?? registryEntry.command,
+            desc: commandsByName[registryEntry.command]?.shortDesc ??
+              commandsByName[registryEntry.command]?.desc ?? registryEntry.command,
           });
           // We don't need these properties in the content scripts.
           for (const prop of ["keySequence"]) {
@@ -451,6 +452,7 @@ const helixKeyMappings = {
 
   // Search
   "/": "enterFindMode",
+  "?": "enterReverseFindMode",
   "n": "performFind",
   "N": "performBackwardsFind",
 

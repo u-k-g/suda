@@ -733,21 +733,21 @@ context("Helix normal-mode commands", () => {
     assert.equal(messagePromise, protectedPromise);
   });
 
-  should("find selected text with the find command", () => {
-    let updatedQuery = null;
-    let savedQuery = false;
-    let backwards = null;
-    stub(window, "getSelection", () => ({ toString: () => "selected text" }));
+  should("open an empty search prompt even when text is selected", () => {
+    initializeModeState();
     stub(Marks, "setPreviousPosition", () => {});
-    stub(FindMode, "updateQuery", (query) => updatedQuery = query);
-    stub(FindMode, "saveQuery", () => savedQuery = true);
-    stub(FindMode, "findNext", (value) => backwards = value);
+    stub(HUD, "showFindMode", () => {});
+    document.getElementById("test-div").textContent = "selected text";
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById("test-div"));
+    getSelection().removeAllRanges();
+    getSelection().addRange(range);
 
-    NormalModeCommands.enterFindMode();
+    const mode = NormalModeCommands.enterFindMode();
 
-    assert.equal("selected text", updatedQuery);
-    assert.isTrue(savedQuery);
-    assert.isFalse(backwards);
+    assert.isTrue(mode instanceof FindMode);
+    assert.equal("", FindMode.query.rawQuery);
+    mode.exit();
   });
 
   should("enter find mode when no text is selected", () => {
@@ -1632,6 +1632,38 @@ context("FindMode", () => {
 
     FindMode.execute(FindMode.getNextQueryFromRegexMatches(true), { colorSelection: false });
     assert.equal("first target", getSelection().anchorNode.parentElement.textContent);
+  });
+
+  should("start reverse search at the previous match", () => {
+    stubSettings("regexFindMode", true);
+    document.getElementById("test-div").innerHTML =
+      "<span>first target</span><span> second target</span>";
+    stub(HUD, "showFindMode", () => {});
+    const mode = new FindMode({ backwards: true });
+
+    mode.findInPlace("target", { backwards: true });
+
+    assert.equal(" second target", getSelection().anchorNode.parentElement.textContent);
+    mode.exit();
+  });
+
+  should("restore the original selection when search is cancelled", () => {
+    document.getElementById("test-div").innerHTML =
+      "<span id='original'>original</span><span id='result'> target</span>";
+    const original = document.querySelector("#original").firstChild;
+    const range = document.createRange();
+    range.setStart(original, 0);
+    range.setEnd(original, original.textContent.length);
+    getSelection().addRange(range);
+    stub(HUD, "showFindMode", () => {});
+    const mode = new FindMode();
+    mode.findInPlace("target", {});
+    assert.equal("target", getSelection().toString());
+
+    mode.restoreInitialState();
+
+    assert.equal("original", getSelection().toString());
+    mode.exit();
   });
 
   should("highlight the full text matched by a regular expression", () => {
