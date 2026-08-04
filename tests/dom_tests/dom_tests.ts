@@ -1634,6 +1634,29 @@ context("FindMode", () => {
     assert.equal("first target", getSelection().anchorNode.parentElement.textContent);
   });
 
+  should("pulse a committed match through three 80ms contrast flashes", () => {
+    const timers = [];
+    stub(globalThis, "setTimeout", (callback, delay) => {
+      timers.push({ callback, delay });
+      return timers.length;
+    });
+    stub(globalThis, "clearTimeout", () => {});
+    FindMode.query = { hasResults: true };
+
+    FindMode.flashActiveMatch();
+
+    assert.isTrue(document.body.classList.contains("suda-find-match-flash"));
+    assert.equal([80, 160, 240, 320, 400], timers.map(({ delay }) => delay));
+    const expectedFlashState = [false, true, false, true, false];
+    timers.forEach(({ callback }, index) => {
+      callback();
+      assert.equal(
+        expectedFlashState[index],
+        document.body.classList.contains("suda-find-match-flash"),
+      );
+    });
+  });
+
   should("start reverse search at the previous match", () => {
     stubSettings("regexFindMode", true);
     document.getElementById("test-div").innerHTML =

@@ -275,6 +275,7 @@ const ThemeManager = {
     };
 
     root.dataset.sudaTheme = theme.id;
+    root.dataset.sudaThemeMode = theme.mode;
     root.style.colorScheme = theme.mode;
     for (const [name, value] of Object.entries(properties)) root.style.setProperty(name, value);
   },

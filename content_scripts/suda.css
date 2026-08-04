@@ -208,6 +208,16 @@ body.suda-find-mode ::selection {
   color: var(--suda-accent-selected-text-color);
 }
 
+html[data-suda-theme-mode="dark"] body.suda-find-match-flash ::selection {
+  background: #fff;
+  color: #000;
+}
+
+html[data-suda-theme-mode="light"] body.suda-find-match-flash ::selection {
+  background: #000;
+  color: #fff;
+}
+
 iframe.commandBar-frame {
   background-color: transparent;
   padding: 0px;

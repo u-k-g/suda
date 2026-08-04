@@ -6,6 +6,8 @@
 class SuppressPrintable extends Mode {
   constructor(options) {
     super();
+
+    FindMode.stopMatchFlash();
     super.init(options);
     const handler = (event) =>
       KeyboardUtils.isPrintable(event) ? this.suppressEvent : this.continueBubbling;
@@ -353,6 +355,7 @@ class FindMode extends Mode {
 
   // Cancel the prompt and restore normal selection coloring without activating the found element.
   static handleEscape() {
+    this.stopMatchFlash();
     document.body.classList.remove("suda-find-mode");
     // Removing the class does not re-color existing selections. we recreate the current selection
     // so it reverts back to the default color.
@@ -368,7 +371,29 @@ class FindMode extends Mode {
   static handleEnter() {
     focusFoundLink();
     document.body.classList.add("suda-find-mode");
+    this.flashActiveMatch();
     return FindMode.saveQuery();
+  }
+
+  static stopMatchFlash() {
+    for (const timerId of this.matchFlashTimerIds ?? []) clearTimeout(timerId);
+    this.matchFlashTimerIds = [];
+    globalThis.document?.body?.classList.remove("suda-find-match-flash");
+  }
+
+  static flashActiveMatch() {
+    this.stopMatchFlash();
+    if (!this.query?.hasResults) return;
+
+    document.body.classList.add("suda-find-match-flash");
+    // Contrast → normal → contrast → normal → contrast → normal, in 80ms phases.
+    for (let phase = 1; phase <= 5; phase++) {
+      const timerId = setTimeout(() => {
+        document.body.classList.toggle("suda-find-match-flash", phase % 2 === 0);
+        if (phase === 5) this.matchFlashTimerIds = [];
+      }, phase * 80);
+      this.matchFlashTimerIds.push(timerId);
+    }
   }
 
   static findNext(backwards, options = {}) {
@@ -386,6 +411,7 @@ class FindMode extends Mode {
     });
 
     if (FindMode.query.hasResults) {
+      this.flashActiveMatch();
       if (options.postFindFocus) {
         options.postFindFocus.focus();
         return;
@@ -404,9 +430,10 @@ class FindMode extends Mode {
   }
 }
 
-FindMode.restoreDefaultSelectionHighlight = forTrusted(() =>
-  document.body.classList.remove("suda-find-mode")
-);
+FindMode.restoreDefaultSelectionHighlight = forTrusted(() => {
+  document.body.classList.remove("suda-find-mode");
+  FindMode.stopMatchFlash();
+});
 
 const getCurrentRange = function () {
   const selection = getSelection();

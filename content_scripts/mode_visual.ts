@@ -383,6 +383,7 @@ class VisualMode extends KeyHandlerMode {
         return;
       }
     }
+    FindMode.flashActiveMatch();
 
     // The find was successfull. If we're in caret mode, then we should now have a selection, so we
     // can drop back into visual mode.

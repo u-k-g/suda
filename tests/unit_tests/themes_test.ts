@@ -142,6 +142,7 @@ context("themes", () => {
     ThemeManager.apply("zen-day", root);
 
     assert.equal("zen-day", root.dataset.sudaTheme);
+    assert.equal("light", root.dataset.sudaThemeMode);
     assert.equal("light", root.style.colorScheme);
     assert.equal("#f4f1ed", properties.get("--suda-canvas-color"));
     assert.equal(ThemeManager.get("zen-day").surface, properties.get("--suda-surface-color"));
