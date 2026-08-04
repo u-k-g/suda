@@ -158,6 +158,8 @@ context("options page", () => {
   should("configure find match flash frequency and allow zero to disable it", async () => {
     const findMatchFlashHz = optionsPage.getOptionEl("findMatchFlashHz");
     assert.equal("6", findMatchFlashHz.value);
+    assert.isTrue(findMatchFlashHz.parentElement.classList.contains("setting-number-field"));
+    assert.equal("Hz", findMatchFlashHz.nextElementSibling.textContent);
 
     findMatchFlashHz.value = "0";
     await optionsPage.saveOptions();
