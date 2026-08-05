@@ -338,13 +338,19 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "commands", mode: "actions", selectFirst: true }, openOptions);
   });
 
-  should("use the replace-current main command bar for activateEditUrl", () => {
+  should("prefill the replace-current main command bar for activateEditUrl", () => {
     let openOptions = null;
+    stub(globalThis, "location", { href: "https://example.com/path" });
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
     CommandBar.activateEditUrl(0);
 
-    assert.equal({ completer: "omni", mode: "", newTab: false }, openOptions);
+    assert.equal({
+      completer: "omni",
+      mode: "",
+      newTab: false,
+      query: "https://example.com/path",
+    }, openOptions);
   });
 
   should("bind Helix J and K to configurable fast scrolling", () => {

@@ -88,8 +88,11 @@ const CommandBar = {
   },
 
   activateEditUrl(sourceFrameId) {
-    return this.activateAll(sourceFrameId, {
-      options: { replaceCurrentUrl: true },
+    this.open(sourceFrameId, {
+      completer: "omni",
+      mode: "",
+      newTab: false,
+      query: globalThis.location.href,
     });
   },
 
