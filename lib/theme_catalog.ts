@@ -25,7 +25,7 @@ globalThis.SudaThemeCatalog = [
     "accent": "#69d69a",
     "danger": "#fb414a",
     "success": "#9ee4be",
-    "warning": "#e3b34e",
+    "warning": "#69d69a",
     "tonalSelection": true
   },
   {

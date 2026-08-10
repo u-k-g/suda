@@ -71,7 +71,7 @@ context("themes", () => {
     assert.equal("#1b2821", grove.background);
     assert.equal("#fffaff", grove.foreground);
     assert.equal("#69d69a", grove.accent);
-    assert.equal("#e3b34e", grove.warning);
+    assert.equal("#69d69a", grove.warning);
   });
 
   should("list starred themes first, then the rest alphabetically by name", () => {
