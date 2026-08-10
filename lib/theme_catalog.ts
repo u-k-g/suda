@@ -14,6 +14,21 @@ globalThis.SudaThemeCatalog = [
     "warning": "#d79921"
   },
   {
+    "id": "grove",
+    "name": "Grove",
+    "mode": "dark",
+    "background": "#1b2821",
+    "surface": "#28342e",
+    "foreground": "#fffaff",
+    "muted": "#919595",
+    "border": "#415f4f",
+    "accent": "#69d69a",
+    "danger": "#fb414a",
+    "success": "#9ee4be",
+    "warning": "#e3b34e",
+    "tonalSelection": true
+  },
+  {
     "id": "zen-night",
     "name": "*Zen",
     "mode": "dark",

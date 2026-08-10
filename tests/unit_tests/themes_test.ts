@@ -4,11 +4,12 @@ import "../../lib/themes.js";
 
 context("themes", () => {
   should("include the complete imported catalog and curated themes", () => {
-    assert.equal(29, ThemeManager.themes.length);
+    assert.equal(30, ThemeManager.themes.length);
     const names = new Set(ThemeManager.themes.map((theme) => theme.name));
     for (
       const name of [
         "Gruvbox",
+        "Grove",
         "Everforest",
         "Iceberg",
         "Catppuccin Mocha",
@@ -63,6 +64,14 @@ context("themes", () => {
     ) {
       assert.isFalse(names.has(name), `Unexpected theme: ${name}`);
     }
+  });
+
+  should("use the Grove palette", () => {
+    const grove = ThemeManager.get("grove");
+    assert.equal("#1b2821", grove.background);
+    assert.equal("#fffaff", grove.foreground);
+    assert.equal("#69d69a", grove.accent);
+    assert.equal("#e3b34e", grove.warning);
   });
 
   should("list starred themes first, then the rest alphabetically by name", () => {
