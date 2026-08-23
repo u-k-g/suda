@@ -472,12 +472,14 @@ class CommandBarUI {
 
   enterMode(name) {
     if (name === modeSelector.name) {
+      this.consumeDraft();
       this.setMode(name, { completer: "modes" });
       this.update();
       return;
     }
     const mode = commandBarModesByName[name];
     if (!mode || !isCommandBarModeEnabled(mode)) return;
+    this.consumeDraft();
     if (mode.action) {
       UIComponentMessenger.postMessage({ name: "commandBarAction", action: name });
       return;
@@ -569,6 +571,18 @@ class CommandBarUI {
     const value = this.previousInputValue ?? this.input.value;
     this.drafts[this.draftKey] = value;
     chrome.storage.session.set({ commandBarDrafts: this.drafts });
+  }
+
+  consumeDraft() {
+    if (this.draftKey) delete this.drafts[this.draftKey];
+    this.input.value = "";
+    this.previousInputValue = null;
+    chrome.storage.session.set({ commandBarDrafts: this.drafts });
+  }
+
+  hideAfterCommit(onHiddenCallback = null) {
+    this.consumeDraft();
+    this.hide(onHiddenCallback);
   }
 
   updateSelection() {
@@ -785,6 +799,7 @@ class CommandBarUI {
     if (this.mode === modeSelector.name) return;
 
     if (this.mode === "marks" && completion?.mark) {
+      this.consumeDraft();
       UIComponentMessenger.postMessage({
         name: "commandBarMark",
         key: completion.mark.key,
@@ -795,6 +810,7 @@ class CommandBarUI {
     }
 
     if (this.mode === linkActionMode.name && completion?.commandBarAction) {
+      this.consumeDraft();
       UIComponentMessenger.postMessage({
         name: "commandBarAction",
         action: completion.commandBarAction,
@@ -824,7 +840,7 @@ class CommandBarUI {
       // (waitingOnCompletions).
       if (this.isUserSearchEngineActive()) {
         query = UrlUtils.createSearchUrl(query, this.activeUserSearchEngine.url);
-        this.hide(() => this.launchUrl(query, openInNewTab));
+        this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
         return;
       }
 
@@ -835,6 +851,7 @@ class CommandBarUI {
       const isPrimary = isPrimarySearchSuggestion(firstCompletion);
       if (isPrimary) {
         query = UrlUtils.createSearchUrl(query, firstCompletion.searchUrl);
+        this.consumeDraft();
         await this.launchUrl(query, openInNewTab);
       } else {
         // If the query looks like a URL, try to open it directly. Otherwise, pass the query to
@@ -842,9 +859,9 @@ class CommandBarUI {
         // TODO(philc):
         const isUrl = await UrlUtils.isUrl(query);
         if (isUrl) {
-          this.hide(() => this.launchUrl(query, openInNewTab));
+          this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
         } else {
-          this.hide(() =>
+          this.hideAfterCommit(() =>
             chrome.runtime.sendMessage({
               handler: "launchSearchQuery",
               query,
@@ -855,11 +872,11 @@ class CommandBarUI {
       }
     } else if (isPrimarySearchSuggestion(completion)) {
       query = UrlUtils.createSearchUrl(query, completion.searchUrl);
-      this.hide(() => this.launchUrl(query, openInNewTab));
+      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
     } else if (completion.verbatimQuery != null) {
       await this.launchVerbatimQuery(completion.verbatimQuery, openInNewTab);
     } else if (completion.command) {
-      this.hide(async () => {
+      this.hideAfterCommit(async () => {
         await chrome.runtime.sendMessage({
           handler: "runNormalModeCommand",
           command: completion.command.registryEntry,
@@ -867,15 +884,15 @@ class CommandBarUI {
         });
       });
     } else {
-      this.hide(() => this.openCompletion(completion, openInNewTab));
+      this.hideAfterCommit(() => this.openCompletion(completion, openInNewTab));
     }
   }
 
   async launchVerbatimQuery(query, openInNewTab) {
     if (await UrlUtils.isUrl(query)) {
-      this.hide(() => this.launchUrl(query, openInNewTab));
+      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
     } else {
-      this.hide(() =>
+      this.hideAfterCommit(() =>
         chrome.runtime.sendMessage({
           handler: "launchSearchQuery",
           query,

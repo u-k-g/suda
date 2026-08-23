@@ -85,6 +85,28 @@ context("commandBar page", () => {
     assert.equal("unfinished search", ui.input.value);
   });
 
+  should("consume the saved draft when enter uses it", async () => {
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+    ui.input.value = "used search";
+    ui.onInput();
+    ui.completions = [];
+    ui.selection = -1;
+    stub(UrlUtils, "isUrl", async () => true);
+
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter" }));
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+
+    assert.equal("", ui.input.value);
+  });
+
   should("preserve a pending completion callback while hiding", () => {
     let callbackWasCalled = false;
     ui.hide(() => callbackWasCalled = true);
