@@ -124,6 +124,18 @@ class KeyHandlerMode extends Mode {
   }
 
   handleKeyChar(keyChar) {
+    // Pressing an unfinished prefix again cancels it when that key has no continuation. Without
+    // this, Space Space Space continually restarts Space mode and grows the displayed prefix.
+    const hasActiveContinuation = keyChar in this.keyState[0];
+    if (
+      this.keySequence.length > 0 &&
+      keyChar === this.keySequence[0] &&
+      !hasActiveContinuation
+    ) {
+      this.reset();
+      return this.suppressEvent;
+    }
+
     // A count prefix applies only so long a keyChar is mapped in @keyState[0]; e.g. 7gj should be 1j.
     if (!(keyChar in this.keyState[0])) {
       this.countPrefix = 0;
@@ -151,8 +163,30 @@ class KeyHandlerMode extends Mode {
         description: mapping.desc ?? "More shortcuts",
       }));
       HUD.showKeyHints(this.keySequence, continuations);
+      this.showTabSlotKeyHints(continuations);
     }
     return this.suppressEvent;
+  }
+
+  async showTabSlotKeyHints(continuations) {
+    const prefix = this.keySequence.join("");
+    if (!["g", "p"].includes(prefix)) return;
+    const slots = await chrome.runtime.sendMessage({ handler: "getTabSlots" });
+    if (this.keySequence.join("") !== prefix) return;
+    const slotsByNumber = Object.fromEntries(
+      (Array.isArray(slots) ? slots : []).map((slot) => [slot.slot, slot]),
+    );
+    const enriched = continuations.map((continuation) => {
+      if (!/^\d$/.test(continuation.key)) return continuation;
+      const slot = slotsByNumber[continuation.key];
+      return {
+        key: continuation.key,
+        description: slot == null
+          ? (prefix === "p" ? "Set empty tab slot" : "Empty tab slot")
+          : slot.title,
+      };
+    });
+    HUD.showKeyHints(this.keySequence, enriched);
   }
 }
 

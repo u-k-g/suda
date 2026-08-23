@@ -6,6 +6,8 @@ Object.assign(globalThis, {
     completer: "string",
     // Text to prefill the CommandBar with.
     query: "string",
+    // Session-persistent draft namespace for this command-bar entry point.
+    draftKey: "string",
     // Whether to open the result in a new tab.
     newTab: "boolean",
     // Whether to select the first entry.

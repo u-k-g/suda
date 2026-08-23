@@ -31,6 +31,7 @@ function newKeyEvent(properties) {
 context("commandBar page", () => {
   let ui;
   setup(async () => {
+    await chrome.storage.session.remove("commandBarDrafts");
     await testHelper.jsdomStub("pages/command_bar_page.html");
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler == "filterCompletions") {
@@ -63,6 +64,25 @@ context("commandBar page", () => {
     ui.setQuery("www.example.com");
     window.dispatchEvent(new window.Event("blur"));
     assert.equal("", ui.input.value);
+  });
+
+  should("restore the last draft after any dismissal", async () => {
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+    ui.input.value = "unfinished search";
+    ui.onInput();
+    ui.hide();
+
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+
+    assert.equal("unfinished search", ui.input.value);
   });
 
   should("preserve a pending completion callback while hiding", () => {
@@ -674,6 +694,6 @@ context("commandBar page", () => {
     await ui.updateCompletions();
     assert.equal(1, ui.completionList.childNodes.length);
     const keys = Array.from(ui.completionList.querySelectorAll(".key")).map((x) => x.textContent);
-    assert.equal(["gl"], keys);
+    assert.equal(["gj"], keys);
   });
 });

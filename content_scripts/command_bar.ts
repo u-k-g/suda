@@ -13,14 +13,16 @@ const CommandBar = {
   // sourceFrameId here (and below) is the ID of the frame from which this request originates, which
   // may be different from the current frame.
 
-  // Cmd/Ctrl-T has already created the destination tab. Open URL mode against that tab with an
-  // empty query so submitting replaces the local new-tab page instead of creating another tab.
+  // Cmd/Ctrl-T has already created the destination tab. Open URL mode against that tab so
+  // submitting replaces the local new-tab page instead of creating another tab. It shares the
+  // main command bar's draft.
   activateNewTab(sourceFrameId) {
     this.open(sourceFrameId, {
       completer: "omni",
       mode: "url",
       newTab: false,
       currentUrl: "",
+      draftKey: "all",
     });
   },
 
@@ -29,6 +31,7 @@ const CommandBar = {
     this.open(sourceFrameId, {
       completer: "modes",
       mode: "modes",
+      draftKey: "modes",
       prefixCount: registryEntry?.options?.prefixCount ?? 1,
     });
   },
@@ -38,17 +41,28 @@ const CommandBar = {
     this.open(sourceFrameId, {
       completer: "omni",
       mode: "",
+      draftKey: "all",
       newTab: !(replaceCurrentUrl === true || replaceCurrentUrl === "true"),
     });
   },
 
   activateHistory(sourceFrameId) {
-    this.open(sourceFrameId, { completer: "history", mode: "history", selectFirst: true });
+    this.open(sourceFrameId, {
+      completer: "history",
+      mode: "history",
+      draftKey: "history",
+      selectFirst: true,
+    });
   },
 
   activateMarks(sourceFrameId, registryEntry) {
     this.markRegistryEntry = registryEntry;
-    this.open(sourceFrameId, { completer: "local", mode: "marks", selectFirst: true });
+    this.open(sourceFrameId, {
+      completer: "local",
+      mode: "marks",
+      draftKey: "marks",
+      selectFirst: true,
+    });
   },
 
   activateLinkActions(sourceFrameId, linkSelectionCount) {
@@ -65,6 +79,7 @@ const CommandBar = {
     this.open(sourceFrameId, {
       completer: "tabs",
       mode: "tabs",
+      draftKey: "tabs",
       selectFirst: true,
     });
   },
@@ -73,6 +88,7 @@ const CommandBar = {
     const options = Object.assign({}, registryEntry.options, {
       completer: "bookmarks",
       mode: "bookmarks",
+      draftKey: "bookmarks",
       selectFirst: true,
     });
     this.open(sourceFrameId, options);
@@ -82,6 +98,7 @@ const CommandBar = {
     const options = Object.assign({}, registryEntry.options, {
       completer: "commands",
       mode: "actions",
+      draftKey: "actions",
       selectFirst: true,
     });
     this.open(sourceFrameId, options);
@@ -93,6 +110,7 @@ const CommandBar = {
       mode: "",
       newTab: false,
       query: globalThis.location.href,
+      draftKey: "edit-url",
     });
   },
 
@@ -105,6 +123,14 @@ const CommandBar = {
         this.handleMessage.bind(this),
       );
       globalThis.addEventListener("resize", () => this.refreshPositionInBrowserWindow());
+      globalThis.visualViewport?.addEventListener(
+        "resize",
+        () => this.positionInBrowserWindow(),
+      );
+      globalThis.visualViewport?.addEventListener(
+        "scroll",
+        () => this.positionInBrowserWindow(),
+      );
       globalThis.addEventListener(
         "pointerdown",
         forTrusted((event) => {
@@ -173,8 +199,10 @@ const CommandBar = {
   },
 
   calculateFrameGeometry(windowDimensions, zoomFactor, centerMode = "window") {
-    const viewportWidth = windowDimensions.innerWidth * zoomFactor;
-    const viewportHeight = windowDimensions.innerHeight * zoomFactor;
+    const visualScale = windowDimensions.visualScale ?? 1;
+    const effectiveZoom = zoomFactor * visualScale;
+    const viewportWidth = windowDimensions.innerWidth * effectiveZoom;
+    const viewportHeight = windowDimensions.innerHeight * effectiveZoom;
     const centerOnTab = centerMode === "tab";
     const centerY = this.browserWindowCenterInViewport(
       windowDimensions.outerHeight,
@@ -191,20 +219,25 @@ const CommandBar = {
     const top = Math.max(16, centerY - 170);
     return {
       height: Math.max(0, viewportHeight - top + 8),
-      left: (centerX - (commandBarWidth / 2)) / zoomFactor,
-      scale: 1 / zoomFactor,
-      top: (top - 8) / zoomFactor,
+      left: (windowDimensions.offsetLeft ?? 0) +
+        ((centerX - (commandBarWidth / 2)) / effectiveZoom),
+      scale: 1 / effectiveZoom,
+      top: (windowDimensions.offsetTop ?? 0) + ((top - 8) / effectiveZoom),
       width: commandBarWidth,
     };
   },
 
   positionInBrowserWindow() {
+    const viewport = globalThis.visualViewport;
     const geometry = this.calculateFrameGeometry(
       {
-        innerHeight: globalThis.innerHeight,
-        innerWidth: globalThis.innerWidth,
+        innerHeight: viewport?.height ?? globalThis.innerHeight,
+        innerWidth: viewport?.width ?? globalThis.innerWidth,
+        offsetLeft: viewport?.offsetLeft ?? 0,
+        offsetTop: viewport?.offsetTop ?? 0,
         outerHeight: globalThis.outerHeight,
         outerWidth: globalThis.outerWidth,
+        visualScale: viewport?.scale ?? 1,
       },
       this.zoomFactor,
       Settings.get("commandBarCenter"),

@@ -415,7 +415,7 @@ const messageHandlers = {
     }
   },
   showMessage(request) {
-    HUD.show(request.message, 2000);
+    HUD.show(request.message, request.duration ?? 2000);
   },
 };
 

@@ -270,8 +270,56 @@ function nextZoomLevel(currentZoom, steps) {
   }
 }
 
+const TAB_SLOTS_STORAGE_KEY = "tabSlots";
+
+function normalizedTabSlot(slot) {
+  const value = Number(slot);
+  return Number.isInteger(value) && value >= 1 && value <= 9 ? value : null;
+}
+
+async function getTabSlotState(openTabs = null) {
+  const [stored, tabs] = await Promise.all([
+    chrome.storage.session.get(TAB_SLOTS_STORAGE_KEY),
+    openTabs == null ? chrome.tabs.query({}) : Promise.resolve(openTabs),
+  ]);
+  const slots = stored[TAB_SLOTS_STORAGE_KEY] ?? {};
+  const tabsById = new Map(tabs.map((tab) => [tab.id, tab]));
+  let changed = false;
+  for (const [slot, tabId] of Object.entries(slots)) {
+    if (normalizedTabSlot(slot) == null || !tabsById.has(tabId)) {
+      delete slots[slot];
+      changed = true;
+    }
+  }
+  if (changed) await chrome.storage.session.set({ [TAB_SLOTS_STORAGE_KEY]: slots });
+  return { slots, tabsById };
+}
+
+function tabStatusLabel(tab) {
+  return tab?.title?.trim() || tab?.url?.trim() || "Untitled tab";
+}
+
+async function showTabStatus(tabId, text, duration) {
+  if (tabId == null || !text) return;
+  await Promise.resolve(
+    chrome.tabs.sendMessage(tabId, {
+      handler: "showMessage",
+      message: text,
+      duration,
+    }, { frameId: 0 }),
+  ).catch(() => {});
+}
+
+function formatTabSlots(slots, tabsById) {
+  const labels = Object.entries(slots)
+    .sort(([a], [b]) => Number(a) - Number(b))
+    .map(([slot, tabId]) => `${slot} ${tabStatusLabel(tabsById.get(tabId))}`);
+  return labels.length > 0 ? `Tab slots · ${labels.join("   ·   ")}` : "No tab slots set";
+}
+
 let recentTabCycle = null;
 let recentTabCycleQueue = Promise.resolve();
+let tabSlotCycleQueue = Promise.resolve();
 
 function resetRecentTabCycle() {
   recentTabCycle = null;
@@ -294,6 +342,7 @@ function getRecentTabCycleSettings() {
 async function startRecentTabCycle(currentTabId, pressedAt, size) {
   await bgUtils.tabRecency.init();
   const openTabs = await chrome.tabs.query({});
+  const tabsById = new Map(openTabs.map((tab) => [tab.id, tab]));
   const openTabIds = new Set(openTabs.map((tab) => tab.id));
   const tabIds = bgUtils.tabRecency.getTabsByRecency()
     .filter((tabId) => openTabIds.has(tabId));
@@ -317,7 +366,24 @@ async function startRecentTabCycle(currentTabId, pressedAt, size) {
     nextIndex: cycleTabIds.length > 1 ? 1 : 0,
     size,
     tabIds: cycleTabIds,
+    tabsById,
   };
+}
+
+function formatRecentTabCycle() {
+  if (recentTabCycle?.tabIds.length <= 1) return "No other tabs to cycle";
+  const orderedIds = Array.from(
+    { length: recentTabCycle.tabIds.length - 1 },
+    (_, offset) =>
+      recentTabCycle.tabIds[
+        (recentTabCycle.nextIndex + offset) % recentTabCycle.tabIds.length
+      ],
+  ).filter((id) => id !== recentTabCycle.activeTabId);
+  const labels = orderedIds.map((id, index) => {
+    const prefix = index === 0 ? "Next" : "Then";
+    return `${prefix}: ${tabStatusLabel(recentTabCycle.tabsById.get(id))}`;
+  });
+  return labels.join("   ·   ");
 }
 
 async function selectNextRecentTab(currentTabId, pressedAt) {
@@ -333,7 +399,10 @@ async function selectNextRecentTab(currentTabId, pressedAt) {
     recentTabCycle.lastPressedAt = pressedAt;
   }
 
-  if (recentTabCycle.tabIds.length <= 1) return;
+  if (recentTabCycle.tabIds.length <= 1) {
+    await showTabStatus(currentTabId, formatRecentTabCycle(), timeoutMs);
+    return;
+  }
 
   while (recentTabCycle.tabIds.length > 0) {
     const index = recentTabCycle.nextIndex % recentTabCycle.tabIds.length;
@@ -342,6 +411,7 @@ async function selectNextRecentTab(currentTabId, pressedAt) {
     try {
       if (await selectSpecificTab({ id })) {
         recentTabCycle.activeTabId = id;
+        await showTabStatus(id, formatRecentTabCycle(), timeoutMs);
         return;
       }
     } catch {
@@ -367,6 +437,33 @@ function queueNextRecentTab(fallbackCurrentTabId) {
   // Keep the queue usable after a real selection error while still returning that error to the
   // command invocation which encountered it.
   recentTabCycleQueue = selection.catch(() => {});
+  return selection;
+}
+
+function queueNextTabSlot(fallbackCurrentTabId) {
+  const selection = tabSlotCycleQueue.then(async () => {
+    const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const currentTabId = activeTab?.id ?? fallbackCurrentTabId;
+    const state = await getTabSlotState();
+    const slottedTabIds = Object.entries(state.slots)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([, tabId]) => tabId);
+    if (slottedTabIds.length === 0) {
+      await showTabStatus(currentTabId, "No tab slots set", 2000);
+      return;
+    }
+    const currentIndex = slottedTabIds.indexOf(currentTabId);
+    const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % slottedTabIds.length;
+    const nextTabId = slottedTabIds[nextIndex];
+    if (await selectSpecificTab({ id: nextTabId })) {
+      await showTabStatus(
+        nextTabId,
+        formatTabSlots(state.slots, state.tabsById),
+        2400,
+      );
+    }
+  });
+  tabSlotCycleQueue = selection.catch(() => {});
   return selection;
 }
 
@@ -486,6 +583,31 @@ const BackgroundCommands = {
       await bgUtils.runTabOperation(() => chrome.tabs.update(tab.id, { pinned: !tab.pinned }));
     });
   },
+  async pinTabToSlot({ tab, registryEntry }) {
+    const slot = normalizedTabSlot(registryEntry.options.slot);
+    if (slot == null) return;
+    const { slots } = await getTabSlotState();
+    for (const [existingSlot, tabId] of Object.entries(slots)) {
+      if (tabId === tab.id) delete slots[existingSlot];
+    }
+    slots[slot] = tab.id;
+    await chrome.storage.session.set({ [TAB_SLOTS_STORAGE_KEY]: slots });
+    const state = await getTabSlotState();
+    await showTabStatus(tab.id, formatTabSlots(state.slots, state.tabsById), 2400);
+  },
+  async goToTabSlot({ registryEntry }) {
+    const slot = normalizedTabSlot(registryEntry.options.slot);
+    if (slot == null) return;
+    const state = await getTabSlotState();
+    const tabId = state.slots[slot];
+    if (tabId == null) return;
+    if (!await selectSpecificTab({ id: tabId })) {
+      delete state.slots[slot];
+      await chrome.storage.session.set({ [TAB_SLOTS_STORAGE_KEY]: state.slots });
+      return;
+    }
+    await showTabStatus(tabId, formatTabSlots(state.slots, state.tabsById), 2400);
+  },
   toggleMuteTab,
   moveTabLeft: moveTab,
   moveTabRight: moveTab,
@@ -555,6 +677,10 @@ const BackgroundCommands = {
     await queueNextRecentTab(tab.id);
   },
 
+  async cycleTabSlots({ tab }) {
+    await queueNextTabSlot(tab.id);
+  },
+
   async reload(request) {
     await reloadTabs(request, false);
   },
@@ -610,7 +736,14 @@ async function removeTabsRelative(direction, { count, tab }) {
 // Selects a tab before or after the currently selected tab.
 // - direction: "next", "previous", "first" or "last".
 async function selectTab(direction, { count, tab }) {
-  const tabs = await chrome.tabs.query(visibleTabsQueryArgs);
+  const [queriedTabs, groups] = await Promise.all([
+    chrome.tabs.query(visibleTabsQueryArgs),
+    chrome.tabGroups.query({ windowId: tab.windowId }),
+  ]);
+  const collapsedGroupIds = new Set(
+    groups.filter((group) => group.collapsed).map((group) => group.id),
+  );
+  const tabs = queriedTabs.filter((candidate) => !collapsedGroupIds.has(candidate.groupId));
   if (tabs.length <= 1) return;
   const toSelect = (() => {
     switch (direction) {
@@ -758,6 +891,14 @@ const sendRequestHandlers = {
   },
   getCurrentZoom({ tabId }) {
     return chrome.tabs.getZoom(tabId);
+  },
+  async getTabSlots() {
+    const { slots, tabsById } = await getTabSlotState();
+    return Object.entries(slots).map(([slot, tabId]) => ({
+      slot: Number(slot),
+      tabId,
+      title: tabStatusLabel(tabsById.get(tabId)),
+    }));
   },
   openUrlInNewTab: createRepeatCommand(async (request, callback) => {
     await TabOperations.openUrlInNewTab(request, callback);
@@ -912,6 +1053,7 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
   if (tabLoadedHandlers[tabId]) {
     delete tabLoadedHandlers[tabId];
   }
+  getTabSlotState().catch(() => {});
   chrome.storage.session.get("findModeRawQueryListIncognito", function (items) {
     if (items.findModeRawQueryListIncognito) {
       return chrome.windows != null
@@ -925,6 +1067,19 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
         : undefined;
     }
   });
+});
+
+chrome.tabs.onReplaced.addListener(async (addedTabId, removedTabId) => {
+  const stored = await chrome.storage.session.get(TAB_SLOTS_STORAGE_KEY);
+  const slots = stored[TAB_SLOTS_STORAGE_KEY] ?? {};
+  let changed = false;
+  for (const slot of Object.keys(slots)) {
+    if (slots[slot] === removedTabId) {
+      slots[slot] = addedTabId;
+      changed = true;
+    }
+  }
+  if (changed) await chrome.storage.session.set({ [TAB_SLOTS_STORAGE_KEY]: slots });
 });
 
 // Convenience function for development use.
@@ -1007,6 +1162,7 @@ Object.assign(globalThis, {
   BackgroundCommands,
   nextZoomLevel,
   resetRecentTabCycle,
+  getTabSlotState,
   selectSpecificTab,
   handleExtensionCommand,
 });

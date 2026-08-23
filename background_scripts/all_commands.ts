@@ -405,6 +405,39 @@ const allCommands = [
   },
 
   {
+    name: "cycleTabSlots",
+    desc: "Cycle through numbered Suda tab slots",
+    shortDesc: "Cycle tab slots",
+    group: "tabs",
+    background: true,
+    noRepeat: true,
+  },
+
+  {
+    name: "pinTabToSlot",
+    desc: "Pin the current tab to a numbered Suda slot",
+    shortDesc: "Pin tab to slot",
+    options: {
+      slot: "The numbered slot (1-9) to assign to the current tab.",
+    },
+    group: "tabs",
+    background: true,
+    noRepeat: true,
+  },
+
+  {
+    name: "goToTabSlot",
+    desc: "Go to a tab in a numbered Suda slot",
+    shortDesc: "Go to tab slot",
+    options: {
+      slot: "The numbered slot (1-9) to open.",
+    },
+    group: "tabs",
+    background: true,
+    noRepeat: true,
+  },
+
+  {
     name: "firstTab",
     desc: "Go to the first tab",
     group: "tabs",

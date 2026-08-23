@@ -207,6 +207,7 @@ type CommandBarMode = {
 
 type SetModeOptions = {
   completer?: string;
+  draftKey?: string;
   newTab?: boolean;
   query?: string;
   selectFirst?: boolean;
@@ -343,8 +344,13 @@ export function reset() {
 export async function activate(options) {
   Utils.assertType(CommandBarShowOptions, options || {});
   await Settings.onLoaded();
-  const commandToOptionsToKeys =
-    (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys ?? {};
+  const hasExplicitQuery = Object.hasOwn(options ?? {}, "query");
+  const [storedCommands, storedDrafts] = await Promise.all([
+    chrome.storage.session.get("commandToOptionsToKeys"),
+    chrome.storage.session.get("commandBarDrafts"),
+  ]);
+  const commandToOptionsToKeys = storedCommands.commandToOptionsToKeys ?? {};
+  const commandBarDrafts = storedDrafts.commandBarDrafts ?? {};
   userSearchEngines.set(Settings.get("searchEngines"));
 
   const defaults = {
@@ -357,6 +363,7 @@ export async function activate(options) {
     mode: "search",
     currentUrl: "",
     linkSelectionCount: 0,
+    draftKey: null,
   };
 
   options = Object.assign(defaults, options);
@@ -365,6 +372,7 @@ export async function activate(options) {
     ui = new CommandBarUI();
   }
   ui.prepareToActivate();
+  ui.setDrafts(commandBarDrafts);
   ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
@@ -372,8 +380,9 @@ export async function activate(options) {
   ui.setPrefixCount(options.prefixCount);
   ui.setMode(options.mode, {
     completer: options.completer,
+    draftKey: options.draftKey,
     newTab: options.newTab,
-    query: options.query,
+    query: hasExplicitQuery ? options.query : commandBarDrafts[options.draftKey] ?? "",
     selectFirst: options.selectFirst,
   });
   ui.setActiveUserSearchEngine(userSearchEngines.keywordToEngine[options.keyword]);
@@ -400,10 +409,15 @@ class CommandBarUI {
     this.activeUserSearchEngine = null;
     // Used for synchronizing requests and responses to the background page.
     this.lastRequestId = null;
+    this.drafts = {};
+    this.draftKey = null;
   }
 
   setQuery(query) {
     this.input.value = query;
+  }
+  setDrafts(drafts) {
+    this.drafts = drafts;
   }
   setActiveUserSearchEngine(userSearchEngine) {
     this.activeUserSearchEngine = userSearchEngine;
@@ -433,6 +447,7 @@ class CommandBarUI {
     const isModeless = name.length === 0;
     const isModeSelector = name === modeSelector.name;
     this.mode = name;
+    this.draftKey = options.draftKey ?? (isModeless ? "all" : name);
     this.setInitialSelectionValue(
       (options.selectFirst ?? mode?.selectFirst ?? true) ? 0 : -1,
     );
@@ -514,6 +529,7 @@ class CommandBarUI {
       this.onHiddenCallback = onHiddenCallback;
     }
     this.isHiding = true;
+    this.persistDraft();
     this.input.blur();
     this.reset();
     if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
@@ -546,6 +562,13 @@ class CommandBarUI {
     this.seenTabToOpenCompletionList = false;
     this.lastRequestId = null;
     this.marks = [];
+  }
+
+  persistDraft() {
+    if (!this.draftKey) return;
+    const value = this.previousInputValue ?? this.input.value;
+    this.drafts[this.draftKey] = value;
+    chrome.storage.session.set({ commandBarDrafts: this.drafts });
   }
 
   updateSelection() {
@@ -1018,6 +1041,7 @@ class CommandBarUI {
     this.cancelCompletions();
 
     if (["modes", "local"].includes(this.completerName)) {
+      this.persistDraft();
       this.update();
       return;
     }
@@ -1038,6 +1062,7 @@ class CommandBarUI {
       this.previousInputValue = null;
       this.selection = -1;
     }
+    this.persistDraft();
     this.update();
   }
 

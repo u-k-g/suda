@@ -435,8 +435,8 @@ const helixKeyMappings = {
   // Goto mode
   "gg": "scrollToTop",
   "ge": "scrollToBottom",
-  "gh": "previousTab",
-  "gl": "nextTab",
+  "gj": "nextTab",
+  "gk": "previousTab",
   "gi": "focusInput",
 
   // Modes and selection-first actions
@@ -446,7 +446,8 @@ const helixKeyMappings = {
   "x": "selectLine",
   "y": "copyCurrentUrl",
   "P": "openCopiedUrlInNewTab",
-  "r": "cycleRecentTabs",
+  "r": "cycleTabSlots",
+  "R": "cycleRecentTabs",
   "u": "goBack",
   "U": "goForward",
 
@@ -475,6 +476,17 @@ const helixKeyMappings = {
   "<c-w>H": "moveTabLeft",
   "<c-w>L": "moveTabRight",
   "<c-w>p": "togglePinTab",
+
+  // Numbered tab slots. These are intentionally separate from Chrome's native pinned-tab state.
+  ...Object.fromEntries(
+    Array.from({ length: 9 }, (_, index) => {
+      const slot = index + 1;
+      return [
+        [`p${slot}`, `pinTabToSlot slot=${slot}`],
+        [`g${slot}`, `goToTabSlot slot=${slot}`],
+      ];
+    }).flat(),
+  ),
 };
 
 export {

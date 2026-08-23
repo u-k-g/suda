@@ -227,7 +227,7 @@ context("disabled actions", () => {
       (await chrome.storage.session.get("normalModeKeyStateMapping")).normalModeKeyStateMapping;
 
     assert.equal("Edit URL", mapping["<space>"].e.desc);
-    assert.equal("Previous tab", mapping.g.h.desc);
+    assert.equal("Previous tab", mapping.g.k.desc);
     assert.equal("Top of page", mapping.g.g.desc);
   });
 
@@ -315,7 +315,7 @@ context("Validate commands and options data structures", () => {
 
     CommandBar.activateAll(0);
 
-    assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
+    assert.equal({ completer: "omni", mode: "", draftKey: "all", newTab: true }, openOptions);
   });
 
   should("optionally replace the current URL from the main command bar", () => {
@@ -323,10 +323,10 @@ context("Validate commands and options data structures", () => {
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
     CommandBar.activateAll(0, { options: { replaceCurrentUrl: true } });
-    assert.equal({ completer: "omni", mode: "", newTab: false }, openOptions);
+    assert.equal({ completer: "omni", mode: "", draftKey: "all", newTab: false }, openOptions);
 
     CommandBar.activateAll(0, { options: { replaceCurrentUrl: "false" } });
-    assert.equal({ completer: "omni", mode: "", newTab: true }, openOptions);
+    assert.equal({ completer: "omni", mode: "", draftKey: "all", newTab: true }, openOptions);
   });
 
   should("open command selection in actions mode", () => {
@@ -335,7 +335,12 @@ context("Validate commands and options data structures", () => {
 
     CommandBar.activateCommandSelection(0, { options: {} });
 
-    assert.equal({ completer: "commands", mode: "actions", selectFirst: true }, openOptions);
+    assert.equal({
+      completer: "commands",
+      mode: "actions",
+      draftKey: "actions",
+      selectFirst: true,
+    }, openOptions);
   });
 
   should("prefill the replace-current main command bar for activateEditUrl", () => {
@@ -350,6 +355,7 @@ context("Validate commands and options data structures", () => {
       mode: "",
       newTab: false,
       query: "https://example.com/path",
+      draftKey: "edit-url",
     }, openOptions);
   });
 
@@ -359,8 +365,9 @@ context("Validate commands and options data structures", () => {
     assert.equal(800, Settings.defaultOptions.fastScrollStepSize);
   });
 
-  should("bind Helix r to recent-tab cycling while keeping only soft reload under Space", () => {
-    assert.equal("cycleRecentTabs", helixKeyMappings["r"]);
+  should("bind Helix Shift-R to recent-tab cycling while keeping soft reload under Space", () => {
+    assert.equal("cycleRecentTabs", helixKeyMappings["R"]);
+    assert.equal("cycleTabSlots", helixKeyMappings["r"]);
     assert.equal("reload", helixKeyMappings["<space>r"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>R"));
   });
@@ -369,11 +376,20 @@ context("Validate commands and options data structures", () => {
     assert.equal("enterCaretMode", helixKeyMappings["a"]);
   });
 
-  should("bind gh and gl to the previous and next tabs", () => {
-    assert.equal("previousTab", helixKeyMappings["gh"]);
-    assert.equal("nextTab", helixKeyMappings["gl"]);
+  should("bind gj and gk to the next and previous tabs", () => {
+    assert.equal("nextTab", helixKeyMappings["gj"]);
+    assert.equal("previousTab", helixKeyMappings["gk"]);
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "gh"));
+    assert.isFalse(Object.hasOwn(helixKeyMappings, "gl"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "gn"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "gp"));
+  });
+
+  should("bind numbered tab slots under p and g", () => {
+    for (let slot = 1; slot <= 9; slot++) {
+      assert.equal(`pinTabToSlot slot=${slot}`, helixKeyMappings[`p${slot}`]);
+      assert.equal(`goToTabSlot slot=${slot}`, helixKeyMappings[`g${slot}`]);
+    }
   });
 
   should("use Helix-style forward, reverse, next, and previous search bindings", () => {

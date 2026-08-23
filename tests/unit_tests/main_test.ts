@@ -282,6 +282,76 @@ context("tab navigation", () => {
 
     await BackgroundCommands.nextTab({ count: 1, tab: tabs[0] });
   });
+
+  should("skip tabs in collapsed tab groups", async () => {
+    const tabs = [
+      { id: 1, index: 0, groupId: -1, windowId: 7 },
+      { id: 2, index: 1, groupId: 20, windowId: 7 },
+      { id: 3, index: 2, groupId: -1, windowId: 7 },
+    ];
+    let selectedTabId;
+    stub(chrome.tabs, "query", async () => tabs);
+    stub(chrome.tabGroups, "query", async () => [{ id: 20, collapsed: true }]);
+    stub(chrome.tabs, "update", async (id) => selectedTabId = id);
+
+    await BackgroundCommands.nextTab({ count: 1, tab: tabs[0] });
+
+    assert.equal(3, selectedTabId);
+  });
+});
+
+context("numbered tab slots", () => {
+  setup(() => chrome.storage.session.remove("tabSlots"));
+
+  should("assign and visit a numbered tab slot", async () => {
+    const tabs = [
+      { id: 10, title: "One", windowId: 1 },
+      { id: 20, title: "Two", windowId: 1 },
+    ];
+    let selectedTabId;
+    stub(chrome.tabs, "query", async () => tabs);
+    stub(chrome.tabs, "get", async (id) => tabs.find((tab) => tab.id === id));
+    stub(chrome.tabs, "sendMessage", async () => {});
+    stub(chrome.tabs, "update", async (id) => selectedTabId = id);
+    stub(chrome.windows, "update", async () => {});
+
+    await BackgroundCommands.pinTabToSlot({
+      tab: tabs[1],
+      registryEntry: { options: { slot: "3" } },
+    });
+    await BackgroundCommands.goToTabSlot({ registryEntry: { options: { slot: "3" } } });
+
+    assert.equal({ "3": 20 }, (await chrome.storage.session.get("tabSlots")).tabSlots);
+    assert.equal(20, selectedTabId);
+  });
+
+  should("cycle only assigned slots in numeric order", async () => {
+    const tabs = [
+      { id: 10, title: "Unassigned", windowId: 1 },
+      { id: 20, title: "Slot two", windowId: 1 },
+      { id: 30, title: "Slot five", windowId: 1 },
+    ];
+    let activeTabId = 10;
+    const selectedTabIds = [];
+    await chrome.storage.session.set({ tabSlots: { "2": 20, "5": 30 } });
+    stub(chrome.tabs, "query", async (queryInfo) => {
+      if (queryInfo.active) return [{ id: activeTabId }];
+      return tabs;
+    });
+    stub(chrome.tabs, "get", async (id) => tabs.find((tab) => tab.id === id));
+    stub(chrome.tabs, "sendMessage", async () => {});
+    stub(chrome.tabs, "update", async (id) => {
+      activeTabId = id;
+      selectedTabIds.push(id);
+    });
+    stub(chrome.windows, "update", async () => {});
+
+    await BackgroundCommands.cycleTabSlots({ tab: tabs[0] });
+    await BackgroundCommands.cycleTabSlots({ tab: tabs[1] });
+    await BackgroundCommands.cycleTabSlots({ tab: tabs[2] });
+
+    assert.equal([20, 30, 20], selectedTabIds);
+  });
 });
 
 context("cycleRecentTabs command", () => {
@@ -292,7 +362,8 @@ context("cycleRecentTabs command", () => {
   let selectedTabIds;
   let activeTabId;
 
-  setup(() => {
+  setup(async () => {
+    await chrome.storage.session.remove("tabSlots");
     cycleSize = 5;
     cycleTimeoutMs = 400;
     now = 1000;

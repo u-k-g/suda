@@ -53,6 +53,29 @@ context("CommandBar page zoom geometry", () => {
     });
   }
 
+  should("compensate for trackpad pinch zoom and visual-viewport panning", () => {
+    const zoomFactor = 1.25;
+    const visualScale = 1.6;
+    const geometry = CommandBar.calculateFrameGeometry(
+      {
+        innerHeight: 900 / (zoomFactor * visualScale),
+        innerWidth: 1400 / (zoomFactor * visualScale),
+        offsetLeft: 75,
+        offsetTop: 40,
+        outerHeight: 1000,
+        outerWidth: 1600,
+        visualScale,
+      },
+      zoomFactor,
+      "window",
+    );
+
+    assert.equal(780, geometry.width);
+    assert.equal(210, (geometry.left - 75) * zoomFactor * visualScale);
+    assert.equal(222, (geometry.top - 40) * zoomFactor * visualScale);
+    assert.equal(1, geometry.scale * zoomFactor * visualScale);
+  });
+
   should("center horizontally within the current tab when configured", () => {
     const zoomFactor = 1.25;
     const geometry = CommandBar.calculateFrameGeometry(
@@ -1012,6 +1035,21 @@ context("Key mapping", () => {
       ],
       shownHints.continuations,
     );
+  });
+
+  should("cancel an unfinished prefix when the prefix key is pressed again", () => {
+    normalMode.setKeyMapping({
+      "<space>": {
+        f: { command: "followLink", desc: "Follow link", options: {} },
+      },
+    });
+
+    normalMode.handleKeyChar("<space>");
+    assert.equal(["<space>"], normalMode.keySequence);
+    normalMode.handleKeyChar("<space>");
+
+    assert.equal([], normalMode.keySequence);
+    assert.isTrue(normalMode.isInResetState());
   });
 
   should("recognize pass keys", () => {
