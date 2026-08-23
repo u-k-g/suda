@@ -83,11 +83,12 @@ context("hud page", () => {
       continuations: [
         { key: "f", description: "Select links, then choose an action" },
         { key: ">", description: "Go forward" },
+        { key: "1 - 9", description: "Go to tab slot" },
       ],
     });
 
     assert.equal(
-      ["Space", "f", ">"],
+      ["Space", "f", ">", "1 - 9"],
       Array.from(document.querySelectorAll("#hud kbd")).map((element) => element.textContent),
     );
     assert.isTrue(document.querySelector("#hud").textContent.includes("Select links"));

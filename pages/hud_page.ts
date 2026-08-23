@@ -94,6 +94,9 @@ function ensureClipboardIsAvailable() {
 }
 
 function keyLabel(key) {
+  // Synthetic range hints are display text, not modifier sequences. Keep their literal hyphen
+  // instead of formatting it like the `-` in `<c-x>` as a `+` separator.
+  if (key.includes(" - ")) return key;
   const namedKeys = {
     space: "Space",
     escape: "Esc",
