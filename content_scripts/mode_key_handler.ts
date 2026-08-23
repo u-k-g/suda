@@ -158,35 +158,23 @@ class KeyHandlerMode extends Mode {
         this.exit();
       }
     } else if (this.options.showKeyHints) {
-      const continuations = Object.entries(this.keyState[0]).map(([key, mapping]) => ({
+      let continuations = Object.entries(this.keyState[0]).map(([key, mapping]) => ({
         key,
         description: mapping.desc ?? "More shortcuts",
       }));
+      const prefix = this.keySequence.join("");
+      if (["g", "p"].includes(prefix) && continuations.some(({ key }) => /^\d$/.test(key))) {
+        continuations = [
+          ...continuations.filter(({ key }) => !/^\d$/.test(key)),
+          {
+            key: "1 - 9",
+            description: prefix === "p" ? "Set tab slot" : "Go to tab slot",
+          },
+        ];
+      }
       HUD.showKeyHints(this.keySequence, continuations);
-      this.showTabSlotKeyHints(continuations);
     }
     return this.suppressEvent;
-  }
-
-  async showTabSlotKeyHints(continuations) {
-    const prefix = this.keySequence.join("");
-    if (!["g", "p"].includes(prefix)) return;
-    const slots = await chrome.runtime.sendMessage({ handler: "getTabSlots" });
-    if (this.keySequence.join("") !== prefix) return;
-    const slotsByNumber = Object.fromEntries(
-      (Array.isArray(slots) ? slots : []).map((slot) => [slot.slot, slot]),
-    );
-    const enriched = continuations.map((continuation) => {
-      if (!/^\d$/.test(continuation.key)) return continuation;
-      const slot = slotsByNumber[continuation.key];
-      return {
-        key: continuation.key,
-        description: slot == null
-          ? (prefix === "p" ? "Set empty tab slot" : "Empty tab slot")
-          : slot.title,
-      };
-    });
-    HUD.showKeyHints(this.keySequence, enriched);
   }
 }
 

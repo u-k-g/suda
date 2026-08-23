@@ -1037,6 +1037,29 @@ context("Key mapping", () => {
     );
   });
 
+  should("collapse numbered tab-slot hints into a single range", () => {
+    let shownHints = null;
+    stub(HUD, "showKeyHints", (prefix, continuations) => {
+      shownHints = { prefix, continuations };
+    });
+    normalMode.setKeyMapping({
+      p: Object.fromEntries(
+        Array.from({ length: 9 }, (_, index) => [
+          `${index + 1}`,
+          { command: "pinTabToSlot", desc: "Pin tab to slot", options: {} },
+        ]),
+      ),
+    });
+
+    normalMode.handleKeyChar("p");
+
+    assert.equal(["p"], shownHints.prefix);
+    assert.equal(
+      [{ key: "1 - 9", description: "Set tab slot" }],
+      shownHints.continuations,
+    );
+  });
+
   should("cancel an unfinished prefix when the prefix key is pressed again", () => {
     normalMode.setKeyMapping({
       "<space>": {

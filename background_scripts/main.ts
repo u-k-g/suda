@@ -892,14 +892,6 @@ const sendRequestHandlers = {
   getCurrentZoom({ tabId }) {
     return chrome.tabs.getZoom(tabId);
   },
-  async getTabSlots() {
-    const { slots, tabsById } = await getTabSlotState();
-    return Object.entries(slots).map(([slot, tabId]) => ({
-      slot: Number(slot),
-      tabId,
-      title: tabStatusLabel(tabsById.get(tabId)),
-    }));
-  },
   openUrlInNewTab: createRepeatCommand(async (request, callback) => {
     await TabOperations.openUrlInNewTab(request, callback);
   }),
