@@ -196,7 +196,8 @@ const HUD = {
     } else if (exitEventIsEscape) {
       // We don't want FindMode to handle the click events that FindMode.handleEscape can generate,
       // so we wait until the mode is closed before running it.
-      postExit = FindMode.handleEscape;
+      // Keep the class receiver: handleEscape uses FindMode's static flash state via `this`.
+      postExit = () => FindMode.handleEscape();
     }
 
     this.findMode.exit();

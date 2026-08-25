@@ -549,6 +549,27 @@ context("command completer", () => {
     },
   );
 
+  should("search actions by label, command name, and mapped key", async () => {
+    stub(chrome.storage.session, "get", async () => ({
+      commandToOptionsToKeys: {
+        "enterFindMode": { "": ["/"] },
+      },
+    }));
+    stub(Commands, "keyToRegistryEntry", {
+      "/": new RegistryEntry({ command: "enterFindMode", options: {} }),
+    });
+
+    for (const queryTerms of [["find", "page"], ["enterFindMode"], ["/"]]) {
+      const suggestions = await filterCompleter(commandCompleter, queryTerms);
+      assert.isTrue(
+        suggestions.some((suggestion) =>
+          suggestion.title === "Find on page" &&
+          suggestion.command.registryEntry.command === "enterFindMode"
+        ),
+      );
+    }
+  });
+
   should("create suggestions for different variations of the same command", async () => {
     stub(chrome.storage.session, "get", async () => ({
       commandToOptionsToKeys: {

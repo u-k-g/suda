@@ -329,7 +329,7 @@ export class CommandCompleter {
     //    "count=3": ["c3l", "c3k"],
     // }
     const commandToOptionsToKeys =
-      (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys;
+      (await chrome.storage.session.get("commandToOptionsToKeys")).commandToOptionsToKeys ?? {};
 
     // Create a RegistryEntry for the default action (no options specified) of a command.
     const createUnboundRegistryEntry = (command) => {
@@ -344,9 +344,11 @@ export class CommandCompleter {
       });
     };
 
-    const matchingCommands = allCommands.filter((command) =>
-      Settings.isActionEnabled(command.name) && ranking.matches(queryTerms, command.desc)
-    );
+    const matchingCommands = allCommands.filter((command) => {
+      const mappedKeys = Object.values(commandToOptionsToKeys[command.name] ?? {}).flat();
+      return Settings.isActionEnabled(command.name) &&
+        ranking.matches(queryTerms, command.desc, command.name, command.group, ...mappedKeys);
+    });
 
     const boundSuggestions = [];
     const unboundSuggestions = [];

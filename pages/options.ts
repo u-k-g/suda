@@ -9,6 +9,7 @@ const options = {
   accentColor: "string",
   commandBarCenter: "option",
   commandBarOnly: "boolean",
+  preserveCommandBarDrafts: "boolean",
   disabledModelessCommandBarSources: "inverted-set",
   fastScrollStepSize: "number",
   filterLinkHints: "boolean",

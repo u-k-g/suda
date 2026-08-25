@@ -272,6 +272,28 @@
                 </div>
               </div>
 
+              <div class="setting-row">
+                <div class="setting-copy">
+                  <label class="setting-name" for="setting-preserveCommandBarDrafts">
+                    Keep unfinished command-bar text
+                  </label>
+                  <div class="example">
+              Restore text after dismissing Suda's all-mode command bar without using it.
+              Dedicated command-bar modes always start empty, and pressing Enter to use the text
+              still consumes and clears it.
+            </div>
+                </div>
+                <div class="setting-control">
+                  <label class="setting-switch" for="setting-preserveCommandBarDrafts">
+                    <input
+                      id="setting-preserveCommandBarDrafts"
+                      name="preserveCommandBarDrafts"
+                      type="checkbox"
+                    />
+                  </label>
+                </div>
+              </div>
+
               <div class="setting-row setting-row-tall">
                 <div class="setting-copy">
                   <h2>Default command-bar sources</h2>
@@ -296,7 +318,7 @@
                 <div class="setting-copy">
                   <h2>Recent-tab cycle size</h2>
                   <div class="example">
-              The total number of recent tabs included when repeatedly pressing <tt>r</tt>,
+              The total number of recent tabs included when repeatedly pressing <tt>R</tt>,
               including the tab where the cycle starts.
             </div>
                 </div>
@@ -312,7 +334,7 @@
                 <div class="setting-copy">
                   <h2>Recent-tab cycle timeout</h2>
                   <div class="example">
-              The maximum delay between <tt>r</tt> presses that continues the current cycle.
+              The maximum delay between <tt>R</tt> presses that continues the current cycle.
             </div>
                 </div>
                 <div class="setting-control">

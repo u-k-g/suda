@@ -1652,6 +1652,22 @@ context("FindMode", () => {
     FindMode.query = null;
   });
 
+  should("cancel find through the HUD with the FindMode receiver intact", () => {
+    let handleEscapeReceiver = null;
+    HUD.findMode = {
+      restoreInitialState() {},
+      exit() {},
+    };
+    stub(FindMode, "handleEscape", function () {
+      handleEscapeReceiver = this;
+    });
+
+    HUD.hideFindMode({ exitEventIsEnter: false, exitEventIsEscape: true });
+    HUD.findMode = null;
+
+    assert.equal(FindMode, handleEscapeReceiver);
+  });
+
   should("find text which crosses inline element boundaries", () => {
     document.getElementById("test-div").innerHTML =
       "A phrase <strong>split across</strong> several <span>elements</span>.";

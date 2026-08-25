@@ -325,6 +325,12 @@ const commandBarModesByName: Record<string, CommandBarMode> = Object.fromEntries
   [...commandBarModes, linkActionMode].map((mode) => [mode.name, mode]),
 );
 
+function draftStorageKey(draftKey) {
+  // Draft preservation belongs only to the shared all/modeless command bar. Dedicated modes
+  // deliberately start with an empty query every time they are opened.
+  return draftKey === "all" ? "commandBarDraft:all" : null;
+}
+
 function isCommandBarModeEnabled(mode) {
   // The selector is itself a valid route to Actions even when its optional direct activation
   // binding is disabled. This is especially important in command-bar-only mode.
@@ -345,12 +351,20 @@ export async function activate(options) {
   Utils.assertType(CommandBarShowOptions, options || {});
   await Settings.onLoaded();
   const hasExplicitQuery = Object.hasOwn(options ?? {}, "query");
-  const [storedCommands, storedDrafts] = await Promise.all([
+  const requestedDraftStorageKey = draftStorageKey(options?.draftKey);
+  const preserveDrafts = Settings.get("preserveCommandBarDrafts");
+  const [storedCommands, storedDraft] = await Promise.all([
     chrome.storage.session.get("commandToOptionsToKeys"),
-    chrome.storage.session.get("commandBarDrafts"),
+    requestedDraftStorageKey == null
+      ? Promise.resolve({})
+      : preserveDrafts
+      ? chrome.storage.session.get(requestedDraftStorageKey)
+      : chrome.storage.session.remove(requestedDraftStorageKey).then(() => ({})),
   ]);
   const commandToOptionsToKeys = storedCommands.commandToOptionsToKeys ?? {};
-  const commandBarDrafts = storedDrafts.commandBarDrafts ?? {};
+  const savedDraft = requestedDraftStorageKey == null
+    ? ""
+    : storedDraft[requestedDraftStorageKey] ?? "";
   userSearchEngines.set(Settings.get("searchEngines"));
 
   const defaults = {
@@ -372,7 +386,6 @@ export async function activate(options) {
     ui = new CommandBarUI();
   }
   ui.prepareToActivate();
-  ui.setDrafts(commandBarDrafts);
   ui.setCommandToOptionsToKeys(commandToOptionsToKeys);
   ui.setShowModeDescriptions(Settings.get("showCommandBarModeDescriptions"));
   ui.currentUrl = options.currentUrl;
@@ -382,7 +395,7 @@ export async function activate(options) {
     completer: options.completer,
     draftKey: options.draftKey,
     newTab: options.newTab,
-    query: hasExplicitQuery ? options.query : commandBarDrafts[options.draftKey] ?? "",
+    query: hasExplicitQuery ? options.query : savedDraft,
     selectFirst: options.selectFirst,
   });
   ui.setActiveUserSearchEngine(userSearchEngines.keywordToEngine[options.keyword]);
@@ -400,6 +413,7 @@ class CommandBarUI {
     this.onKeyEvent = this.onKeyEvent.bind(this);
     this.onInput = this.onInput.bind(this);
     this.update = this.update.bind(this);
+    this.isActive = false;
     this.isHiding = false;
     this.hideTimeout = null;
     this.onHiddenCallback = null;
@@ -409,15 +423,11 @@ class CommandBarUI {
     this.activeUserSearchEngine = null;
     // Used for synchronizing requests and responses to the background page.
     this.lastRequestId = null;
-    this.drafts = {};
     this.draftKey = null;
   }
 
   setQuery(query) {
     this.input.value = query;
-  }
-  setDrafts(drafts) {
-    this.drafts = drafts;
   }
   setActiveUserSearchEngine(userSearchEngine) {
     this.activeUserSearchEngine = userSearchEngine;
@@ -522,16 +532,20 @@ class CommandBarUI {
   prepareToActivate() {
     if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
     this.hideTimeout = null;
+    this.isActive = true;
     this.isHiding = false;
     this.onHiddenCallback = null;
   }
 
   hide(onHiddenCallback = null) {
+    if (!this.isActive && !this.isHiding) return;
     if (!this.isHiding || onHiddenCallback != null) {
       this.onHiddenCallback = onHiddenCallback;
     }
+    const isFirstDismissal = this.isActive;
+    this.isActive = false;
     this.isHiding = true;
-    this.persistDraft();
+    if (isFirstDismissal) this.persistDraft();
     this.input.blur();
     this.reset();
     if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
@@ -567,17 +581,21 @@ class CommandBarUI {
   }
 
   persistDraft() {
-    if (!this.draftKey) return;
+    const storageKey = draftStorageKey(this.draftKey);
+    if (!storageKey) return;
+    if (!Settings.get("preserveCommandBarDrafts")) {
+      chrome.storage.session.remove(storageKey);
+      return;
+    }
     const value = this.previousInputValue ?? this.input.value;
-    this.drafts[this.draftKey] = value;
-    chrome.storage.session.set({ commandBarDrafts: this.drafts });
+    chrome.storage.session.set({ [storageKey]: value });
   }
 
   consumeDraft() {
-    if (this.draftKey) delete this.drafts[this.draftKey];
+    const storageKey = draftStorageKey(this.draftKey);
     this.input.value = "";
     this.previousInputValue = null;
-    chrome.storage.session.set({ commandBarDrafts: this.drafts });
+    if (storageKey) chrome.storage.session.remove(storageKey);
   }
 
   hideAfterCommit(onHiddenCallback = null) {
@@ -1139,7 +1157,7 @@ class CommandBarUI {
     // Losing focus to the page, browser chrome, another tab, or another application dismisses the
     // command bar. Clicks within this iframe do not blur its window.
     window.addEventListener("blur", () => {
-      if (this.isHiding) return;
+      if (!this.isActive || this.isHiding) return;
       UIComponentMessenger.postMessage({ name: "commandBarFinishMode", commit: false });
       this.hide();
     });

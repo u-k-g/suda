@@ -320,14 +320,14 @@ const allCommands = [
 
   {
     name: "enterFindMode",
-    desc: "Search forward for a regular expression",
+    desc: "Find on page",
     group: "find",
     noRepeat: true,
   },
 
   {
     name: "enterReverseFindMode",
-    desc: "Search backward for a regular expression",
+    desc: "Find backward on page",
     group: "find",
     noRepeat: true,
   },

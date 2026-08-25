@@ -310,6 +310,19 @@ context("options page", () => {
     assert.isFalse(optionsPage.getOptionEl("showCommandBarModeDescriptions").checked);
   });
 
+  should("preserve unfinished command-bar text by default and allow disabling it", async () => {
+    const preserveDrafts = optionsPage.getOptionEl("preserveCommandBarDrafts");
+    assert.isTrue(preserveDrafts.checked);
+
+    preserveDrafts.checked = false;
+    await optionsPage.saveOptions();
+
+    assert.isFalse(Settings.get("preserveCommandBarDrafts"));
+    assert.isFalse(
+      (await chrome.storage.sync.get("preserveCommandBarDrafts")).preserveCommandBarDrafts,
+    );
+  });
+
   should("center the command bar on the browser window by default", async () => {
     assert.isTrue(document.querySelector("#commandBarCenterWindow").checked);
     assert.isFalse(document.querySelector("#commandBarCenterTab").checked);

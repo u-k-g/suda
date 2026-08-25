@@ -31,7 +31,11 @@ function newKeyEvent(properties) {
 context("commandBar page", () => {
   let ui;
   setup(async () => {
-    await chrome.storage.session.remove("commandBarDrafts");
+    await chrome.storage.session.remove([
+      "commandBarDrafts",
+      "commandBarDraft:all",
+      "commandBarDraft:actions",
+    ]);
     await testHelper.jsdomStub("pages/command_bar_page.html");
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler == "filterCompletions") {
@@ -49,6 +53,7 @@ context("commandBar page", () => {
       Settings.defaultOptions.disabledModelessCommandBarSources,
     );
     Settings._settings.disabledActions = [];
+    Settings._settings.preserveCommandBarDrafts = Settings.defaultOptions.preserveCommandBarDrafts;
   });
 
   should("hide when escape is pressed", async () => {
@@ -75,6 +80,10 @@ context("commandBar page", () => {
     ui.input.value = "unfinished search";
     ui.onInput();
     ui.hide();
+    ui.onHidden();
+    // Switching away from a tab can blur its already-hidden command-bar iframe. That must not
+    // overwrite the preserved draft with the reset input's empty value.
+    window.dispatchEvent(new window.Event("blur"));
 
     await commandBarPage.activate({
       mode: "",
@@ -105,6 +114,62 @@ context("commandBar page", () => {
     });
 
     assert.equal("", ui.input.value);
+  });
+
+  should("discard dismissed text from dedicated command-bar modes", async () => {
+    await commandBarPage.activate({
+      mode: "actions",
+      completer: "commands",
+      draftKey: "actions",
+    });
+    ui.input.value = "unfinished action";
+    ui.onInput();
+    ui.hide();
+    ui.onHidden();
+
+    assert.equal(
+      undefined,
+      (await chrome.storage.session.get("commandBarDraft:actions"))["commandBarDraft:actions"],
+    );
+
+    await commandBarPage.activate({
+      mode: "actions",
+      completer: "commands",
+      draftKey: "actions",
+    });
+
+    assert.equal("", ui.input.value);
+  });
+
+  should("discard dismissed text when draft preservation is disabled", async () => {
+    Settings._settings.preserveCommandBarDrafts = false;
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+    ui.input.value = "do not restore";
+    assert.isTrue(ui.isActive);
+    ui.hide();
+    assert.equal("", ui.input.value);
+    assert.equal(
+      undefined,
+      (await chrome.storage.session.get("commandBarDraft:all"))["commandBarDraft:all"],
+    );
+
+    await commandBarPage.activate({
+      mode: "",
+      completer: "omni",
+      draftKey: "all",
+    });
+
+    assert.equal("", ui.input.value);
+    assert.equal(
+      undefined,
+      (await chrome.storage.session.get("commandBarDraft:all"))[
+        "commandBarDraft:all"
+      ],
+    );
   });
 
   should("preserve a pending completion callback while hiding", () => {

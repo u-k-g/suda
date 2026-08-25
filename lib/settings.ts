@@ -19,6 +19,7 @@ const defaultOptions = {
   recentTabCycleTimeoutMs: 350,
   smoothScroll: true,
   commandBarOnly: true,
+  preserveCommandBarDrafts: true,
   showCommandBarModeDescriptions: false,
   commandBarCenter: "window",
   disabledModelessCommandBarSources: [],

@@ -45,7 +45,7 @@ const createStorageAPI = (areaName) => {
         if (key in this.store) {
           delete this.store[key];
         }
-        globalThis.chrome.storage.onChanged.callEmpty(key);
+        globalThis.chrome.storage.onChanged.callEmpty(key, areaName);
       }
     },
 
@@ -238,12 +238,12 @@ globalThis.chrome = {
         if (this.func) return this.func(key_value, area);
       },
 
-      callEmpty(key) {
+      callEmpty(key, area = "sync") {
         chrome.runtime.lastError = undefined;
         if (this.func) {
           const items = {};
           items[key] = {};
-          this.func(items, "sync");
+          this.func(items, area);
         }
       },
     },
