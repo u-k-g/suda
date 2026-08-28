@@ -31,42 +31,57 @@ import {
 
 import * as TabOperations from "./tab_operations.js";
 
-export async function handleExtensionCommand(command, tab) {
-  if (tab?.id == null) return;
-  const actionByCommand = {
-    "open-command-bar": "CommandBar.activateAll",
-    "search-copied-text-in-new-tab": "searchCopiedTextInNewTab",
-  };
-  const action = actionByCommand[command];
-  if (action == null || !Settings.isActionEnabled(action)) return;
-  await bgUtils.runTabCallbackOperation(
-    (callback) =>
-      chrome.tabs.sendMessage(
-        tab.id,
-        {
-          handler: "runInTopFrame",
-          sourceFrameId: 0,
-          registryEntry: {
-            command: action,
-            options: {},
-          },
-        },
-        { frameId: 0 },
-        callback,
-      ),
-    command === "open-command-bar"
-      ? () => {
-        const createProperties = {
-          active: true,
-          openerTabId: tab.id,
-          url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
-        };
-        if (Number.isInteger(tab.index)) createProperties.index = tab.index + 1;
-        if (Number.isInteger(tab.windowId)) createProperties.windowId = tab.windowId;
-        return chrome.tabs.create(createProperties);
-      }
-      : null,
-  );
+const clipboardOffscreenDocumentPath = "pages/offscreen.html";
+let creatingClipboardOffscreenDocument = null;
+
+async function ensureClipboardOffscreenDocument() {
+  const documentUrl = chrome.runtime.getURL(clipboardOffscreenDocumentPath);
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: ["OFFSCREEN_DOCUMENT"],
+    documentUrls: [documentUrl],
+  });
+  if (contexts.length > 0) return;
+
+  if (creatingClipboardOffscreenDocument == null) {
+    creatingClipboardOffscreenDocument = chrome.offscreen.createDocument({
+      url: clipboardOffscreenDocumentPath,
+      reasons: ["CLIPBOARD"],
+      justification: "Read copied text when the global clipboard-search shortcut is pressed.",
+    });
+  }
+  try {
+    await creatingClipboardOffscreenDocument;
+  } finally {
+    creatingClipboardOffscreenDocument = null;
+  }
+}
+
+export async function searchClipboardTextInNewTab() {
+  await ensureClipboardOffscreenDocument();
+  const response = await chrome.runtime.sendMessage({
+    handler: "readClipboardText",
+    target: "offscreen",
+  });
+  if (response?.error) throw new Error(response.error);
+  const query = response?.text?.trim();
+  if (!query) return;
+  await chrome.search.query({ disposition: "NEW_TAB", text: query });
+}
+
+export async function handleExtensionCommand(command) {
+  // Extension shortcuts are deliberately handled without consulting or messaging the active tab.
+  // This keeps them working on excluded, protected, and pre-extension-reload pages.
+  if (command === "search-copied-text-in-new-tab") {
+    if (!Settings.isActionEnabled("searchCopiedTextInNewTab")) return;
+    return await searchClipboardTextInNewTab();
+  }
+  if (command === "open-command-bar") {
+    if (!Settings.isActionEnabled("CommandPalette.activateAll")) return;
+    return await chrome.tabs.create({
+      active: true,
+      url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
+    });
+  }
 }
 
 chrome.commands.onCommand.addListener(handleExtensionCommand);
@@ -221,7 +236,7 @@ async function selectSpecificTab(request) {
     await chrome.tabs.update(request.id, { active: true });
     return true;
   } catch (error) {
-    // Command-bar tab suggestions are snapshots. The tab can close between rendering a suggestion
+    // Command-palette tab suggestions are snapshots. The tab can close between rendering a suggestion
     // and selecting it; that expected race should not become an unchecked runtime.lastError.
     if (bgUtils.tabNoLongerExists(error)) return false;
     throw error;
@@ -896,7 +911,7 @@ const sendRequestHandlers = {
     return BackgroundCommands[request.registryEntry.command](request, sender);
   },
   // Executes a command as if it was run in normal mode by a content script.
-  // Used by the CommandBar's command completer, which can be used to execute any command in Suda.
+  // Used by the command palette's command completer, which can execute any command in Suda.
   // The "request" must contain a "count" and a valid "command: RegistryEntry" parameter.
   runNormalModeCommand(request, sender) {
     if (!Settings.isActionEnabled(request.command.command)) return;
@@ -1170,6 +1185,7 @@ Object.assign(globalThis, {
   getTabSlotState,
   selectSpecificTab,
   handleExtensionCommand,
+  searchClipboardTextInNewTab,
 });
 
 // The chrome.runtime.onStartup and onInstalled events are not fired when disabling and then

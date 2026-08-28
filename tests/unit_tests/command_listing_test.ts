@@ -42,6 +42,13 @@ context("command listing", () => {
     assert.equal(allCommands.length, rows.length);
   });
 
+  should("use Command Palette terminology", async () => {
+    await commandListing.populatePage();
+    assert.isTrue(document.body.textContent.includes("Command Palette"));
+    assert.isFalse(document.body.textContent.includes("Command Bar"));
+    assert.isFalse(document.body.textContent.includes("CommandBar."));
+  });
+
   should("exclude disabled actions", async () => {
     Settings._settings.disabledActions = ["hardReload"];
 

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Suda",
   "version": "2.4.2",
-  "description": "The Hacker's Browser. Suda provides keyboard shortcuts for fast, keyboard-first navigation and control.",
+  "description": "Helix-inspired, keyboard-first browser navigation with a focused command palette.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -35,7 +35,9 @@
     "scripting",
     "favicon",
     "webNavigation",
-    "search"
+    "search",
+    "offscreen",
+    "clipboardRead"
   ],
   "commands": {
     "open-command-bar": {
@@ -43,12 +45,12 @@
         "default": "Ctrl+T",
         "mac": "Command+T"
       },
-      "description": "Open Suda's all-mode command bar"
+      "description": "Open Suda's all-mode command palette"
     },
     "search-copied-text-in-new-tab": {
       "suggested_key": {
-        "default": "Ctrl+Shift+T",
-        "mac": "Command+Shift+T"
+        "default": "Ctrl+Shift+V",
+        "mac": "Command+Shift+V"
       },
       "description": "Search copied text in a new tab"
     }

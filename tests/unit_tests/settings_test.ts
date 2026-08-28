@@ -22,7 +22,7 @@ context("settings", () => {
     });
   });
 
-  context("command-bar settings migration", () => {
+  context("command-palette settings migration", () => {
     teardown(async () => {
       await Settings.clear();
     });
@@ -42,6 +42,25 @@ context("settings", () => {
       await Settings.setSettings(Settings.getSettings());
       const stored = await chrome.storage.sync.get(null);
       assert.isFalse(Object.hasOwn(stored, "disabledCommandBarModes"));
+    });
+
+    should("rename legacy CommandBar actions without losing user settings", async () => {
+      await chrome.storage.sync.set({
+        settingsVersion: "2.4.2",
+        keyMappings: "map b CommandBar.activateBookmarks",
+        disabledActions: ["CommandBar.activateBookmarks"],
+      });
+
+      await Settings.load();
+
+      assert.equal(
+        "map b CommandPalette.activateBookmarks",
+        Settings.get("keyMappings"),
+      );
+      assert.equal(
+        ["CommandPalette.activateBookmarks"],
+        Settings.get("disabledActions"),
+      );
     });
   });
 

@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   isEnabledForUrl = true;
   await Settings.onLoaded();
   // Most DOM tests exercise page modes directly, so opt into them explicitly now that fresh
-  // installations default to command-bar-only mode.
+  // installations default to command-palette-only mode.
   Settings._settings.commandBarOnly = false;
   await HUD.init();
 });

@@ -1,4 +1,4 @@
-// A UIComponent is an iframe containing a Suda extension page, like the CommandBar. This class
+// A UIComponent is an iframe containing a Suda extension page, like the command palette. This class
 // provides methods that content scripts can use to interact with that page:
 // - show
 // - hide

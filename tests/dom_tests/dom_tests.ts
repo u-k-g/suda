@@ -3,7 +3,7 @@ let commandCount = null;
 let commandName = null;
 
 // Some tests have side effects on the handler stack and the active mode, so these are reset on
-// setup. Also, some tests affect the focus (e.g. CommandBar tests), so we make sure the window has
+// setup. Also, some tests affect the focus (e.g. command-palette tests), so we make sure the window has
 // the focus.
 const initializeModeState = () => {
   globalThis.focus();
@@ -31,7 +31,7 @@ const getHintMarkerEls = () => Array.from(document.querySelectorAll(".sudaHintMa
 
 const stubSettings = (key, value) => stub(Settings._settings, key, value);
 
-context("CommandBar page zoom geometry", () => {
+context("command palette page zoom geometry", () => {
   for (const zoomFactor of [0.8, 1, 1.25]) {
     should(`retain its visual size and position at ${zoomFactor * 100}% zoom`, () => {
       const geometry = CommandBar.calculateFrameGeometry(
@@ -97,7 +97,7 @@ context("CommandBar page zoom geometry", () => {
   });
 });
 
-context("CommandBar dismissal", () => {
+context("command palette dismissal", () => {
   should("cancel an open which is still waiting for positioning", async () => {
     let finishPositioning;
     let didShow = false;
@@ -1105,7 +1105,7 @@ context("Key mapping", () => {
     assert.isTrue(handlerCalled);
   });
 
-  should("pass mapped keys through in command-bar-only mode", () => {
+  should("pass mapped keys through in command-palette-only mode", () => {
     stubSettings("commandBarOnly", true);
     const event = new KeyboardEvent("keydown", {
       bubbles: true,

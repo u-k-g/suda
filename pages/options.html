@@ -82,12 +82,12 @@
               <div class="setting-row">
                 <div class="setting-copy">
                   <label class="setting-name" for="setting-commandBarOnly">
-                    Command bar only
+                    Command palette only
                   </label>
                   <div class="example">
               Disable Suda's normal, insert, and other page modes so every page keystroke passes
               through untouched. Suda remains available through
-              <strong>Open Suda's all-mode command bar</strong>, configured at
+              <strong>Open Suda's all-mode command palette</strong>, configured at
               <a href="chrome://extensions/shortcuts"><code>chrome://extensions/shortcuts</code></a>.
             </div>
                 </div>
@@ -187,7 +187,7 @@
                 <div class="setting-copy">
                   <h2>Custom search engines</h2>
                   <div class="example">
-              Add Command Bar shortcuts using <code>keyword: URL description</code>. The
+              Add Command Palette shortcuts using <code>keyword: URL description</code>. The
               <code>%s</code> placeholder is replaced with the search terms.
               For search completion, see
               <a href="doc_search_completion.html" target="_blank">here</a>.
@@ -223,7 +223,7 @@
                         name="openCommandBarOnNewTabPage"
                       >
                       <label for="openCommandBarOnNewTabPage">
-                  Open the CommandBar when the page loads
+                  Open the Command Palette when the page loads
                 </label>
                     </div>
                     <input
@@ -240,11 +240,11 @@
                 </div>
               </div>
 
-              <header class="settings-section-heading">Command Bar</header>
+              <header class="settings-section-heading">Command Palette</header>
 
               <div class="setting-row">
                 <div class="setting-copy">
-                  <h2>Center command bar on</h2>
+                  <h2>Center command palette on</h2>
                   <div class="example">
               Horizontally center relative to the full browser window or only the current page
               viewport. Vertical placement always uses the browser window.
@@ -275,11 +275,11 @@
               <div class="setting-row">
                 <div class="setting-copy">
                   <label class="setting-name" for="setting-preserveCommandBarDrafts">
-                    Keep unfinished command-bar text
+                    Keep unfinished command-palette text
                   </label>
                   <div class="example">
-              Restore text after dismissing Suda's all-mode command bar without using it.
-              Dedicated command-bar modes always start empty, and pressing Enter to use the text
+              Restore text after dismissing Suda's all-mode command palette without using it.
+              Dedicated command-palette modes always start empty, and pressing Enter to use the text
               still consumes and clears it.
             </div>
                 </div>
@@ -296,9 +296,9 @@
 
               <div class="setting-row setting-row-tall">
                 <div class="setting-copy">
-                  <h2>Default command-bar sources</h2>
+                  <h2>Default command-palette sources</h2>
                   <div class="example">
-              Choose which existing suggestion sources are combined when the command bar has no
+              Choose which existing suggestion sources are combined when the command palette has no
               active mode. Suda actions are always included. Dedicated modes are unaffected.
             </div>
                 </div>
@@ -420,7 +420,7 @@
               <div class="setting-row">
                 <div class="setting-copy">
                   <label class="setting-name"
-                    for="setting-showCommandBarModeDescriptions">Show descriptions in the command-bar mode selector</label>
+                    for="setting-showCommandBarModeDescriptions">Show descriptions in the command-palette mode selector</label>
                   <div class="example">
               Display explanatory subtext below mode names such as <tt>find</tt>, <tt>tabs</tt>, and
               <tt>url</tt>.
@@ -597,7 +597,7 @@
                 <div class="setting-copy">
                   <h2>CSS for Suda UI</h2>
                   <div class="example">
-              These styles are applied to link hints, the CommandBar, the help dialog, the exclusions
+              These styles are applied to link hints, the Command Palette, the help dialog, the exclusions
               pop-up and the HUD.<br>
               By default, this CSS is used to style the characters next to each link hint.<br>
               <br>
@@ -642,15 +642,15 @@
               </div>
 
               <aside class="new-tab-command-bar-guide" aria-labelledby="new-tab-command-bar-title">
-                <h2 id="new-tab-command-bar-title">Replace new tabs with the Command Bar</h2>
-                <p>Make your browser's new-tab shortcut open Suda's all-mode Command Bar:</p>
+                <h2 id="new-tab-command-bar-title">Replace new tabs with the Command Palette</h2>
+                <p>Make your browser's new-tab shortcut open Suda's all-mode Command Palette:</p>
                 <ol>
                   <li>
                     Open
                     <a href="chrome://extensions/shortcuts"><code>chrome://extensions/shortcuts</code></a>.
                   </li>
                   <li>
-                    Find Suda and set <strong>Open Suda's all-mode command bar</strong> to
+                    Find Suda and set <strong>Open Suda's all-mode command palette</strong> to
                     <kbd>Cmd</kbd> + <kbd>T</kbd> on macOS or <kbd>Ctrl</kbd> + <kbd>T</kbd> on
                     W*ndows and Linux.
                   </li>

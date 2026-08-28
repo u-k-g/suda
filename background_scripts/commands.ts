@@ -459,16 +459,16 @@ const helixKeyMappings = {
 
   // Space mode: browser pickers and actions.
   "<space>f": "LinkHints.activateMode",
-  "<space>h": "CommandBar.activateHistory",
-  "<space>t": "CommandBar.activateAll",
-  "<space>b": "CommandBar.activateTabSelection",
-  "<space>B": "CommandBar.activateBookmarks",
-  "<space>e": "CommandBar.activateEditUrl",
+  "<space>h": "CommandPalette.activateHistory",
+  "<space>t": "CommandPalette.activateAll",
+  "<space>b": "CommandPalette.activateTabSelection",
+  "<space>B": "CommandPalette.activateBookmarks",
+  "<space>e": "CommandPalette.activateEditUrl",
   "<space>m": "Marks.activateCreateMode",
-  "<space>'": "CommandBar.activateMarks",
+  "<space>'": "CommandPalette.activateMarks",
   "<space>r": "reload",
   "<space>,": "openOptionsPage",
-  ":": "CommandBar.activateModeSelection",
+  ":": "CommandPalette.activateModeSelection",
 
   // Window mode: tabs are the browser equivalent of editor windows.
   "<c-w>q": "removeTab",

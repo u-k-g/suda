@@ -94,7 +94,7 @@ context("action page", () => {
     assert.isTrue(document.querySelector("#manage-extension-access").hidden);
   });
 
-  should("offers the extension command bar as a protected-page fallback", async () => {
+  should("offer the extension command palette as a protected-page fallback", async () => {
     let created;
     const tab = { id: 42, index: 3, url: "chrome://extensions/", windowId: 7 };
     stub(chrome.tabs, "create", (properties) => created = properties);

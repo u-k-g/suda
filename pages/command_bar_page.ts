@@ -1,6 +1,6 @@
 //
-// This controls the contents of the CommandBar iframe. We use an iframe to avoid changing the
-// selection on the page (useful for bookmarklets), ensure that the CommandBar style is unaffected by
+// This controls the contents of the command-palette iframe. We use an iframe to avoid changing the
+// selection on the page (useful for bookmarklets), ensure that the palette style is unaffected by
 // the page, and simplify key handling in suda_frontend.js
 //
 
@@ -215,22 +215,22 @@ type SetModeOptions = {
 
 const modeSelector: CommandBarMode = {
   name: "modes",
-  description: "Choose a command-bar mode",
+  description: "Choose a command-palette mode",
   aliases: "mode selector scopes",
   icon: "tornado",
-  bindingCommands: ["CommandBar.activateModeSelection"],
+  bindingCommands: ["CommandPalette.activateModeSelection"],
 };
 
 const commandBarModes: CommandBarMode[] = [
   {
     name: "search",
-    description: "Open the main command bar",
+    description: "Open the main command palette",
     aliases: "all modeless navigate url new tab",
     completer: "omni",
     newTab: true,
     targetMode: "",
     icon: "globe",
-    bindingCommands: ["CommandBar.activateAll"],
+    bindingCommands: ["CommandPalette.activateAll"],
   },
   {
     name: "history",
@@ -239,7 +239,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "history",
     selectFirst: true,
     icon: "clock-counter-clockwise",
-    bindingCommands: ["CommandBar.activateHistory"],
+    bindingCommands: ["CommandPalette.activateHistory"],
   },
   {
     name: "tabs",
@@ -248,7 +248,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "tabs",
     selectFirst: true,
     icon: "tabs",
-    bindingCommands: ["CommandBar.activateTabSelection"],
+    bindingCommands: ["CommandPalette.activateTabSelection"],
   },
   {
     name: "bookmarks",
@@ -257,7 +257,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "bookmarks",
     selectFirst: true,
     icon: "folder-open",
-    bindingCommands: ["CommandBar.activateBookmarks"],
+    bindingCommands: ["CommandPalette.activateBookmarks"],
   },
   {
     name: "url",
@@ -267,7 +267,7 @@ const commandBarModes: CommandBarMode[] = [
     newTab: false,
     targetMode: "",
     icon: "pencil-simple",
-    bindingCommands: ["CommandBar.activateEditUrl"],
+    bindingCommands: ["CommandPalette.activateEditUrl"],
   },
   {
     name: "actions",
@@ -276,7 +276,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "commands",
     selectFirst: true,
     icon: "command",
-    bindingCommands: ["CommandBar.activateCommandSelection"],
+    bindingCommands: ["CommandPalette.activateCommandSelection"],
   },
   {
     name: "marks",
@@ -285,7 +285,7 @@ const commandBarModes: CommandBarMode[] = [
     completer: "local",
     selectFirst: true,
     icon: "map-pin",
-    bindingCommands: ["CommandBar.activateMarks"],
+    bindingCommands: ["CommandPalette.activateMarks"],
   },
 ];
 
@@ -326,20 +326,20 @@ const commandBarModesByName: Record<string, CommandBarMode> = Object.fromEntries
 );
 
 function draftStorageKey(draftKey) {
-  // Draft preservation belongs only to the shared all/modeless command bar. Dedicated modes
+  // Draft preservation belongs only to the shared all/modeless command palette. Dedicated modes
   // deliberately start with an empty query every time they are opened.
   return draftKey === "all" ? "commandBarDraft:all" : null;
 }
 
 function isCommandBarModeEnabled(mode) {
   // The selector is itself a valid route to Actions even when its optional direct activation
-  // binding is disabled. This is especially important in command-bar-only mode.
+  // binding is disabled. This is especially important in command-palette-only mode.
   if (mode.name === "actions") return true;
   return mode.bindingCommands.length === 0 ||
     mode.bindingCommands.some((action) => Settings.isActionEnabled(action));
 }
 
-// An instance of CommandBarUI. Exported for use by tests.
+// An instance of the command-palette UI. Exported for use by tests.
 export let ui;
 
 // Used for tests.
@@ -475,7 +475,7 @@ class CommandBarUI {
     this.input.placeholder = isModeless
       ? "Search or enter URL"
       : isModeSelector
-      ? "Search command-bar modes"
+      ? "Search command-palette modes"
       : name;
     UIComponentMessenger.postMessage({ name: "commandBarModeChanged", mode: name });
   }
@@ -521,13 +521,13 @@ class CommandBarUI {
       !Settings.get("disabledModelessCommandBarSources").includes(source);
   }
 
-  // The sequence of events when the commandBar is hidden:
+  // The sequence of events when the command palette is hidden:
   // 1. Post a "hide" message to the host page.
-  // 2. The host page hides the commandBar.
+  // 2. The host page hides the command palette.
   // 3. When that page receives the focus, it posts back a "hidden" message.
   // 4. Only once the "hidden" message is received here is onHiddenCallback called.
   //
-  // This ensures that the commandBar is actually hidden before any new tab is created, and avoids
+  // This ensures that the command palette is actually hidden before any new tab is created, and avoids
   // flicker after opening a link in a new tab then returning to the original tab. See #1485.
   prepareToActivate() {
     if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
@@ -550,7 +550,7 @@ class CommandBarUI {
     this.reset();
     if (this.hideTimeout != null) clearTimeout(this.hideTimeout);
     // Wait until this iframe's DOM has been rendered before hiding the iframe. This is to prevent
-    // Chrome caching the previous visual state of the commandBar iframe. See #4708.
+    // Chrome caching the previous visual state of the command-palette iframe. See #4708.
     this.hideTimeout = setTimeout(() => {
       this.hideTimeout = null;
       UIComponentMessenger.postMessage({ name: "hide" });
@@ -750,7 +750,7 @@ class CommandBarUI {
     } else if (action === "enter") {
       await this.handleEnterKey(event);
     } else if (action === "ctrl-enter") {
-      // Populate the commandBar with the current selection's URL.
+      // Populate the command palette with the current selection's URL.
       if (
         !this.isUserSearchEngineActive() && this.completerName != "commands" &&
         (this.selection >= 0)
@@ -798,12 +798,12 @@ class CommandBarUI {
     let query = this.input.value.trim();
 
     // Note that it's possible that this.completions is empty. This can happen in practice if the
-    // user hits enter quickly after loading the commandBar, before the filterCompletions request to
+    // user hits enter quickly after loading the command palette, before the filterCompletions request to
     // the background page finishes.
     const waitingOnCompletions = this.completions.length == 0;
     const completion = this.completions[this.selection];
 
-    // "modes" is the modeless command bar's built-in route to the selector. Handle it from the
+    // "modes" is the modeless command palette's built-in route to the selector. Handle it from the
     // input itself too, so pressing Enter before asynchronous completions arrive still works.
     if (this.mode === "" && query.toLowerCase() === modeSelector.name) {
       this.enterMode(modeSelector.name);
@@ -842,7 +842,7 @@ class CommandBarUI {
 
     // If the user types something and hits enter without selecting a completion from the list,
     // then:
-    //   - If they've activated a custom search engine in the CommandBar, launch that search using the
+    //   - If they've activated a custom search engine in the command palette, launch that search using the
     //     typed-in query.
     //   - Otherwise, open the query as a URL or create a default search as appropriate.
     //
@@ -1085,7 +1085,7 @@ class CommandBarUI {
     }
 
     // For custom search engines, we suppress the leading prefix (e.g. the "w" of "w query terms")
-    // within the commandBar input.
+    // within the command-palette input.
     if (
       this.isModelessSourceEnabled("search") && !this.isUserSearchEngineActive() &&
       this.getUserSearchEngineForQuery() != null
@@ -1159,18 +1159,18 @@ class CommandBarUI {
 
     window.addEventListener("focus", () => this.input.focus());
     // Losing focus to the page, browser chrome, another tab, or another application dismisses the
-    // command bar. Clicks within this iframe do not blur its window.
+    // command palette. Clicks within this iframe do not blur its window.
     window.addEventListener("blur", () => {
       if (!this.isActive || this.isHiding) return;
       UIComponentMessenger.postMessage({ name: "commandBarFinishMode", commit: false });
       this.hide();
     });
-    // A click in the commandBar itself refocuses the input.
+    // A click in the command palette itself refocuses the input.
     this.box.addEventListener("click", (event) => {
       this.input.focus();
       return event.stopImmediatePropagation();
     });
-    // A click anywhere else hides the commandBar.
+    // A click anywhere else hides the command palette.
     document.addEventListener("click", () => {
       UIComponentMessenger.postMessage({ name: "commandBarFinishMode", commit: false });
       this.hide();

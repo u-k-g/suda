@@ -28,7 +28,7 @@ function newKeyEvent(properties) {
   );
 }
 
-context("commandBar page", () => {
+context("command palette page", () => {
   let ui;
   setup(async () => {
     await chrome.storage.session.remove([
@@ -65,7 +65,7 @@ context("commandBar page", () => {
     assert.equal("", ui.input.value);
   });
 
-  should("hide when the command bar window loses focus", () => {
+  should("hide when the command palette window loses focus", () => {
     ui.setQuery("www.example.com");
     window.dispatchEvent(new window.Event("blur"));
     assert.equal("", ui.input.value);
@@ -81,7 +81,7 @@ context("commandBar page", () => {
     ui.onInput();
     ui.hide();
     ui.onHidden();
-    // Switching away from a tab can blur its already-hidden command-bar iframe. That must not
+    // Switching away from a tab can blur its already-hidden command-palette iframe. That must not
     // overwrite the preserved draft with the reset input's empty value.
     window.dispatchEvent(new window.Event("blur"));
 
@@ -116,7 +116,7 @@ context("commandBar page", () => {
     assert.equal("", ui.input.value);
   });
 
-  should("discard dismissed text from dedicated command-bar modes", async () => {
+  should("discard dismissed text from dedicated command-palette modes", async () => {
     await commandBarPage.activate({
       mode: "actions",
       completer: "commands",
@@ -193,13 +193,13 @@ context("commandBar page", () => {
     assert.isTrue(ui.isHiding);
   });
 
-  should("use the bold command-bar search icon", () => {
+  should("use the bold command-palette search icon", () => {
     const searchIcon = document.querySelector(".command-bar-search-icon");
     assert.equal("bold", searchIcon.dataset.phosphorWeight);
     assert.isTrue(searchIcon.classList.contains("ph-icon-bold"));
   });
 
-  should("open without an active mode as the combined command bar", async () => {
+  should("open without an active mode as the combined command palette", async () => {
     await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
 
     assert.equal("", ui.mode);
@@ -271,7 +271,7 @@ context("commandBar page", () => {
   });
 
   should("hide modes whose activation actions are disabled", async () => {
-    Settings._settings.disabledActions = ["CommandBar.activateTabSelection"];
+    Settings._settings.disabledActions = ["CommandPalette.activateTabSelection"];
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
     ui.setQuery("tabs");
     await ui.update();
@@ -279,12 +279,12 @@ context("commandBar page", () => {
     assert.isFalse(ui.completions.some((completion) => completion.commandBarMode === "tabs"));
   });
 
-  should("keep Actions and its shortcut visible in command-bar-only mode", async () => {
+  should("keep Actions and its shortcut visible in command-palette-only mode", async () => {
     Settings._settings.commandBarOnly = true;
-    Settings._settings.disabledActions = ["CommandBar.activateCommandSelection"];
+    Settings._settings.disabledActions = ["CommandPalette.activateCommandSelection"];
     await chrome.storage.session.set({
       commandToOptionsToKeys: {
-        "CommandBar.activateCommandSelection": { "": ["<space>a"] },
+        "CommandPalette.activateCommandSelection": { "": ["<space>a"] },
       },
     });
 
@@ -305,7 +305,7 @@ context("commandBar page", () => {
   should("render mode shortcuts from the live key mappings", async () => {
     await chrome.storage.session.set({
       commandToOptionsToKeys: {
-        "CommandBar.activateTabSelection": { "": ["<space>b"] },
+        "CommandPalette.activateTabSelection": { "": ["<space>b"] },
       },
     });
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
@@ -323,7 +323,7 @@ context("commandBar page", () => {
   should("use the edit-URL action for the URL mode", async () => {
     await chrome.storage.session.set({
       commandToOptionsToKeys: {
-        "CommandBar.activateEditUrl": { "": ["<space>e"] },
+        "CommandPalette.activateEditUrl": { "": ["<space>e"] },
       },
     });
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
@@ -347,10 +347,10 @@ context("commandBar page", () => {
     await chrome.storage.session.remove("commandToOptionsToKeys");
   });
 
-  should("use the main command-bar action for the search mode", async () => {
+  should("use the main command-palette action for the search mode", async () => {
     await chrome.storage.session.set({
       commandToOptionsToKeys: {
-        "CommandBar.activateAll": { "": ["<space>t"] },
+        "CommandPalette.activateAll": { "": ["<space>t"] },
       },
     });
     await commandBarPage.activate({ mode: "modes", completer: "modes" });
@@ -486,7 +486,7 @@ context("commandBar page", () => {
     }
   });
 
-  should("omit disabled sources only from the modeless command bar", async () => {
+  should("omit disabled sources only from the modeless command palette", async () => {
     let modelessRequest = null;
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler === "filterCompletions") {
@@ -636,7 +636,7 @@ context("commandBar page", () => {
     assert.equal("www.example.com", url);
   });
 
-  should("replace the current URL from the combined command bar when requested", async () => {
+  should("replace the current URL from the combined command palette when requested", async () => {
     await commandBarPage.activate({ mode: "", completer: "omni", newTab: false });
     ui.setQuery("www.example.com");
     let handler = null;

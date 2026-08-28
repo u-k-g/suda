@@ -217,7 +217,7 @@ function installListener(element, event, callback) {
         onUnload();
         return;
       }
-      // Command-bar-only mode deliberately bypasses the entire mode stack. The native extension
+      // Command-palette-only mode deliberately bypasses the entire mode stack. The native extension
       // command still reaches runInTopFrame through the runtime message listener, and the command
       // bar installs its own UI listeners when opened.
       const commandBarOnly = Settings.isLoaded() && Settings.get("commandBarOnly");
@@ -268,7 +268,7 @@ async function initializeOnDomReady() {
   const isSudaNewTabPage = document.location.href.startsWith(Settings.sudaNewTabPageUrl);
   if (!isSudaNewTabPage) return;
 
-  // Show the CommandBar.
+  // Show the command palette.
   await Settings.onLoaded();
   const forcedAllMode = new URL(document.location.href).searchParams.get("sudaCommandBar") ===
     "all";

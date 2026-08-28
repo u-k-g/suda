@@ -126,11 +126,11 @@ context("options page", () => {
     }
   });
 
-  should("explain how to replace the new-tab shortcut with the command bar", () => {
+  should("explain how to replace the new-tab shortcut with the command palette", () => {
     const guide = document.querySelector(".new-tab-command-bar-guide");
 
     assert.equal(
-      "Replace new tabs with the Command Bar",
+      "Replace new tabs with the Command Palette",
       guide.querySelector("h2").textContent,
     );
     assert.isTrue(guide.textContent.includes("chrome://extensions/shortcuts"));
@@ -139,11 +139,11 @@ context("options page", () => {
       "chrome://extensions/shortcuts",
       guide.querySelector('a[href="chrome://extensions/shortcuts"]').getAttribute("href"),
     );
-    assert.isTrue(guide.textContent.includes("Open Suda's all-mode command bar"));
+    assert.isTrue(guide.textContent.includes("Open Suda's all-mode command palette"));
     assert.equal(guide, document.querySelector("#settings-grid-container").lastElementChild);
   });
 
-  should("enable command-bar-only mode by default and allow disabling it", async () => {
+  should("enable command-palette-only mode by default and allow disabling it", async () => {
     const commandBarOnly = optionsPage.getOptionEl("commandBarOnly");
     assert.isTrue(commandBarOnly.checked);
     assert.isTrue(
@@ -314,11 +314,11 @@ context("options page", () => {
     assert.isFalse(optionsPage.getOptionEl("openCommandBarOnNewTabPage").checked);
   });
 
-  should("hide command-bar mode descriptions by default", () => {
+  should("hide command-palette mode descriptions by default", () => {
     assert.isFalse(optionsPage.getOptionEl("showCommandBarModeDescriptions").checked);
   });
 
-  should("preserve unfinished command-bar text by default and allow disabling it", async () => {
+  should("preserve unfinished command-palette text by default and allow disabling it", async () => {
     const preserveDrafts = optionsPage.getOptionEl("preserveCommandBarDrafts");
     assert.isTrue(preserveDrafts.checked);
 
@@ -331,7 +331,7 @@ context("options page", () => {
     );
   });
 
-  should("center the command bar on the browser window by default", async () => {
+  should("center the command palette on the browser window by default", async () => {
     assert.isTrue(document.querySelector("#commandBarCenterWindow").checked);
     assert.isFalse(document.querySelector("#commandBarCenterTab").checked);
 
@@ -340,7 +340,7 @@ context("options page", () => {
     assert.equal("tab", Settings.get("commandBarCenter"));
   });
 
-  should("use the configured command-bar source defaults", () => {
+  should("use the configured command-palette source defaults", () => {
     const uncheckedSourceValues = Array.from(
       document.querySelectorAll('[name="disabledModelessCommandBarSources"]:not(:checked)'),
     ).map((element) => element.value);

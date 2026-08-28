@@ -26,7 +26,7 @@ class NormalMode extends KeyHandlerMode {
     });
 
     // Listen and handle "command" events coming from the background and originally sent from the
-    // CommandBar page.
+    // command-palette page.
     Utils.addChromeRuntimeOnMessageListener(["runNormalModeCommand"], (request, _sender) => {
       this.commandHandler(request);
     });
@@ -37,11 +37,11 @@ class NormalMode extends KeyHandlerMode {
 
     if (
       [
-        "CommandBar.activateCommandSelection",
-        "CommandBar.activateModeSelection",
+        "CommandPalette.activateCommandSelection",
+        "CommandPalette.activateModeSelection",
       ].includes(registryEntry.command)
     ) {
-      // Store the raw count so the CommandBar can propagate it to the selected command.
+      // Store the raw count so the command palette can propagate it to the selected command.
       registryEntry.options.prefixCount = count;
     }
 
@@ -340,14 +340,14 @@ const NormalModeCommands = {
 
   "LinkHints.activateMode": LinkHints.activateMode.bind(LinkHints),
 
-  "CommandBar.activateAll": CommandBar.activateAll.bind(CommandBar),
-  "CommandBar.activateModeSelection": CommandBar.activateModeSelection.bind(CommandBar),
-  "CommandBar.activateHistory": CommandBar.activateHistory.bind(CommandBar),
-  "CommandBar.activateMarks": CommandBar.activateMarks.bind(CommandBar),
-  "CommandBar.activateTabSelection": CommandBar.activateTabSelection.bind(CommandBar),
-  "CommandBar.activateBookmarks": CommandBar.activateBookmarks.bind(CommandBar),
-  "CommandBar.activateCommandSelection": CommandBar.activateCommandSelection.bind(CommandBar),
-  "CommandBar.activateEditUrl": CommandBar.activateEditUrl.bind(CommandBar),
+  "CommandPalette.activateAll": CommandBar.activateAll.bind(CommandBar),
+  "CommandPalette.activateModeSelection": CommandBar.activateModeSelection.bind(CommandBar),
+  "CommandPalette.activateHistory": CommandBar.activateHistory.bind(CommandBar),
+  "CommandPalette.activateMarks": CommandBar.activateMarks.bind(CommandBar),
+  "CommandPalette.activateTabSelection": CommandBar.activateTabSelection.bind(CommandBar),
+  "CommandPalette.activateBookmarks": CommandBar.activateBookmarks.bind(CommandBar),
+  "CommandPalette.activateCommandSelection": CommandBar.activateCommandSelection.bind(CommandBar),
+  "CommandPalette.activateEditUrl": CommandBar.activateEditUrl.bind(CommandBar),
 
   "Marks.activateCreateMode": Marks.activateCreateMode.bind(Marks),
 };

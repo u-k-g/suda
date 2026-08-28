@@ -419,7 +419,7 @@ input#upload-backup {
 /*
  * Options page
  *
- * The options page uses the same visual language as the command bar: a flat overlay panel,
+ * The options page uses the same visual language as the command palette: a flat overlay panel,
  * hairline-separated rows, eyebrow section labels, rounded controls, and an accent-colored
  * primary action. Keep these rules scoped so options.css can continue to provide the base
  * styles for action.html.
@@ -597,7 +597,7 @@ body.options-page #settings-grid-container > header:first-child {
 }
 
 /* Setting rows read as single unified rows separated by hairlines, like the keybindings table
- * and the command bar's completion list. */
+ * and the command palette's completion list. */
 body.options-page #settings-grid-container > :not(header):not(.spacer):not(.validation-message),
 body.options-page #link-hint-characters-container > *,
 body.options-page #link-hint-numbers-container > *,

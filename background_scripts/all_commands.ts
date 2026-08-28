@@ -241,20 +241,20 @@ const allCommands = [
   },
 
   //
-  // CommandBar
+  // Command palette
   //
 
   {
-    name: "CommandBar.activateModeSelection",
-    desc: "Open the command-bar mode selector",
+    name: "CommandPalette.activateModeSelection",
+    desc: "Open the command-palette mode selector",
     group: "commandBar",
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "CommandBar.activateAll",
-    desc: "Open the command bar",
+    name: "CommandPalette.activateAll",
+    desc: "Open the command palette",
     shortDesc: "Search or open URL",
     options: {
       replaceCurrentUrl: "Replace the current tab's URL with the selected destination instead of " +
@@ -266,8 +266,8 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateHistory",
-    desc: "Search history using the command bar",
+    name: "CommandPalette.activateHistory",
+    desc: "Search history using the command palette",
     shortDesc: "Search history",
     group: "commandBar",
     topFrame: true,
@@ -275,8 +275,8 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateMarks",
-    desc: "Jump to a page mark using the command bar",
+    name: "CommandPalette.activateMarks",
+    desc: "Jump to a page mark using the command palette",
     shortDesc: "Jump to mark",
     group: "commandBar",
     topFrame: true,
@@ -284,19 +284,19 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateBookmarks",
+    name: "CommandPalette.activateBookmarks",
     desc: "Open a bookmark",
     shortDesc: "Search bookmarks",
     group: "commandBar",
     options: {
-      query: "The text to prefill the CommandBar with.",
+      query: "The text to prefill the command palette with.",
     },
     topFrame: true,
     noRepeat: true,
   },
 
   {
-    name: "CommandBar.activateCommandSelection",
+    name: "CommandPalette.activateCommandSelection",
     desc: "Execute a Suda action",
     group: "commandBar",
     topFrame: true,
@@ -304,7 +304,7 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateTabSelection",
+    name: "CommandPalette.activateTabSelection",
     desc: "Search through your open tabs",
     shortDesc: "Search tabs",
     group: "commandBar",
@@ -313,8 +313,8 @@ const allCommands = [
   },
 
   {
-    name: "CommandBar.activateEditUrl",
-    desc: "Open the command bar and replace the current URL",
+    name: "CommandPalette.activateEditUrl",
+    desc: "Open the command palette and replace the current URL",
     shortDesc: "Edit URL",
     group: "commandBar",
     topFrame: true,

@@ -5,7 +5,7 @@ import { helixKeyMappings, KeyMappingsParser } from "../background_scripts/comma
 
 const groupMetadata = {
   navigation: { label: "Navigation", order: 0 },
-  commandBar: { label: "Command Bar", order: 1 },
+  commandBar: { label: "Command Palette", order: 1 },
   find: { label: "Find", order: 2 },
   history: { label: "History", order: 3 },
   tabs: { label: "Tabs and windows", order: 4 },

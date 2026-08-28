@@ -1,7 +1,7 @@
 <h1 align="center">suda</h1>
 
 <p align="center">
-  zen style command bar and keyboard driven browser navigation from vimium.
+  zen style command palette and keyboard driven browser navigation from vimium.
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
 
 - helix-style bindings enabled by default
 - keyboard-driven links, tabs, history, bookmarks and search
-- a zen browser style command bar
+- a zen browser style command palette
 
 <img width="1600" height="1045" alt="image" src="https://github.com/user-attachments/assets/fc97763a-2e05-4c13-91ca-2a8f36ecedb6" />
 
@@ -38,8 +38,8 @@
 6. choose the extracted `suda` directory
 
 > **Enable keyboard-driven navigation:** click the Suda icon in the browser toolbar, open
-> **Options**, then turn off **Command bar only**. This enables Suda's normal, insert, link-hint,
-> and other page modes.
+> **Options**, then turn off **Command palette only**. This enables Suda's normal, insert,
+> link-hint, and other page modes.
 
 </details>
 

@@ -1,6 +1,6 @@
 // @ts-nocheck -- staged conversion of legacy dynamic JavaScript patterns.
 //
-// This wraps the commandBar iframe, which we inject into the page to provide the commandBar.
+// This wraps the command-palette iframe which we inject into the page.
 //
 const CommandBar = {
   commandBarUI: null,
@@ -15,7 +15,7 @@ const CommandBar = {
 
   // Cmd/Ctrl-T has already created the destination tab. Open URL mode against that tab so
   // submitting replaces the local new-tab page instead of creating another tab. It shares the
-  // main command bar's draft.
+  // main command palette's draft.
   activateNewTab(sourceFrameId) {
     this.open(sourceFrameId, {
       completer: "omni",
@@ -301,10 +301,10 @@ const CommandBar = {
     }
   },
 
-  // Opens the commandBar.
+  // Opens the command palette.
   // - commandBarShowOptions:
   //     completer: The name of the completer to fetch results from.
-  //     query: Optional. Text to prefill the CommandBar with.
+  //     query: Optional. Text to prefill the command palette with.
   //     selectFirst: Optional. Whether to select the first entry.
   //     newTab: Optional. Whether to open the result in a new tab.
   //     keyword: A keyword which will scope the search to a UserSearchEngine.
@@ -317,7 +317,7 @@ const CommandBar = {
       if (openRequestId === this.openRequestId) this.opening = false;
       return;
     }
-    // The CommandBar cannot coexist with the help dialog (it causes focus issues).
+    // The command palette cannot coexist with the help dialog (it causes focus issues).
     HelpDialog.abort();
     Utils.assertType(CommandBarShowOptions, commandBarShowOptions);
     const options = Object.assign({

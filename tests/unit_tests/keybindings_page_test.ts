@@ -167,6 +167,11 @@ context("keybindings page", () => {
     );
   });
 
+  should("label the command group as Command Palette", () => {
+    const group = document.querySelector('.binding-group[data-group="commandBar"]');
+    assert.equal("Command Palette", group.querySelector(".group-name").textContent);
+  });
+
   should("place unbound commands at the bottom of every group", () => {
     for (
       const group of document.querySelectorAll(

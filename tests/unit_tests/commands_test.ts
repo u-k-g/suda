@@ -22,7 +22,7 @@ import "../../content_scripts/command_bar.js";
 
 await Commands.init();
 
-context("CommandBar browser-window positioning", () => {
+context("command palette browser-window positioning", () => {
   should("translate an outer browser axis into viewport coordinates", () => {
     assert.equal(350, CommandBar.browserWindowCenterInViewport(1000, 850));
   });
@@ -72,7 +72,7 @@ context("KeyMappingsParser", () => {
 
   should("parse option values surrounded by quotes", () => {
     const { keyToRegistryEntry } = KeyMappingsParser.parse(
-      'map v CommandBar.activateBookmarks query="a b"',
+      'map v CommandPalette.activateBookmarks query="a b"',
     );
     const entry = keyToRegistryEntry["v"];
     assert.equal({ query: "a b" }, entry.options);
@@ -120,7 +120,7 @@ context("KeyMappingsParser", () => {
     assert.equal(1, getErrors("map j LinkHints.activateMode unknownOption=a").length);
     assert.equal(
       0,
-      getErrors("map j CommandBar.activateAll replaceCurrentUrl").length,
+      getErrors("map j CommandPalette.activateAll replaceCurrentUrl").length,
     );
   });
 
@@ -232,7 +232,7 @@ context("disabled actions", () => {
   });
 
   should(
-    "keep inactive shortcut labels available in command-bar-only mode",
+    "keep inactive shortcut labels available in command-palette-only mode",
     async () => {
       Settings._settings.disabledActions = ["scrollDown"];
       Settings._settings.commandBarOnly = true;
@@ -310,18 +310,24 @@ context("Validate commands and options data structures", () => {
     }
   });
 
+  should("expose command-palette action names without the old CommandBar prefix", () => {
+    const commandNames = allCommands.map(({ name }) => name);
+    assert.isTrue(commandNames.some((name) => name.startsWith("CommandPalette.")));
+    assert.isFalse(commandNames.some((name) => name.startsWith("CommandBar.")));
+  });
+
   should("use Helix as the only built-in key mapping", () => {
     assert.isFalse(Object.hasOwn(Settings.defaultOptions, "keyBindingMode"));
     assert.isTrue(Object.keys(helixKeyMappings).length > 0);
   });
 
-  should("route Helix picker keys through the unified command bar", () => {
-    assert.equal("CommandBar.activateModeSelection", helixKeyMappings[":"]);
-    assert.equal("CommandBar.activateMarks", helixKeyMappings["<space>'"]);
+  should("route Helix picker keys through the unified command palette", () => {
+    assert.equal("CommandPalette.activateModeSelection", helixKeyMappings[":"]);
+    assert.equal("CommandPalette.activateMarks", helixKeyMappings["<space>'"]);
     assert.equal("Marks.activateCreateMode", helixKeyMappings["<space>m"]);
-    assert.equal("CommandBar.activateAll", helixKeyMappings["<space>t"]);
+    assert.equal("CommandPalette.activateAll", helixKeyMappings["<space>t"]);
     assert.equal("openOptionsPage", helixKeyMappings["<space>,"]);
-    assert.equal("CommandBar.activateHistory", helixKeyMappings["<space>h"]);
+    assert.equal("CommandPalette.activateHistory", helixKeyMappings["<space>h"]);
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-t>"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<c-w>n"));
     assert.isFalse(Object.hasOwn(helixKeyMappings, "<space>/"));
@@ -338,7 +344,7 @@ context("Validate commands and options data structures", () => {
     assert.equal({ completer: "omni", mode: "", draftKey: "all", newTab: true }, openOptions);
   });
 
-  should("optionally replace the current URL from the main command bar", () => {
+  should("optionally replace the current URL from the main command palette", () => {
     let openOptions = null;
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
 
@@ -363,7 +369,7 @@ context("Validate commands and options data structures", () => {
     }, openOptions);
   });
 
-  should("prefill the replace-current main command bar for activateEditUrl", () => {
+  should("prefill the replace-current main command palette for activateEditUrl", () => {
     let openOptions = null;
     stub(globalThis, "location", { href: "https://example.com/path" });
     stub(CommandBar, "open", (_sourceFrameId, options) => openOptions = options);
@@ -456,14 +462,14 @@ context("Validate commands and options data structures", () => {
         "toggleViewSource",
         "showHelp",
         "Marks.activateGotoMode",
-        "CommandBar.activateFind",
-        "CommandBar.activateEditUrlInNewTab",
-        "CommandBar.activateBookmarksInNewTab",
+        "CommandPalette.activateFind",
+        "CommandPalette.activateEditUrlInNewTab",
+        "CommandPalette.activateBookmarksInNewTab",
         "visitPreviousTab",
         "goUp",
         "openCopiedUrlInCurrentTab",
-        "CommandBar.activate",
-        "CommandBar.activateInNewTab",
+        "CommandPalette.activate",
+        "CommandPalette.activateInNewTab",
       ]
     ) {
       assert.isFalse(commandNames.includes(name));
@@ -483,8 +489,8 @@ context("Validate commands and options data structures", () => {
         "passNextKey",
         "goPrevious",
         "goNext",
-        "CommandBar.activateBookmarks",
-        "CommandBar.activateCommandSelection",
+        "CommandPalette.activateBookmarks",
+        "CommandPalette.activateCommandSelection",
         "togglePinTab",
         "nextFrame",
         "mainFrame",

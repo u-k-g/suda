@@ -24,6 +24,17 @@ context("help dialog", () => {
     });
   });
 
+  should("use Suda branding", () => {
+    assert.equal("Suda Help", document.title);
+    assert.equal(
+      "Suda Help",
+      document.querySelector("#dialog h1").textContent.trim().replace(/\s+/g, " "),
+    );
+    assert.isFalse(document.body.textContent.includes("Vimium"));
+    assert.isTrue(document.body.textContent.includes("Command Palette"));
+    assert.isFalse(document.body.textContent.includes("CommandBar"));
+  });
+
   should("list reload and hard reload as separate commands", () => {
     const config = {
       "reload": {

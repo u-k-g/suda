@@ -232,7 +232,7 @@ function enhanceSettingsControls() {
   enhanceRadioGroup(document.querySelector("#new-tab-url-container"), "New tab destination");
   enhanceRadioGroup(
     document.querySelector("#command-bar-center-container"),
-    "Command bar centering",
+    "Command palette centering",
   );
 
   const createEditorDisclosure = (target, label) => {

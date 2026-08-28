@@ -33,8 +33,8 @@ const defaultOptions = {
     "passNextKey",
     "goPrevious",
     "goNext",
-    "CommandBar.activateBookmarks",
-    "CommandBar.activateCommandSelection",
+    "CommandPalette.activateBookmarks",
+    "CommandPalette.activateCommandSelection",
     "togglePinTab",
     "nextFrame",
     "mainFrame",
@@ -273,6 +273,21 @@ const Settings = {
     return settings;
   },
 
+  migrateCommandPaletteActions(settings) {
+    const rename = (name) =>
+      typeof name === "string" ? name.replace(/^CommandBar\./, "CommandPalette.") : name;
+    if (typeof settings.keyMappings === "string") {
+      settings.keyMappings = settings.keyMappings.replace(
+        /^(\s*map\s+\S+\s+)CommandBar\./gm,
+        "$1CommandPalette.",
+      );
+    }
+    if (Array.isArray(settings.disabledActions)) {
+      settings.disabledActions = settings.disabledActions.map(rename);
+    }
+    return settings;
+  },
+
   migrateHardReloadCommand(settings) {
     if (typeof settings.keyMappings !== "string") return settings;
     settings.keyMappings = settings.keyMappings.replace(
@@ -288,14 +303,14 @@ const Settings = {
       "setZoom",
       "showHelp",
       "Marks.activateGotoMode",
-      "CommandBar.activateFind",
-      "CommandBar.activateEditUrlInNewTab",
-      "CommandBar.activateBookmarksInNewTab",
+      "CommandPalette.activateFind",
+      "CommandPalette.activateEditUrlInNewTab",
+      "CommandPalette.activateBookmarksInNewTab",
       "visitPreviousTab",
       "goUp",
       "openCopiedUrlInCurrentTab",
-      "CommandBar.activate",
-      "CommandBar.activateInNewTab",
+      "CommandPalette.activate",
+      "CommandPalette.activateInNewTab",
     ]);
     if (typeof settings.keyMappings === "string") {
       settings.keyMappings = settings.keyMappings.split("\n")
@@ -351,6 +366,7 @@ const Settings = {
     settings = this.migratePre2_4_1(settings);
     settings = this.migrateLegacyKeyBindingMode(settings);
     settings = this.migrateCommandBarSettings(settings);
+    settings = this.migrateCommandPaletteActions(settings);
     settings = this.migrateHardReloadCommand(settings);
     settings = this.migrateRemovedCommands(settings);
     settings = this.migrateThemeIds(settings);

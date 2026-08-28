@@ -14,8 +14,9 @@ context("extension command", () => {
     }
   });
 
-  should("suggest the native new-tab shortcut for the all-mode command bar", () => {
+  should("suggest the native new-tab shortcut for the all-mode command palette", () => {
     const command = chrome.runtime.getManifest().commands["open-command-bar"];
+    assert.equal("Open Suda's all-mode command palette", command.description);
     assert.equal("Ctrl+T", command.suggested_key.default);
     assert.equal("Command+T", command.suggested_key.mac);
   });
@@ -23,86 +24,90 @@ context("extension command", () => {
   should("suggest platform shortcuts for searching copied text", () => {
     const command = chrome.runtime.getManifest().commands["search-copied-text-in-new-tab"];
     assert.equal("Search copied text in a new tab", command.description);
-    assert.equal("Ctrl+Shift+T", command.suggested_key.default);
-    assert.equal("Command+Shift+T", command.suggested_key.mac);
+    assert.equal("Ctrl+Shift+V", command.suggested_key.default);
+    assert.equal("Command+Shift+V", command.suggested_key.mac);
   });
 
-  should("open the all-mode command bar in the active tab's top frame", async () => {
-    let sentMessage;
-    let sentOptions;
-    stub(chrome.tabs, "sendMessage", (tabId, message, options, callback) => {
-      sentMessage = { tabId, message };
-      sentOptions = options;
-      callback();
-    });
+  should(
+    "open an extension-owned command-palette tab without messaging the active tab",
+    async () => {
+      let createdTab;
+      let tabWasMessaged = false;
+      stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+      stub(chrome.tabs, "create", async (properties) => createdTab = properties);
+      stub(chrome.tabs, "sendMessage", () => tabWasMessaged = true);
 
-    await handleExtensionCommand("open-command-bar", { id: 42 });
+      await handleExtensionCommand("open-command-bar", undefined);
 
-    assert.equal(42, sentMessage.tabId);
-    assert.equal("runInTopFrame", sentMessage.message.handler);
-    assert.equal("CommandBar.activateAll", sentMessage.message.registryEntry.command);
-    assert.equal({ frameId: 0 }, sentOptions);
-  });
+      assert.equal({
+        active: true,
+        url: "chrome-extension://suda/pages/new_tab.html?sudaCommandBar=all",
+      }, createdTab);
+      assert.isFalse(tabWasMessaged);
+    },
+  );
 
-  should("keep the native command bar available in command-bar-only mode", async () => {
-    let sentMessage;
+  should("keep the native command palette available in command-palette-only mode", async () => {
+    let createdTab;
     await Settings.onLoaded();
     Settings._settings.commandBarOnly = true;
-    stub(chrome.tabs, "sendMessage", (_tabId, message, _options, callback) => {
-      sentMessage = message;
-      callback();
-    });
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+    stub(chrome.tabs, "create", async (properties) => createdTab = properties);
 
-    await handleExtensionCommand("open-command-bar", { id: 42 });
+    await handleExtensionCommand("open-command-bar", undefined);
 
-    assert.equal("CommandBar.activateAll", sentMessage.registryEntry.command);
+    assert.isTrue(createdTab.active);
+    assert.isTrue(createdTab.url.endsWith("pages/new_tab.html?sudaCommandBar=all"));
   });
 
-  should("send the copied-text search shortcut to the active tab's top frame", async () => {
-    let sentMessage;
-    let sentOptions;
-    stub(chrome.tabs, "sendMessage", (tabId, message, options, callback) => {
-      sentMessage = { tabId, message };
-      sentOptions = options;
-      callback();
+  should("search copied text globally without messaging the active tab", async () => {
+    let offscreenCreateDetails;
+    let runtimeMessage;
+    let searchDetails;
+    let tabWasMessaged = false;
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+    stub(chrome.runtime, "getContexts", async () => []);
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      runtimeMessage = message;
+      return { text: "copied search query" };
     });
+    stub(chrome, "offscreen", {
+      createDocument: async (details) => offscreenCreateDetails = details,
+    });
+    stub(chrome.tabs, "sendMessage", () => tabWasMessaged = true);
+    stub(chrome.search, "query", async (details) => searchDetails = details);
 
-    await handleExtensionCommand("search-copied-text-in-new-tab", { id: 42 });
+    await handleExtensionCommand("search-copied-text-in-new-tab", undefined);
 
-    assert.equal(42, sentMessage.tabId);
-    assert.equal("runInTopFrame", sentMessage.message.handler);
-    assert.equal("searchCopiedTextInNewTab", sentMessage.message.registryEntry.command);
-    assert.equal({ frameId: 0 }, sentOptions);
+    assert.equal("pages/offscreen.html", offscreenCreateDetails.url);
+    assert.equal(["CLIPBOARD"], offscreenCreateDetails.reasons);
+    assert.equal({ handler: "readClipboardText", target: "offscreen" }, runtimeMessage);
+    assert.equal({ disposition: "NEW_TAB", text: "copied search query" }, searchDetails);
+    assert.isFalse(tabWasMessaged);
   });
 
-  should("ignore the native command-bar shortcut when its action is disabled", async () => {
-    let sentMessage = false;
+  should("ignore the native command-palette shortcut when its action is disabled", async () => {
+    let createdTab = false;
     await Settings.onLoaded();
-    Settings._settings.disabledActions = ["CommandBar.activateAll"];
-    stub(chrome.tabs, "sendMessage", () => sentMessage = true);
+    Settings._settings.disabledActions = ["CommandPalette.activateAll"];
+    stub(chrome.tabs, "create", () => createdTab = true);
 
-    await handleExtensionCommand("open-command-bar", { id: 42 });
+    await handleExtensionCommand("open-command-bar", undefined);
 
-    assert.isFalse(sentMessage);
+    assert.isFalse(createdTab);
   });
 
-  should("open a current-tab command bar fallback from a protected page", async () => {
+  should("ignore active-tab metadata when opening the global command palette", async () => {
     let createdTab;
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
-    stub(chrome.tabs, "sendMessage", (_tabId, _message, _options, callback) => {
-      chrome.runtime.lastError = new Error(
-        "Could not establish connection. Receiving end does not exist.",
-      );
-      callback();
-    });
     stub(chrome.tabs, "create", (properties) => createdTab = properties);
 
     await handleExtensionCommand("open-command-bar", { id: 42, index: 3, windowId: 7 });
 
     assert.equal(true, createdTab.active);
-    assert.equal(4, createdTab.index);
-    assert.equal(42, createdTab.openerTabId);
-    assert.equal(7, createdTab.windowId);
+    assert.equal(undefined, createdTab.index);
+    assert.equal(undefined, createdTab.openerTabId);
+    assert.equal(undefined, createdTab.windowId);
     assert.isTrue(createdTab.url.endsWith("pages/new_tab.html?sudaCommandBar=all"));
   });
 });
@@ -270,13 +275,16 @@ context("reload commands", () => {
 });
 
 context("selectSpecificTab", () => {
-  should("ignore a tab which closed after its command-bar suggestion was rendered", async () => {
-    stub(chrome.tabs, "get", async () => {
-      throw new Error("No tab with id: 123.");
-    });
+  should(
+    "ignore a tab which closed after its command-palette suggestion was rendered",
+    async () => {
+      stub(chrome.tabs, "get", async () => {
+        throw new Error("No tab with id: 123.");
+      });
 
-    assert.isFalse(await selectSpecificTab({ id: 123 }));
-  });
+      assert.isFalse(await selectSpecificTab({ id: 123 }));
+    },
+  );
 
   should("preserve unexpected tab-selection failures", async () => {
     stub(chrome.tabs, "get", async () => {
