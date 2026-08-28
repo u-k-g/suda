@@ -341,6 +341,8 @@ function isCommandBarModeEnabled(mode) {
 
 // An instance of the command-palette UI. Exported for use by tests.
 export let ui;
+const isActionPopup = globalThis.location?.pathname?.endsWith("/command_palette_popup.html") ??
+  false;
 
 // Used for tests.
 export function reset() {
@@ -553,7 +555,12 @@ class CommandBarUI {
     // Chrome caching the previous visual state of the command-palette iframe. See #4708.
     this.hideTimeout = setTimeout(() => {
       this.hideTimeout = null;
-      UIComponentMessenger.postMessage({ name: "hide" });
+      if (isActionPopup) {
+        this.onHidden();
+        Utils.nextTick(() => globalThis.close());
+      } else {
+        UIComponentMessenger.postMessage({ name: "hide" });
+      }
     }, 0);
   }
 
@@ -1211,6 +1218,9 @@ if (!testEnv) {
   document.addEventListener("DOMContentLoaded", async () => {
     await Settings.onLoaded();
     DomUtils.injectUserCss(); // Manually inject custom user styles.
+    if (isActionPopup) {
+      await activate({ mode: "", completer: "omni", draftKey: "all", newTab: true });
+    }
   });
   init();
 }

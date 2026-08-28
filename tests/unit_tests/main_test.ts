@@ -129,8 +129,9 @@ context("extension command", () => {
     assert.equal(chrome.runtime.getManifest().content_scripts[0].js, executeDetails.files);
   });
 
-  should("open a command-palette new-tab fallback when the current page is protected", async () => {
-    let createdTab;
+  should("open an action-popup command palette when the current page is protected", async () => {
+    const popupChanges = [];
+    let popupWasOpened = false;
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
     stub(chrome.tabs, "sendMessage", async () => {
       throw new Error("Could not establish connection. Receiving end does not exist.");
@@ -141,6 +142,36 @@ context("extension command", () => {
     stub(chrome.scripting, "executeScript", async () => {
       throw new Error("Cannot access a chrome:// URL");
     });
+    stub(chrome, "action", {
+      setPopup: async ({ popup }) => popupChanges.push(popup),
+      openPopup: async () => popupWasOpened = true,
+    });
+
+    await handleExtensionCommand("open-command-bar", { id: 42, index: 3, windowId: 7 });
+
+    assert.isTrue(popupWasOpened);
+    assert.equal([
+      "pages/command_palette_popup.html",
+      "pages/action.html",
+    ], popupChanges);
+  });
+
+  should("fall back to a new tab when action popups are unavailable", async () => {
+    let createdTab;
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+    stub(chrome.tabs, "sendMessage", async () => {
+      throw new Error("Could not establish connection. Receiving end does not exist.");
+    });
+    stub(chrome.scripting, "insertCSS", async () => {});
+    stub(chrome.scripting, "executeScript", async () => {
+      throw new Error("Cannot access a chrome:// URL");
+    });
+    stub(chrome, "action", {
+      setPopup: async () => {},
+      openPopup: async () => {
+        throw new Error("openPopup is not available");
+      },
+    });
     stub(chrome.tabs, "create", async (properties) => createdTab = properties);
 
     await handleExtensionCommand("open-command-bar", { id: 42, index: 3, windowId: 7 });
@@ -149,9 +180,34 @@ context("extension command", () => {
     assert.equal(42, createdTab.openerTabId);
     assert.equal(4, createdTab.index);
     assert.equal(7, createdTab.windowId);
+    assert.isTrue(createdTab.url.endsWith("pages/new_tab.html?sudaCommandBar=all"));
+  });
+});
+
+context("extension-page message sender", () => {
+  should("associate an action-popup command palette with the active tab", async () => {
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+    stub(chrome.runtime, "id", "suda");
+    stub(chrome.tabs, "query", async () => [{ id: 42, url: "https://example.com" }]);
+
+    const sender = await attachActiveTabToExtensionSender({
+      id: "suda",
+      url: "chrome-extension://suda/pages/command_palette_popup.html",
+    });
+
+    assert.equal(42, sender.tab.id);
+  });
+
+  should("reject other tabless extension pages", async () => {
+    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
+    stub(chrome.runtime, "id", "suda");
+
     assert.equal(
-      "chrome-extension://suda/pages/new_tab.html?sudaCommandBar=all",
-      createdTab.url,
+      null,
+      await attachActiveTabToExtensionSender({
+        id: "suda",
+        url: "chrome-extension://suda/pages/options.html",
+      }),
     );
   });
 });

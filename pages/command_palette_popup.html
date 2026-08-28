@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html class="suda-action-popup">
+  <head>
+    <title>Command Palette</title>
+    <meta name="color-scheme" content="light dark">
+    <meta charset="UTF-8">
+    <script src="../lib/theme_catalog.js"></script>
+    <script src="../lib/themes.js"></script>
+    <script type="module" src="command_bar_page.js"></script>
+    <link rel="stylesheet" type="text/css" href="../content_scripts/suda.css" />
+    <link rel="stylesheet" type="text/css" href="command_bar_page.css" />
+    <link rel="stylesheet" type="text/css" href="./key_mappings.css" />
+  </head>
+  <body>
+    <div id="commandBar">
+      <div id="commandBar-search-area">
+        <div id="command-bar-input-row">
+          <svg class="phosphor-icon ph-icon-bold command-bar-search-icon"
+            data-phosphor-weight="bold" viewBox="0 0 256 256" aria-hidden="true">
+            <path
+              d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path>
+          </svg>
+          <span id="command-bar-mode" hidden></span>
+          <input type="text" autocomplete="off">
+          <span id="command-bar-status" hidden></span>
+        </div>
+      </div>
+      <ul></ul>
+    </div>
+  </body>
+</html>

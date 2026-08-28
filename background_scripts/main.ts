@@ -92,6 +92,23 @@ async function injectCurrentContentScripts(tabId) {
 }
 
 async function openCommandPaletteFallback(tab) {
+  let popupWasOpened = false;
+  try {
+    await chrome.action.setPopup({ popup: "pages/command_palette_popup.html" });
+    await chrome.action.openPopup();
+    popupWasOpened = true;
+  } catch {
+    // openPopup is available to regular extensions on Chrome 127+. Keep the new-tab launcher as a
+    // compatibility fallback for older Chromium builds and browsers which reject the popup call.
+  }
+  try {
+    await chrome.action.setPopup({ popup: "pages/action.html" });
+  } catch {
+    // Restoring the toolbar's regular popup is best-effort and must not mask a successfully opened
+    // command palette or prevent the compatibility fallback below.
+  }
+  if (popupWasOpened) return true;
+
   const createProperties = {
     active: true,
     url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
@@ -100,6 +117,14 @@ async function openCommandPaletteFallback(tab) {
   if (Number.isInteger(tab?.index)) createProperties.index = tab.index + 1;
   if (Number.isInteger(tab?.windowId)) createProperties.windowId = tab.windowId;
   return await chrome.tabs.create(createProperties);
+}
+
+export async function attachActiveTabToExtensionSender(sender) {
+  if (sender.tab != null) return sender;
+  const popupUrl = chrome.runtime.getURL("pages/command_palette_popup.html");
+  if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(popupUrl)) return null;
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  return tab?.id == null ? null : { ...sender, tab };
 }
 
 export async function openGlobalCommandPalette(tab) {
@@ -1104,6 +1129,8 @@ const sendRequestHandlers = {
 Utils.addChromeRuntimeOnMessageListener(
   Object.keys(sendRequestHandlers),
   async function (request, sender) {
+    sender = await attachActiveTabToExtensionSender(sender);
+    if (sender == null) return;
     Utils.debugLog(
       "main.js: onMessage:%ourl:%otab:%oframe:%o",
       request.handler,
@@ -1112,8 +1139,6 @@ Utils.addChromeRuntimeOnMessageListener(
       sender.frameId,
       // request // Often useful for debugging.
     );
-    // We expect messages to come from a content script in a tab. Ignore messages without one.
-    if (sender.tab == null) return;
     await Settings.onLoaded();
     request = Object.assign({ count: 1 }, request, {
       tab: sender.tab,
@@ -1252,6 +1277,7 @@ Object.assign(globalThis, {
   handleExtensionCommand,
   openGlobalCommandPalette,
   searchClipboardTextInNewTab,
+  attachActiveTabToExtensionSender,
 });
 
 // The chrome.runtime.onStartup and onInstalled events are not fired when disabling and then

@@ -27,6 +27,30 @@ body {
   padding: 0;
 }
 
+/* Browser-owned action popups are anchored beneath the toolbar icon and have an opaque native
+ * surface. Shrink-wrap that surface around the palette instead of leaving a large empty stage. */
+html.suda-action-popup,
+html.suda-action-popup body {
+  background: #111;
+  min-width: 780px;
+  width: 780px;
+}
+
+html.suda-action-popup body {
+  padding: 8px;
+}
+
+html.suda-action-popup #commandBar {
+  left: auto;
+  position: relative;
+  top: auto;
+  width: 100%;
+}
+
+html.suda-action-popup #commandBar ul {
+  max-height: 256px;
+}
+
 ul {
   list-style: none;
   margin: 0;
