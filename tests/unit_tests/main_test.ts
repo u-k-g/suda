@@ -28,36 +28,31 @@ context("extension command", () => {
     assert.equal("Command+Shift+V", command.suggested_key.mac);
   });
 
-  should(
-    "open an extension-owned command-palette tab without messaging the active tab",
-    async () => {
-      let createdTab;
-      let tabWasMessaged = false;
-      stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
-      stub(chrome.tabs, "create", async (properties) => createdTab = properties);
-      stub(chrome.tabs, "sendMessage", () => tabWasMessaged = true);
+  should("open the command palette over the active tab", async () => {
+    let sentMessage;
+    let sentOptions;
+    stub(chrome.tabs, "sendMessage", async (tabId, message, options) => {
+      sentMessage = { tabId, message };
+      sentOptions = options;
+    });
 
-      await handleExtensionCommand("open-command-bar", undefined);
+    await handleExtensionCommand("open-command-bar", { id: 42 });
 
-      assert.equal({
-        active: true,
-        url: "chrome-extension://suda/pages/new_tab.html?sudaCommandBar=all",
-      }, createdTab);
-      assert.isFalse(tabWasMessaged);
-    },
-  );
+    assert.equal(42, sentMessage.tabId);
+    assert.equal("runInTopFrame", sentMessage.message.handler);
+    assert.equal("CommandPalette.activateAll", sentMessage.message.registryEntry.command);
+    assert.equal({ frameId: 0 }, sentOptions);
+  });
 
   should("keep the native command palette available in command-palette-only mode", async () => {
-    let createdTab;
+    let sentMessage;
     await Settings.onLoaded();
     Settings._settings.commandBarOnly = true;
-    stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
-    stub(chrome.tabs, "create", async (properties) => createdTab = properties);
+    stub(chrome.tabs, "sendMessage", async (_tabId, message) => sentMessage = message);
 
-    await handleExtensionCommand("open-command-bar", undefined);
+    await handleExtensionCommand("open-command-bar", { id: 42 });
 
-    assert.isTrue(createdTab.active);
-    assert.isTrue(createdTab.url.endsWith("pages/new_tab.html?sudaCommandBar=all"));
+    assert.equal("CommandPalette.activateAll", sentMessage.registryEntry.command);
   });
 
   should("search copied text globally without messaging the active tab", async () => {
@@ -87,28 +82,77 @@ context("extension command", () => {
   });
 
   should("ignore the native command-palette shortcut when its action is disabled", async () => {
-    let createdTab = false;
+    let tabWasMessaged = false;
     await Settings.onLoaded();
     Settings._settings.disabledActions = ["CommandPalette.activateAll"];
-    stub(chrome.tabs, "create", () => createdTab = true);
+    stub(chrome.tabs, "sendMessage", () => tabWasMessaged = true);
 
-    await handleExtensionCommand("open-command-bar", undefined);
+    await handleExtensionCommand("open-command-bar", { id: 42 });
 
-    assert.isFalse(createdTab);
+    assert.isFalse(tabWasMessaged);
   });
 
-  should("ignore active-tab metadata when opening the global command palette", async () => {
+  should(
+    "find the active tab when Chrome does not provide it to the command listener",
+    async () => {
+      let tabsQuery;
+      let messagedTabId;
+      stub(chrome.tabs, "query", async (query) => {
+        tabsQuery = query;
+        return [{ id: 42 }];
+      });
+      stub(chrome.tabs, "sendMessage", async (tabId) => messagedTabId = tabId);
+
+      await handleExtensionCommand("open-command-bar", undefined);
+
+      assert.equal({ active: true, lastFocusedWindow: true }, tabsQuery);
+      assert.equal(42, messagedTabId);
+    },
+  );
+
+  should("repair a pre-extension-reload tab before opening the command palette", async () => {
+    let sendCount = 0;
+    let executeDetails;
+    stub(chrome.tabs, "sendMessage", async () => {
+      sendCount += 1;
+      if (sendCount === 1) {
+        throw new Error("Could not establish connection. Receiving end does not exist.");
+      }
+    });
+    stub(chrome.scripting, "insertCSS", async () => {});
+    stub(chrome.scripting, "executeScript", async (details) => executeDetails = details);
+
+    await handleExtensionCommand("open-command-bar", { id: 42 });
+
+    assert.equal(2, sendCount);
+    assert.equal({ tabId: 42, frameIds: [0] }, executeDetails.target);
+    assert.equal(chrome.runtime.getManifest().content_scripts[0].js, executeDetails.files);
+  });
+
+  should("open a command-palette new-tab fallback when the current page is protected", async () => {
     let createdTab;
     stub(chrome.runtime, "getURL", (path) => `chrome-extension://suda/${path}`);
-    stub(chrome.tabs, "create", (properties) => createdTab = properties);
+    stub(chrome.tabs, "sendMessage", async () => {
+      throw new Error("Could not establish connection. Receiving end does not exist.");
+    });
+    stub(chrome.scripting, "insertCSS", async () => {
+      throw new Error("Cannot access a chrome:// URL");
+    });
+    stub(chrome.scripting, "executeScript", async () => {
+      throw new Error("Cannot access a chrome:// URL");
+    });
+    stub(chrome.tabs, "create", async (properties) => createdTab = properties);
 
     await handleExtensionCommand("open-command-bar", { id: 42, index: 3, windowId: 7 });
 
     assert.equal(true, createdTab.active);
-    assert.equal(undefined, createdTab.index);
-    assert.equal(undefined, createdTab.openerTabId);
-    assert.equal(undefined, createdTab.windowId);
-    assert.isTrue(createdTab.url.endsWith("pages/new_tab.html?sudaCommandBar=all"));
+    assert.equal(42, createdTab.openerTabId);
+    assert.equal(4, createdTab.index);
+    assert.equal(7, createdTab.windowId);
+    assert.equal(
+      "chrome-extension://suda/pages/new_tab.html?sudaCommandBar=all",
+      createdTab.url,
+    );
   });
 });
 

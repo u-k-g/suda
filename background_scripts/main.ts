@@ -68,19 +68,84 @@ export async function searchClipboardTextInNewTab() {
   await chrome.search.query({ disposition: "NEW_TAB", text: query });
 }
 
-export async function handleExtensionCommand(command) {
-  // Extension shortcuts are deliberately handled without consulting or messaging the active tab.
-  // This keeps them working on excluded, protected, and pre-extension-reload pages.
+const openCommandPaletteMessage = {
+  handler: "runInTopFrame",
+  sourceFrameId: 0,
+  registryEntry: {
+    command: "CommandPalette.activateAll",
+    options: {},
+  },
+};
+
+async function sendOpenCommandPalette(tabId) {
+  return await chrome.tabs.sendMessage(tabId, openCommandPaletteMessage, { frameId: 0 });
+}
+
+async function injectCurrentContentScripts(tabId) {
+  const contentScriptConfig = chrome.runtime.getManifest().content_scripts[0];
+  const target = { tabId, frameIds: [0] };
+  await Promise.allSettled([
+    chrome.scripting.insertCSS({ files: contentScriptConfig.css, target }),
+    chrome.scripting.insertCSS({ css: Settings.get("userDefinedLinkHintCss"), target }),
+  ]);
+  await chrome.scripting.executeScript({ files: contentScriptConfig.js, target });
+}
+
+async function openCommandPaletteFallback(tab) {
+  const createProperties = {
+    active: true,
+    url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
+  };
+  if (Number.isInteger(tab?.id)) createProperties.openerTabId = tab.id;
+  if (Number.isInteger(tab?.index)) createProperties.index = tab.index + 1;
+  if (Number.isInteger(tab?.windowId)) createProperties.windowId = tab.windowId;
+  return await chrome.tabs.create(createProperties);
+}
+
+export async function openGlobalCommandPalette(tab) {
+  if (tab?.id == null) {
+    [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  }
+  if (tab?.id == null) return false;
+
+  try {
+    await sendOpenCommandPalette(tab.id);
+    return true;
+  } catch (error) {
+    if (!bgUtils.tabCannotReceiveMessage(error)) throw error;
+  }
+
+  // An extension reload invalidates content scripts in existing documents. Repair scriptable tabs
+  // in place, then retry until the newly injected frontend has installed its message listener.
+  try {
+    await injectCurrentContentScripts(tab.id);
+  } catch {
+    // Browser-owned pages and extension stores cannot host an extension overlay. Use Suda's local
+    // new-tab launcher because the protected chrome://new-tab page cannot host one either.
+    return await openCommandPaletteFallback(tab);
+  }
+  for (const delay of [0, 25, 100, 250]) {
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    try {
+      await sendOpenCommandPalette(tab.id);
+      return true;
+    } catch (error) {
+      if (!bgUtils.tabCannotReceiveMessage(error)) throw error;
+    }
+  }
+  return await openCommandPaletteFallback(tab);
+}
+
+export async function handleExtensionCommand(command, tab) {
+  // Clipboard search does not consult or message the active tab, so it works even where a page
+  // overlay cannot.
   if (command === "search-copied-text-in-new-tab") {
     if (!Settings.isActionEnabled("searchCopiedTextInNewTab")) return;
     return await searchClipboardTextInNewTab();
   }
   if (command === "open-command-bar") {
     if (!Settings.isActionEnabled("CommandPalette.activateAll")) return;
-    return await chrome.tabs.create({
-      active: true,
-      url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
-    });
+    return await openGlobalCommandPalette(tab);
   }
 }
 
@@ -1185,6 +1250,7 @@ Object.assign(globalThis, {
   getTabSlotState,
   selectSpecificTab,
   handleExtensionCommand,
+  openGlobalCommandPalette,
   searchClipboardTextInNewTab,
 });
 
