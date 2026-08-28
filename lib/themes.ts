@@ -203,6 +203,18 @@ const ThemeManager = {
     return this.ensureContrast(this.mixHexColors(accent, "#000000", 0.55), theme.background, 4.5);
   },
 
+  // Content scripts run in an isolated JavaScript world, but their `document` is still the host
+  // website's document. Only set the document color scheme for Suda-owned extension pages (or an
+  // explicitly supplied non-document root); setting it on a host page changes the page's default
+  // canvas and text colors.
+  shouldApplyColorScheme(root) {
+    const ownerDocument = root?.ownerDocument;
+    if (!ownerDocument || root !== ownerDocument.documentElement) return true;
+    return ["chrome-extension:", "moz-extension:", "safari-web-extension:"].includes(
+      ownerDocument.location?.protocol,
+    );
+  },
+
   apply(themeId, root = globalThis.document?.documentElement, accentColor = null) {
     const theme = this.get(themeId);
     if (!theme || !root) return;
@@ -254,29 +266,47 @@ const ThemeManager = {
       "--suda-foreground-text-color": theme.foreground,
       "--suda-link-color": accentText,
       "--suda-error-color": theme.danger,
-      "--gruvbox-bg-hard": theme.background,
-      "--gruvbox-bg": theme.surface,
-      "--gruvbox-bg-soft": theme.surface,
-      "--gruvbox-bg-1": theme.surface,
-      "--gruvbox-bg-2": theme.border,
-      "--gruvbox-fg": theme.foreground,
-      "--gruvbox-white": theme.foreground,
-      "--gruvbox-fg-muted": theme.muted,
-      "--gruvbox-fg-dim": theme.muted,
-      "--gruvbox-yellow": accent,
-      "--gruvbox-yellow-bright": accent,
-      "--gruvbox-orange": theme.warning,
-      "--gruvbox-red": theme.danger,
-      "--gruvbox-green": theme.success,
-      "--gruvbox-green-bright": theme.success,
-      "--gruvbox-aqua": accent,
-      "--gruvbox-blue": accent,
-      "--gruvbox-purple": accent,
+
+      // Concise, theme-neutral palette aliases for user CSS.
+      "--suda-bg": theme.background,
+      "--suda-surface": theme.surface,
+      "--suda-border": theme.border,
+      "--suda-fg": theme.foreground,
+      "--suda-muted": theme.muted,
+      "--suda-accent": accent,
+      "--suda-warning": theme.warning,
+      "--suda-danger": theme.danger,
+      "--suda-success": theme.success,
     };
+
+    // Older builds exposed Gruvbox-specific aliases for every theme. Remove any values left by an
+    // older content script so the selected palette is represented only by Suda-named properties.
+    for (
+      const name of [
+        "--gruvbox-bg-hard",
+        "--gruvbox-bg",
+        "--gruvbox-bg-soft",
+        "--gruvbox-bg-1",
+        "--gruvbox-bg-2",
+        "--gruvbox-fg",
+        "--gruvbox-white",
+        "--gruvbox-fg-muted",
+        "--gruvbox-fg-dim",
+        "--gruvbox-yellow",
+        "--gruvbox-yellow-bright",
+        "--gruvbox-orange",
+        "--gruvbox-red",
+        "--gruvbox-green",
+        "--gruvbox-green-bright",
+        "--gruvbox-aqua",
+        "--gruvbox-blue",
+        "--gruvbox-purple",
+      ]
+    ) root.style.removeProperty?.(name);
 
     root.dataset.sudaTheme = theme.id;
     root.dataset.sudaThemeMode = theme.mode;
-    root.style.colorScheme = theme.mode;
+    if (this.shouldApplyColorScheme(root)) root.style.colorScheme = theme.mode;
     for (const [name, value] of Object.entries(properties)) root.style.setProperty(name, value);
   },
 };

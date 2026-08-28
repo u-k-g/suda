@@ -679,9 +679,9 @@ context("tab completer", () => {
     assert.equal({ currentWindow: true }, tabsQuery);
   });
 
-  should("hide collapsed-group tabs until a query is entered", async () => {
+  should("hide collapsed-group tabs even when a query is entered", async () => {
     tabs = [
-      { url: "visible.com", title: "visible", id: 1, index: 0, groupId: -1 },
+      { url: "visible.com", title: "visible", id: 1, index: 0, groupId: 43 },
       { url: "hidden.com", title: "hidden", id: 2, index: 1, groupId: 42 },
     ];
     collapsedGroups = [{ id: 42, collapsed: true }];
@@ -690,7 +690,7 @@ context("tab completer", () => {
     const searchResults = await filterCompleter(completer, ["hidden"]);
 
     assert.equal(["visible.com"], emptyResults.map((tab) => tab.url));
-    assert.equal(["hidden.com"], searchResults.map((tab) => tab.url));
+    assert.equal([], searchResults.map((tab) => tab.url));
     assert.equal({}, tabsQuery);
   });
 

@@ -20,6 +20,13 @@ context("extension command", () => {
     assert.equal("Command+T", command.suggested_key.mac);
   });
 
+  should("suggest platform shortcuts for searching copied text", () => {
+    const command = chrome.runtime.getManifest().commands["search-copied-text-in-new-tab"];
+    assert.equal("Search copied text in a new tab", command.description);
+    assert.equal("Ctrl+Shift+T", command.suggested_key.default);
+    assert.equal("Command+Shift+T", command.suggested_key.mac);
+  });
+
   should("open the all-mode command bar in the active tab's top frame", async () => {
     let sentMessage;
     let sentOptions;
@@ -49,6 +56,23 @@ context("extension command", () => {
     await handleExtensionCommand("open-command-bar", { id: 42 });
 
     assert.equal("CommandBar.activateAll", sentMessage.registryEntry.command);
+  });
+
+  should("send the copied-text search shortcut to the active tab's top frame", async () => {
+    let sentMessage;
+    let sentOptions;
+    stub(chrome.tabs, "sendMessage", (tabId, message, options, callback) => {
+      sentMessage = { tabId, message };
+      sentOptions = options;
+      callback();
+    });
+
+    await handleExtensionCommand("search-copied-text-in-new-tab", { id: 42 });
+
+    assert.equal(42, sentMessage.tabId);
+    assert.equal("runInTopFrame", sentMessage.message.handler);
+    assert.equal("searchCopiedTextInNewTab", sentMessage.message.registryEntry.command);
+    assert.equal({ frameId: 0 }, sentOptions);
   });
 
   should("ignore the native command-bar shortcut when its action is disabled", async () => {
@@ -297,6 +321,32 @@ context("tab navigation", () => {
     await BackgroundCommands.nextTab({ count: 1, tab: tabs[0] });
 
     assert.equal(3, selectedTabId);
+  });
+});
+
+context("search queries", () => {
+  should("open a Shift-Enter search in a background tab after the current tab", async () => {
+    let createConfig;
+    let searchInfo;
+    stub(chrome.tabs, "create", async (config) => {
+      createConfig = config;
+      return { id: 99 };
+    });
+    stub(chrome.search, "query", async (info) => searchInfo = info);
+
+    await BackgroundCommands.launchSearchQuery({
+      query: "background search",
+      openInNewTab: true,
+      active: false,
+      tab: { id: 42, index: 3, windowId: 7 },
+    });
+
+    assert.equal(false, createConfig.active);
+    assert.equal(4, createConfig.index);
+    assert.equal(7, createConfig.windowId);
+    assert.equal(42, createConfig.openerTabId);
+    assert.equal("background search", searchInfo.text);
+    assert.equal(99, searchInfo.tabId);
   });
 });
 

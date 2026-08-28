@@ -533,24 +533,23 @@ export class DomainCompleter {
   }
 }
 
-// Searches through all open tabs, matching on title and URL. With an empty query, mirror the
-// current window's tab strip: preserve tab-index order and omit tabs hidden in collapsed groups.
-// Once the user types, search every tab, including tabs in collapsed groups and other windows.
+// Searches through all open tabs, matching on title and URL. Tabs hidden in collapsed groups are
+// always omitted. With an empty query, mirror the current window's tab strip in tab-index order;
+// once the user types, search visible tabs across every window.
 export class TabCompleter {
   async filter({ queryTerms }) {
     const hasQuery = queryTerms.length > 0;
-    const tabs = await chrome.tabs.query(hasQuery ? {} : { currentWindow: true });
-    let results = tabs.filter((tab) => ranking.matches(queryTerms, tab.url, tab.title));
+    const [tabs, collapsedGroups] = await Promise.all([
+      chrome.tabs.query(hasQuery ? {} : { currentWindow: true }),
+      chrome.tabGroups?.query ? chrome.tabGroups.query({ collapsed: true }) : [],
+    ]);
+    const collapsedGroupIds = new Set(collapsedGroups.map((group) => group.id));
+    let results = tabs.filter((tab) =>
+      !collapsedGroupIds.has(tab.groupId) && ranking.matches(queryTerms, tab.url, tab.title)
+    );
 
     if (!hasQuery) {
-      const collapsedGroupIds = new Set();
-      if (chrome.tabGroups?.query) {
-        const collapsedGroups = await chrome.tabGroups.query({ collapsed: true });
-        for (const group of collapsedGroups) collapsedGroupIds.add(group.id);
-      }
-      results = results
-        .filter((tab) => !collapsedGroupIds.has(tab.groupId))
-        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+      results = results.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
     }
 
     const suggestions = results

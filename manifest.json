@@ -44,6 +44,13 @@
         "mac": "Command+T"
       },
       "description": "Open Suda's all-mode command bar"
+    },
+    "search-copied-text-in-new-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "Command+Shift+T"
+      },
+      "description": "Search copied text in a new tab"
     }
   },
   "content_scripts": [

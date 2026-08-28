@@ -133,8 +133,12 @@ context("options page", () => {
       "Replace new tabs with the Command Bar",
       guide.querySelector("h2").textContent,
     );
-    assert.isTrue(guide.textContent.includes("helium://extensions/shortcuts"));
     assert.isTrue(guide.textContent.includes("chrome://extensions/shortcuts"));
+    assert.isFalse(guide.textContent.includes("helium://extensions/shortcuts"));
+    assert.equal(
+      "chrome://extensions/shortcuts",
+      guide.querySelector('a[href="chrome://extensions/shortcuts"]').getAttribute("href"),
+    );
     assert.isTrue(guide.textContent.includes("Open Suda's all-mode command bar"));
     assert.equal(guide, document.querySelector("#settings-grid-container").lastElementChild);
   });
@@ -144,8 +148,12 @@ context("options page", () => {
     assert.isTrue(commandBarOnly.checked);
     assert.isTrue(
       commandBarOnly.closest(".setting-row").textContent.includes(
-        "helium://extensions/shortcuts",
+        "chrome://extensions/shortcuts",
       ),
+    );
+    assert.equal(
+      "chrome://extensions/shortcuts",
+      commandBarOnly.closest(".setting-row").querySelector("a").getAttribute("href"),
     );
 
     commandBarOnly.checked = false;

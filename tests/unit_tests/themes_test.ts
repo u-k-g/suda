@@ -138,7 +138,7 @@ context("themes", () => {
     }
   });
 
-  should("apply semantic colors and light-dark browser controls", () => {
+  should("apply semantic colors and light-dark browser controls to Suda-owned roots", () => {
     const properties = new Map();
     const root = {
       dataset: {},
@@ -160,6 +160,57 @@ context("themes", () => {
     assert.equal("#e5484d", properties.get("--suda-danger-color"));
     assert.equal("#f5a524", properties.get("--suda-warning-color"));
     assert.equal("#30a46c", properties.get("--suda-success-color"));
+  });
+
+  should("not override a host page's color scheme", () => {
+    const properties = new Map();
+    const ownerDocument = {
+      documentElement: null,
+      location: { protocol: "https:" },
+    };
+    const root = {
+      ownerDocument,
+      dataset: {},
+      style: {
+        colorScheme: "dark",
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+    ownerDocument.documentElement = root;
+
+    ThemeManager.apply("zen-day", root);
+
+    assert.equal("dark", root.style.colorScheme);
+    assert.equal("zen-day", root.dataset.sudaTheme);
+    assert.equal("#f4f1ed", properties.get("--suda-canvas-color"));
+  });
+
+  should("expose neutral Suda palette aliases and remove legacy Gruvbox properties", () => {
+    const properties = new Map();
+    const root = {
+      dataset: {},
+      style: {
+        colorScheme: "",
+        removeProperty: (name) => properties.delete(name),
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+
+    properties.set("--gruvbox-bg", "stale");
+    properties.set("--gruvbox-fg", "stale");
+    ThemeManager.apply("gruvbox-night", root);
+    assert.equal(undefined, properties.get("--gruvbox-bg"));
+    assert.equal(undefined, properties.get("--gruvbox-fg"));
+    assert.equal(ThemeManager.get("gruvbox-night").background, properties.get("--suda-bg"));
+    assert.equal(ThemeManager.get("gruvbox-night").foreground, properties.get("--suda-fg"));
+
+    ThemeManager.apply("grove", root);
+    assert.equal(undefined, properties.get("--gruvbox-bg"));
+    assert.equal(undefined, properties.get("--gruvbox-fg"));
+    assert.equal("#1b2821", properties.get("--suda-bg"));
+    assert.equal(ThemeManager.get("grove").surface, properties.get("--suda-surface"));
+    assert.equal("#fffaff", properties.get("--suda-fg"));
+    assert.equal(ThemeManager.get("grove").accent, properties.get("--suda-accent"));
   });
 
   should("apply a normalized custom accent only to capable themes", () => {

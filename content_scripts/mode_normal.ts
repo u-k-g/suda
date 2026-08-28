@@ -176,6 +176,16 @@ const NormalModeCommands = {
     );
   },
 
+  searchCopiedTextInNewTab() {
+    HUD.pasteFromClipboard((query) =>
+      chrome.runtime.sendMessage({
+        handler: "launchSearchQuery",
+        query,
+        openInNewTab: true,
+      })
+    );
+  },
+
   // Mode changes.
   enterInsertMode() {
     // If a focusable element receives the focus, then we exit and leave the permanently-installed

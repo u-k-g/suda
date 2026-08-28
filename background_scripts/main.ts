@@ -32,8 +32,13 @@ import {
 import * as TabOperations from "./tab_operations.js";
 
 export async function handleExtensionCommand(command, tab) {
-  if (command !== "open-command-bar" || tab?.id == null) return;
-  if (!Settings.isActionEnabled("CommandBar.activateAll")) return;
+  if (tab?.id == null) return;
+  const actionByCommand = {
+    "open-command-bar": "CommandBar.activateAll",
+    "search-copied-text-in-new-tab": "searchCopiedTextInNewTab",
+  };
+  const action = actionByCommand[command];
+  if (action == null || !Settings.isActionEnabled(action)) return;
   await bgUtils.runTabCallbackOperation(
     (callback) =>
       chrome.tabs.sendMessage(
@@ -42,23 +47,25 @@ export async function handleExtensionCommand(command, tab) {
           handler: "runInTopFrame",
           sourceFrameId: 0,
           registryEntry: {
-            command: "CommandBar.activateAll",
+            command: action,
             options: {},
           },
         },
         { frameId: 0 },
         callback,
       ),
-    () => {
-      const createProperties = {
-        active: true,
-        openerTabId: tab.id,
-        url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
-      };
-      if (Number.isInteger(tab.index)) createProperties.index = tab.index + 1;
-      if (Number.isInteger(tab.windowId)) createProperties.windowId = tab.windowId;
-      return chrome.tabs.create(createProperties);
-    },
+    command === "open-command-bar"
+      ? () => {
+        const createProperties = {
+          active: true,
+          openerTabId: tab.id,
+          url: chrome.runtime.getURL("pages/new_tab.html?sudaCommandBar=all"),
+        };
+        if (Number.isInteger(tab.index)) createProperties.index = tab.index + 1;
+        if (Number.isInteger(tab.windowId)) createProperties.windowId = tab.windowId;
+        return chrome.tabs.create(createProperties);
+      }
+      : null,
   );
 }
 
@@ -492,6 +499,17 @@ const BackgroundCommands = {
     });
   },
 
+  launchSearchQuery(request) {
+    let { query, openInNewTab } = request;
+    query = query?.trim();
+    if (!query) return;
+    if (openInNewTab && request.active === false) {
+      return TabOperations.openUrlInNewTab({ ...request, url: query, active: false });
+    }
+    const disposition = openInNewTab ? "NEW_TAB" : "CURRENT_TAB";
+    return chrome.search.query({ disposition, text: query });
+  },
+
   // Create a new tab. Also, with:
   //     map X createTab http://www.bbc.com/news
   // create a new tab with the given URL.
@@ -907,12 +925,7 @@ const sendRequestHandlers = {
   openUrlInCurrentTab: TabOperations.openUrlInCurrentTab,
   openOptionsPageInNewTab: BackgroundCommands.openOptionsPage,
 
-  launchSearchQuery({ query, openInNewTab }) {
-    query = query?.trim();
-    if (!query) return;
-    const disposition = openInNewTab ? "NEW_TAB" : "CURRENT_TAB";
-    return chrome.search.query({ disposition, text: query });
-  },
+  launchSearchQuery: BackgroundCommands.launchSearchQuery,
 
   domReady(_, sender) {
     const isTopFrame = sender.frameId == 0;

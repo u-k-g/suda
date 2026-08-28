@@ -260,6 +260,26 @@ context("disabled actions", () => {
   );
 });
 
+context("clipboard search", () => {
+  should("search copied text instead of treating it as a URL", () => {
+    let sentMessage;
+    stub(globalThis, "HUD", {
+      pasteFromClipboard(callback) {
+        callback("https://example.com copied as search text");
+      },
+    });
+    stub(chrome.runtime, "sendMessage", (message) => sentMessage = message);
+
+    NormalModeCommands.searchCopiedTextInNewTab();
+
+    assert.equal({
+      handler: "launchSearchQuery",
+      query: "https://example.com copied as search text",
+      openInNewTab: true,
+    }, sentMessage);
+  });
+});
+
 context("Validate commands and options data structures", () => {
   should("have either noRepeat or repeatLimit, but not both", () => {
     for (const command of allCommands) {

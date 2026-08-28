@@ -437,6 +437,24 @@ context("commandBar page", () => {
     assert.isTrue(launchedSearch.openInNewTab);
   });
 
+  should("open a Shift-Enter modeless search in a background tab", async () => {
+    let launchedSearch = null;
+    stub(chrome.runtime, "sendMessage", async (message) => {
+      if (message.handler === "filterCompletions") return [];
+      if (message.handler === "launchSearchQuery") launchedSearch = message;
+    });
+    await commandBarPage.activate({ mode: "", completer: "omni", newTab: true });
+    ui.setQuery("keep this tab active");
+    await ui.update();
+
+    await ui.onKeyEvent(newKeyEvent({ type: "keypress", key: "Enter", shiftKey: true }));
+    ui.onHidden();
+
+    assert.equal("keep this tab active", launchedSearch.query);
+    assert.isTrue(launchedSearch.openInNewTab);
+    assert.isFalse(launchedSearch.active);
+  });
+
   should("put the exact typed query first in search and URL modes", async () => {
     stub(chrome.runtime, "sendMessage", async (message) => {
       if (message.handler === "filterCompletions") {

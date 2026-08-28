@@ -124,6 +124,13 @@ const allCommands = [
   },
 
   {
+    name: "searchCopiedTextInNewTab",
+    desc: "Search the clipboard's text in a new tab",
+    group: "navigation",
+    noRepeat: true,
+  },
+
+  {
     name: "goToRoot",
     desc: "Go to the root of current URL hierarchy",
     group: "navigation",

@@ -838,6 +838,7 @@ class CommandBarUI {
 
     const openInNewTab = this.forceNewTab || event.shiftKey || event.ctrlKey || event.altKey ||
       event.metaKey;
+    const openInBackground = event.shiftKey;
 
     // If the user types something and hits enter without selecting a completion from the list,
     // then:
@@ -858,7 +859,7 @@ class CommandBarUI {
       // (waitingOnCompletions).
       if (this.isUserSearchEngineActive()) {
         query = UrlUtils.createSearchUrl(query, this.activeUserSearchEngine.url);
-        this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
+        this.hideAfterCommit(() => this.launchUrl(query, openInNewTab, openInBackground));
         return;
       }
 
@@ -870,29 +871,30 @@ class CommandBarUI {
       if (isPrimary) {
         query = UrlUtils.createSearchUrl(query, firstCompletion.searchUrl);
         this.consumeDraft();
-        await this.launchUrl(query, openInNewTab);
+        await this.launchUrl(query, openInNewTab, openInBackground);
       } else {
         // If the query looks like a URL, try to open it directly. Otherwise, pass the query to
         // the user's default search engine.
         // TODO(philc):
         const isUrl = await UrlUtils.isUrl(query);
         if (isUrl) {
-          this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
+          this.hideAfterCommit(() => this.launchUrl(query, openInNewTab, openInBackground));
         } else {
           this.hideAfterCommit(() =>
             chrome.runtime.sendMessage({
               handler: "launchSearchQuery",
               query,
               openInNewTab,
+              active: !openInBackground,
             })
           );
         }
       }
     } else if (isPrimarySearchSuggestion(completion)) {
       query = UrlUtils.createSearchUrl(query, completion.searchUrl);
-      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
+      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab, openInBackground));
     } else if (completion.verbatimQuery != null) {
-      await this.launchVerbatimQuery(completion.verbatimQuery, openInNewTab);
+      await this.launchVerbatimQuery(completion.verbatimQuery, openInNewTab, openInBackground);
     } else if (completion.command) {
       this.hideAfterCommit(async () => {
         await chrome.runtime.sendMessage({
@@ -902,19 +904,20 @@ class CommandBarUI {
         });
       });
     } else {
-      this.hideAfterCommit(() => this.openCompletion(completion, openInNewTab));
+      this.hideAfterCommit(() => this.openCompletion(completion, openInNewTab, openInBackground));
     }
   }
 
-  async launchVerbatimQuery(query, openInNewTab) {
+  async launchVerbatimQuery(query, openInNewTab, openInBackground = false) {
     if (await UrlUtils.isUrl(query)) {
-      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab));
+      this.hideAfterCommit(() => this.launchUrl(query, openInNewTab, openInBackground));
     } else {
       this.hideAfterCommit(() =>
         chrome.runtime.sendMessage({
           handler: "launchSearchQuery",
           query,
           openInNewTab,
+          active: !openInBackground,
         })
       );
     }
@@ -1121,15 +1124,15 @@ class CommandBarUI {
     this.input.focus();
   }
 
-  openCompletion(completion, openInNewTab) {
+  openCompletion(completion, openInNewTab, openInBackground = false) {
     if (completion.kind === "tab") {
       chrome.runtime.sendMessage({ handler: "selectSpecificTab", id: completion.tabId });
     } else {
-      this.launchUrl(completion.url, openInNewTab);
+      this.launchUrl(completion.url, openInNewTab, openInBackground);
     }
   }
 
-  async launchUrl(url, openInNewTab = false) {
+  async launchUrl(url, openInNewTab = false, openInBackground = false) {
     // If the URL is a bookmarklet (so, prefixed with "javascript:"), then always open it in the
     // current tab.
     if (openInNewTab && UrlUtils.hasJavascriptProtocol(url)) {
@@ -1138,6 +1141,7 @@ class CommandBarUI {
     await chrome.runtime.sendMessage({
       handler: openInNewTab ? "openUrlInNewTab" : "openUrlInCurrentTab",
       url,
+      active: !openInBackground,
     });
   }
 
