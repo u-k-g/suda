@@ -77,3 +77,33 @@ context("runTabCallbackOperation", () => {
     assert.equal("Unexpected failure", caughtError.message);
   });
 });
+
+context("topFrameHasSudaIsolatedWorld", () => {
+  should("detect an existing Suda isolated world", async () => {
+    const original = chrome.scripting.executeScript;
+    chrome.scripting.executeScript = (async () => [{
+      documentId: "test-document",
+      frameId: 0,
+      result: true,
+    }]) as typeof chrome.scripting.executeScript;
+    try {
+      const result = await bgUtils.topFrameHasSudaIsolatedWorld(1);
+      assert.isTrue(result);
+    } finally {
+      chrome.scripting.executeScript = original;
+    }
+  });
+
+  should("treat probe failures as not loaded", async () => {
+    const original = chrome.scripting.executeScript;
+    chrome.scripting.executeScript = (async () => {
+      throw new Error("Cannot access this page");
+    }) as typeof chrome.scripting.executeScript;
+    try {
+      const result = await bgUtils.topFrameHasSudaIsolatedWorld(1);
+      assert.isFalse(result);
+    } finally {
+      chrome.scripting.executeScript = original;
+    }
+  });
+});

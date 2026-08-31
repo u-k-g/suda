@@ -142,6 +142,9 @@ export async function openGlobalCommandPalette(tab) {
 
   // An extension reload invalidates content scripts in existing documents. Repair scriptable tabs
   // in place, then retry until the newly injected frontend has installed its message listener.
+  if (await bgUtils.topFrameHasSudaIsolatedWorld(tab.id)) {
+    return await openCommandPaletteFallback(tab);
+  }
   try {
     await injectCurrentContentScripts(tab.id);
   } catch {

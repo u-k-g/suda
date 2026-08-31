@@ -3,6 +3,7 @@ import "../lib/utils.js";
 import "../lib/dom_utils.js";
 import "../lib/settings.js";
 
+import * as bgUtils from "../background_scripts/bg_utils.js";
 import { generateDefaultPattern } from "../background_scripts/exclusions.js";
 import { ExclusionRulesEditor } from "./exclusion_rules_editor.js";
 
@@ -83,6 +84,10 @@ const ActionPage = {
     // A normal web page can be missing Suda after an extension reload, because site access was
     // limited, or because the content script was still starting when the popup opened. Invoking
     // the toolbar action grants activeTab access, so use it to repair the current top frame.
+    if (await bgUtils.topFrameHasSudaIsolatedWorld(tab.id)) {
+      return { installed: false };
+    }
+
     let error;
     try {
       const contentScriptConfig = chrome.runtime.getManifest().content_scripts[0];
