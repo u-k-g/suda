@@ -77,7 +77,7 @@ context("themes", () => {
 
   should("use the Jade palette", () => {
     const jade = ThemeManager.get("jade");
-    assert.equal("#06100c", jade.background);
+    assert.equal("#071c15", jade.background);
     assert.equal("#121c15", jade.surface);
     assert.equal("#cace9e", jade.foreground);
     assert.equal("#2dd5b7", jade.accent);

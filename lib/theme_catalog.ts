@@ -32,7 +32,7 @@ globalThis.SudaThemeCatalog = [
     "id": "jade",
     "name": "Jade",
     "mode": "dark",
-    "background": "#06100c",
+    "background": "#071c15",
     "surface": "#121c15",
     "foreground": "#cace9e",
     "muted": "#53685b",
