@@ -77,12 +77,24 @@ context("themes", () => {
 
   should("use the Jade palette", () => {
     const jade = ThemeManager.get("jade");
+    const properties = new Map();
+    const root = {
+      dataset: {},
+      style: {
+        setProperty: (name, value) => properties.set(name, value),
+      },
+    };
+
     assert.equal("#071c15", jade.background);
-    assert.equal("#121c15", jade.surface);
-    assert.equal("#cace9e", jade.foreground);
-    assert.equal("#2dd5b7", jade.accent);
+    assert.equal("#162920", jade.surface);
+    assert.equal("#051910", jade.dimmed);
+    assert.equal("#fbfbf7", jade.foreground);
+    assert.equal("#6bc3bd", jade.accent);
     assert.equal("#549e6a", jade.success);
     assert.equal("#e5c736", jade.warning);
+
+    ThemeManager.apply("jade", root);
+    assert.equal("#051910", properties.get("--suda-surface-subtle-color"));
   });
 
   should("list starred themes first, then the rest alphabetically by name", () => {

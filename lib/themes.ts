@@ -238,7 +238,8 @@ const ThemeManager = {
       // The semantic theme contract used by all built-in Suda UI.
       "--suda-canvas-color": theme.background,
       "--suda-surface-color": theme.surface,
-      "--suda-surface-subtle-color": this.mixHexColors(theme.surface, theme.background, 0.55),
+      "--suda-surface-subtle-color": theme.dimmed ??
+        this.mixHexColors(theme.surface, theme.background, 0.55),
       "--suda-surface-hover-color": this.mixHexColors(accent, theme.surface, 0.10),
       "--suda-overlay-color": overlay,
       "--suda-overlay-border-color": overlayBorder,
