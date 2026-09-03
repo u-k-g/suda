@@ -29,6 +29,21 @@ globalThis.SudaThemeCatalog = [
     "tonalSelection": true
   },
   {
+    "id": "jade",
+    "name": "Jade",
+    "mode": "dark",
+    "background": "#06100c",
+    "surface": "#121c15",
+    "foreground": "#cace9e",
+    "muted": "#53685b",
+    "border": "#374031",
+    "accent": "#2dd5b7",
+    "danger": "#ff5345",
+    "success": "#549e6a",
+    "warning": "#e5c736",
+    "tonalSelection": true
+  },
+  {
     "id": "zen-night",
     "name": "*Zen",
     "mode": "dark",

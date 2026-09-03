@@ -4,12 +4,13 @@ import "../../lib/themes.js";
 
 context("themes", () => {
   should("include the complete imported catalog and curated themes", () => {
-    assert.equal(30, ThemeManager.themes.length);
+    assert.equal(31, ThemeManager.themes.length);
     const names = new Set(ThemeManager.themes.map((theme) => theme.name));
     for (
       const name of [
         "Gruvbox",
         "Grove",
+        "Jade",
         "Everforest",
         "Iceberg",
         "Catppuccin Mocha",
@@ -72,6 +73,16 @@ context("themes", () => {
     assert.equal("#fffaff", grove.foreground);
     assert.equal("#69d69a", grove.accent);
     assert.equal("#69d69a", grove.warning);
+  });
+
+  should("use the Jade palette", () => {
+    const jade = ThemeManager.get("jade");
+    assert.equal("#06100c", jade.background);
+    assert.equal("#121c15", jade.surface);
+    assert.equal("#cace9e", jade.foreground);
+    assert.equal("#2dd5b7", jade.accent);
+    assert.equal("#549e6a", jade.success);
+    assert.equal("#e5c736", jade.warning);
   });
 
   should("list starred themes first, then the rest alphabetically by name", () => {
